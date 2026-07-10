@@ -1,0 +1,35 @@
+{
+  "name": "BlogPost",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "excerpt": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "cover_image": {
+      "type": "string"
+    },
+    "published_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "route_lat": {
+      "type": "number"
+    },
+    "route_lng": {
+      "type": "number"
+    },
+    "route_location_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "content"
+  ]
+}
