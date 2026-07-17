@@ -137,28 +137,15 @@
     text-transform: uppercase;
   }
 
-  /* Topographic background lines */
+  /* Sfondo sezioni: solo una sfumatura morbida, senza righe diagonali. */
   .topo-bg {
     background-image:
-      radial-gradient(ellipse 120% 80% at 50% 0%, transparent 40%, rgba(160, 97, 42, 0.05) 100%),
-      repeating-linear-gradient(
-        115deg,
-        transparent,
-        transparent 60px,
-        rgba(28, 24, 20, 0.03) 60px,
-        rgba(28, 24, 20, 0.03) 61px
-      );
+      radial-gradient(ellipse 120% 80% at 50% 0%, transparent 40%, rgba(160, 97, 42, 0.05) 100%);
   }
 
+  /* Le sezioni scure restano a tinta piena (nessuna filigrana diagonale). */
   .topo-dark {
-    background-image:
-      repeating-linear-gradient(
-        115deg,
-        transparent,
-        transparent 80px,
-        rgba(245, 235, 217, 0.04) 80px,
-        rgba(245, 235, 217, 0.04) 81px
-      );
+    background-image: none;
   }
 
   /* Mechanical button */
