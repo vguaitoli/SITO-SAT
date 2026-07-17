@@ -1,0 +1,3 @@
+# Sito non ancora pubblico: blocca l'indicizzazione da parte dei motori di ricerca.
+User-agent: *
+Disallow: /
