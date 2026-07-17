@@ -245,3 +245,20 @@
     transform: scale(1.1) translate3d(-2%, -1%, 0);
   }
 }
+
+/* Dissolvenza incrociata dei due video dell'hero (ciclo 14s): il video B
+   sfuma sopra A. 0-5s solo A, 5-7s dissolvenza su B, 7-12s solo B, 12-14s
+   ritorno ad A. Percentuali = secondi / 14. */
+@keyframes heroCrossfade {
+  0%,
+  35.7% {
+    opacity: 0;
+  }
+  50%,
+  85.7% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

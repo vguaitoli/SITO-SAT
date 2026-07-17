@@ -7,10 +7,17 @@ import { fotoProps } from "@/data/foto-helpers";
 
 const bg = fotoProps("hero-maxienduro-panorama");
 
-// Loop video hero (Pexels, licenza libera): drone che segue un fuoristrada
-// su una sterrata tra la macchia mediterranea. 1080p desktop, 540p mobile.
-const VIDEO_DESKTOP = "/media/hero-offroad-loop-1080.mp4";
-const VIDEO_MOBILE = "/media/hero-offroad-loop-540.mp4";
+// Due loop video dell'hero che si alternano con una dissolvenza incrociata
+// cinematografica. 1080p desktop, 540p mobile.
+const VIDEO_A_DESKTOP = "/media/hero-offroad-loop-1080.mp4";
+const VIDEO_A_MOBILE = "/media/hero-offroad-loop-540.mp4";
+const VIDEO_B_DESKTOP = "/media/hero-loop-2-1080.mp4";
+const VIDEO_B_MOBILE = "/media/hero-loop-2-540.mp4";
+
+// La dissolvenza incrociata tra i due loop è gestita interamente da
+// un'animazione CSS (@keyframes heroCrossfade in index.css): ~5s pieni per
+// ciascun video + 2s di dissolvenza, ciclo di 14s. Robusta e indipendente da
+// React ed eventi media.
 
 const container = {
   hidden: {},
@@ -23,16 +30,18 @@ const item = {
 
 export default function Hero() {
   const reduce = useReducedMotion();
-  const [videoReady, setVideoReady] = useState(false);
   const [videoError, setVideoError] = useState(false);
-  const videoRef = useRef(null);
+  const videoARef = useRef(null);
+  const videoBRef = useRef(null);
 
   // Alcuni browser mettono in pausa i video quando la pagina va in
   // background e non sempre li riavviano: riprendiamo noi al ritorno.
   useEffect(() => {
     const resume = () => {
-      const v = videoRef.current;
-      if (!document.hidden && v && v.paused) v.play().catch(() => {});
+      if (document.hidden) return;
+      [videoARef.current, videoBRef.current].forEach((v) => {
+        if (v && v.paused) v.play().catch(() => {});
+      });
     };
     document.addEventListener("visibilitychange", resume);
     return () => document.removeEventListener("visibilitychange", resume);
@@ -51,7 +60,9 @@ export default function Hero() {
     typeof window !== "undefined"
       ? window.innerWidth || document.documentElement.clientWidth
       : 0;
-  const videoSrc = vw > 0 && vw < 768 ? VIDEO_MOBILE : VIDEO_DESKTOP;
+  const isMobile = vw > 0 && vw < 768;
+  const videoASrc = isMobile ? VIDEO_A_MOBILE : VIDEO_A_DESKTOP;
+  const videoBSrc = isMobile ? VIDEO_B_MOBILE : VIDEO_B_DESKTOP;
 
   return (
     <section
@@ -76,23 +87,42 @@ export default function Hero() {
           />
         )}
         {showVideo && (
-          <video
-            ref={videoRef}
-            src={videoSrc}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            aria-hidden="true"
-            tabIndex={-1}
-            onPlaying={() => setVideoReady(true)}
-            onCanPlay={(e) => {
-              e.currentTarget.play().catch(() => {});
-            }}
-            onError={() => setVideoError(true)}
-            className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-1000 ${videoReady ? "opacity-100" : "opacity-0"}`}
-          />
+          <>
+            {/* Video A: strato di base, sempre visibile una volta pronto. */}
+            <video
+              ref={videoARef}
+              src={videoASrc}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              aria-hidden="true"
+              tabIndex={-1}
+              onCanPlay={(e) => {
+                e.currentTarget.play().catch(() => {});
+              }}
+              onError={() => setVideoError(true)}
+              className="absolute inset-0 h-full w-full object-cover object-center"
+            />
+            {/* Video B: sfuma sopra A e poi si ritira. L'opacità segue il ciclo
+                dell'animazione CSS heroCrossfade (parte da 0). */}
+            <video
+              ref={videoBRef}
+              src={videoBSrc}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              aria-hidden="true"
+              tabIndex={-1}
+              onCanPlay={(e) => {
+                e.currentTarget.play().catch(() => {});
+              }}
+              className="absolute inset-0 h-full w-full object-cover object-center opacity-0 animate-[heroCrossfade_14s_ease-in-out_infinite]"
+            />
+          </>
         )}
         {/* Gradienti per la leggibilità del testo. */}
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--obsidian)] via-[var(--obsidian)]/55 to-[var(--obsidian)]/40" />
