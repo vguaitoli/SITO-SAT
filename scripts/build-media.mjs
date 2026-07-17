@@ -85,6 +85,8 @@ const PHOTOS = [
     alt: "Rider in sosta con la moto lungo un tratto costiero sterrato" },
   { src: "hero-trail-nuova.webp", slug: "ssv-spiaggia-flotta", cat: "ssv",
     alt: "Flotta di SSV schierata su una spiaggia sarda al termine di un tour" },
+  { src: "chi-siamo-gruppo-spiaggia.webp", slug: "chi-siamo-gruppo", cat: "enduro",
+    alt: "Gruppo di rider enduro schierati con le moto lungo la costa sarda, mani alzate al saluto" },
 ];
 
 async function main() {

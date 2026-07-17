@@ -340,5 +340,18 @@ export const FOTO = [
       1200
     ],
     "source": "hero-trail-nuova.webp"
+  },
+  {
+    "slug": "chi-siamo-gruppo",
+    "cat": "enduro",
+    "alt": "Gruppo di rider enduro schierati con le moto lungo la costa sarda, mani alzate al saluto",
+    "aspect": 1.3333,
+    "widths": [
+      480,
+      768,
+      1200,
+      1800
+    ],
+    "source": "chi-siamo-gruppo-spiaggia.webp"
   }
 ];

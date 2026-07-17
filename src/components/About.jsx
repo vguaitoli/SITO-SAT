@@ -10,8 +10,8 @@ export default function About() {
           {/* Fotografia reale */}
           <Reveal className="relative order-2 lg:order-1">
             <Photo
-              slug="guida-sentiero"
-              ratio="4/5"
+              slug="chi-siamo-gruppo"
+              ratio="4/3"
               sizes="(min-width: 1024px) 45vw, 100vw"
               className="w-full"
               overlay
