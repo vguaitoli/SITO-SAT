@@ -1,6 +1,7 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import { X, Clock, Gauge, TrendingUp, ShieldCheck, Send } from "lucide-react";
+import { fotoProps } from "@/data/foto-helpers";
 
 const EQUIPAGGIAMENTO = [
   "Mezzo con gomme tassellate o miste in buono stato, tagliando recente e paramotore/paracolpi montati",
@@ -49,15 +50,21 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
 
           {tour.tappe && tour.tappe.length > 0 ? (
             <div className="space-y-6">
-              {tour.tappe.map((tappa, i) => (
+              {tour.tappe.map((tappa, i) => {
+                const foto = fotoProps(tappa.foto);
+                return (
                 <div key={i} className="flex flex-col sm:flex-row gap-4 border-t border-[#F5EBD9]/10 pt-6 first:border-0 first:pt-0">
-                  <img
-                    src={tappa.img}
-                    alt={tappa.title}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full sm:w-40 h-32 object-cover flex-shrink-0"
-                  />
+                  {foto && (
+                    <img
+                      src={foto.src}
+                      srcSet={foto.srcSet}
+                      sizes="(min-width: 640px) 160px, 100vw"
+                      alt={foto.alt}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full sm:w-40 h-32 object-cover flex-shrink-0"
+                    />
+                  )}
                   <div>
                     <span className="font-button text-[10px] tracking-[0.15em] uppercase" style={{ color }}>
                       Giorno {i + 1}
@@ -66,7 +73,8 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
                     <p className="font-body text-sm text-[#F5EBD9]/70 leading-relaxed">{tappa.desc}</p>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <p className="font-body text-sm text-[#F5EBD9]/50 italic">

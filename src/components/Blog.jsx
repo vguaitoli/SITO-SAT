@@ -52,7 +52,7 @@ export default function Blog() {
               >
                 <div className="aspect-[4/3] overflow-hidden">
                   <img
-                    src={post.cover_image || "/media/sunset-group.png?v=real2"}
+                    src={post.cover_image || "/media/reali/gruppo-altopiano-1200.webp"}
                     alt={post.title}
                     loading="lazy"
                     decoding="async"

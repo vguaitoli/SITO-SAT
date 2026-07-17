@@ -1,66 +1,75 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ list:async()=>[], filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
 import React from "react";
-import { Check } from "lucide-react";
+import Reveal from "@/components/Reveal";
+import { fotoProps } from "@/data/foto-helpers";
 
 const reasons = [
-  "Guide locali esperte",
-  "Percorsi esclusivi",
-  "Natura incontaminata",
-  "Assistenza tecnica",
-  "Esperienze autentiche",
-  "Piccoli gruppi",
+  { label: "Guide locali esperte", desc: "Sardi che conoscono ogni tratturo, non accompagnatori improvvisati." },
+  { label: "Percorsi esclusivi", desc: "Tracciati costruiti negli anni, lontani dai circuiti turistici." },
+  { label: "Natura incontaminata", desc: "Supramonte, Gennargentu, coste raggiungibili solo in fuoristrada." },
+  { label: "Assistenza tecnica", desc: "Supporto meccanico e mezzo di appoggio lungo tutto il percorso." },
+  { label: "Esperienze autentiche", desc: "Borghi, pinnette, prodotti locali: la Sardegna vera, non la cartolina." },
+  { label: "Piccoli gruppi", desc: "Numeri contenuti per sicurezza, ritmo e attenzione a ogni partecipante." },
 ];
+
+const photo = fotoProps("guida-sentiero");
 
 export default function WhyChoose() {
   return (
-    <section className="bg-[#1C1814] py-16 lg:py-20 border-y border-[#A0612A]/20">
-      <div className="max-w-7xl mx-auto px-5 lg:px-8">
-        <div
-          className="rounded-lg overflow-hidden shadow-2xl"
-          style={{
-            backgroundImage:
-              "url('/media/hero-trail.png?v=real2')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        >
-          <div className="bg-[#1c1917]/55 backdrop-brightness-95 px-6 py-12 lg:px-12 lg:py-16">
-            <p className="font-button text-center text-[#E4D4B0] text-xs tracking-[0.3em] uppercase mb-10">
-              Perché scegliere Sardegna Trail Avventura
+    <section className="border-y border-[var(--accent)]/15 bg-[var(--obsidian)] topo-dark py-20 lg:py-32">
+      <div className="mx-auto max-w-7xl px-5 lg:px-8">
+        <div className="grid gap-12 lg:grid-cols-2 lg:items-start lg:gap-16">
+          {/* Colonna narrativa: promessa di valore + volto reale della guida */}
+          <Reveal>
+            <p className="font-button mb-4 text-xs uppercase tracking-[0.3em] text-[var(--accent)]">
+              Perché sceglierci
             </p>
+            <h2 className="font-heading text-5xl leading-[0.95] text-[var(--text-on-dark)] lg:text-7xl">
+              Ragioni concrete,{" "}
+              <span className="text-[var(--accent)]">non slogan.</span>
+            </h2>
+            <p className="mt-6 max-w-md font-body text-lg leading-relaxed text-[var(--text-on-dark-muted)]">
+              Guide sarde che conoscono ogni tratturo, percorsi costruiti negli
+              anni e assistenza vera lungo tutto il tragitto. Ecco cosa ci
+              distingue.
+            </p>
+            {photo && (
+              <div className="mt-10 overflow-hidden shadow-2xl">
+                <img
+                  src={photo.src}
+                  srcSet={photo.srcSet}
+                  sizes="(min-width: 1024px) 560px, 100vw"
+                  alt={photo.alt}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-[4/3] w-full object-cover transition-transform duration-700 hover:scale-105"
+                />
+              </div>
+            )}
+          </Reveal>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-y-10 lg:gap-y-0 lg:gap-x-6">
-              {reasons.map((r, i) => (
-                <div
-                  key={r}
-                  className="flex flex-col items-center text-center lg:px-3"
-                >
-                  <span
-                    className="font-heading leading-none mb-5"
-                    style={{ color: "#c28169", fontSize: "3rem" }}
-                  >
-                    {i + 1}
-                  </span>
-                  <div
-                    className="w-full mb-5"
-                    style={{
-                      borderTop: "1px dashed #98a68b",
-                    }}
-                  />
-                  <div className="flex items-center gap-2 justify-center">
-                    <Check size={15} style={{ color: "#98a68b" }} className="flex-shrink-0" />
-                    <span
-                      className="font-body uppercase tracking-wide leading-snug"
-                      style={{ color: "#e5e0d7", fontSize: "0.8rem", fontWeight: 500 }}
-                    >
-                      {r}
-                    </span>
-                  </div>
+          {/* Elenco delle ragioni: numeri grandi, linee sottili, gerarchia netta */}
+          <ul>
+            {reasons.map((r, i) => (
+              <Reveal
+                as="li"
+                key={r.label}
+                delay={i * 0.06}
+                className="flex gap-5 border-t border-[var(--border-on-dark)] py-6 first:border-t-0 first:pt-0 lg:py-7 lg:first:pt-0"
+              >
+                <span className="font-heading text-4xl leading-none text-[var(--accent)]/60 lg:text-5xl">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <div>
+                  <h3 className="font-body text-base font-semibold uppercase tracking-wide text-[var(--text-on-dark)]">
+                    {r.label}
+                  </h3>
+                  <p className="mt-2 font-body text-sm leading-relaxed text-[var(--text-on-dark-muted)]">
+                    {r.desc}
+                  </p>
                 </div>
-              ))}
-            </div>
-          </div>
+              </Reveal>
+            ))}
+          </ul>
         </div>
       </div>
     </section>

@@ -1,118 +1,64 @@
-import React, { useEffect, useState, Suspense, lazy } from "react";
+import React, { Suspense, lazy } from "react";
 import SiteNav from "@/components/SiteNav";
 import Hero from "@/components/Hero";
 
-const WhyChoose = lazy(() => import("@/components/WhyChoose"));
-const TourTypes = lazy(() => import("@/components/TourTypes.jsx?modalfix=1"));
-const TourDetails = lazy(() => import("@/components/TourDetails.jsx?modalfix=1"));
+/**
+ * Home narrativa e snella. Un'unica spina dorsale di navigazione — le cinque
+ * esperienze (mezzi) — poi un percorso che risponde, in ordine, alle domande
+ * dell'utente: cosa scelgo → che tour esistono → cosa vivrò → perché voi →
+ * chi siete → com'è → cosa include → dubbi → prenoto.
+ * Il catalogo completo dei tour e i racconti del blog vivono su pagine dedicate.
+ */
+const TrustBar = lazy(() => import("@/components/TrustBar"));
+const Categorie = lazy(() => import("@/components/Categorie"));
+const TourInEvidenza = lazy(() => import("@/components/TourInEvidenza"));
 const Experience = lazy(() => import("@/components/Experience"));
-const Included = lazy(() => import("@/components/Included"));
-const Blog = lazy(() => import("@/components/Blog.jsx?blogposts=2"));
+const WhyChoose = lazy(() => import("@/components/WhyChoose"));
 const About = lazy(() => import("@/components/About"));
 const Guides = lazy(() => import("@/components/Guides.jsx?guideportraits=3"));
-const News = lazy(() => import("@/components/News"));
 const Gallery = lazy(() => import("@/components/Gallery"));
-const Reviews = lazy(() => import("@/components/Reviews"));
+const Included = lazy(() => import("@/components/Included"));
 const FAQ = lazy(() => import("@/components/FAQ"));
 const Contact = lazy(() => import("@/components/Contact"));
+const MobileCta = lazy(() => import("@/components/MobileCta"));
 const Footer = lazy(() => import("@/components/Footer"));
 
 function SectionFallback() {
   return (
     <div className="flex items-center justify-center py-24">
-      <div className="w-8 h-8 border-4 border-[#F5EBD9]/20 border-t-[#A0612A] rounded-full animate-spin" />
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--granite-mist)]/20 border-t-[var(--accent)]" />
     </div>
   );
 }
 
 export default function Home() {
-  const [activeFilter, setActiveFilter] = useState(null);
-
-  useEffect(() => {
-    if (!activeFilter) return;
-
-    let timeoutId;
-    let attempts = 0;
-
-    const scrollToDetails = () => {
-      const gridId = window.innerWidth >= 768 ? "tour-details-desktop-grid" : `tour-details-mobile-${activeFilter}-grid`;
-      const sectionId = window.innerWidth >= 768 ? "tour-details-desktop" : `tour-details-mobile-${activeFilter}`;
-      const el = document.getElementById(gridId) || document.getElementById(sectionId);
-
-      if (el) {
-        const top = el.getBoundingClientRect().top + window.scrollY - 100;
-        window.scrollTo({ top, behavior: "smooth" });
-        return;
-      }
-
-      attempts += 1;
-      if (attempts < 20) {
-        timeoutId = window.setTimeout(scrollToDetails, 80);
-      }
-    };
-
-    timeoutId = window.setTimeout(scrollToDetails, 0);
-    return () => window.clearTimeout(timeoutId);
-  }, [activeFilter]);
-
-  const handleSelect = (group) => {
-    if (activeFilter === group) {
-      setActiveFilter(null);
-      return;
-    }
-    setActiveFilter(group);
-  };
-
   return (
-    <div className="bg-[#0A0A0A]">
+    <div className="bg-[var(--obsidian)]">
       <SiteNav />
       <Hero />
       <Suspense fallback={<SectionFallback />}>
-        <WhyChoose />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <TourTypes onSelect={handleSelect} activeFilter={activeFilter} onClearFilter={() => setActiveFilter(null)} />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <TourDetails
-          id="tour-details-desktop"
-          className="hidden md:block"
-          activeFilter={activeFilter}
-          onClearFilter={() => setActiveFilter(null)}
-        />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
+        {/* Promessa di valore in numeri reali */}
+        <TrustBar />
+        {/* Scegli la tua avventura — le 5 esperienze (unica porta d'ingresso) */}
+        <Categorie />
+        {/* Assaggio di itinerari reali → catalogo completo su /itinerari */}
+        <TourInEvidenza />
+        {/* Racconto del territorio: cosa vivrai in Sardegna */}
         <Experience />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <Included />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <About />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
+        {/* Perché scegliere Sardegna Trail Avventura */}
+        <WhyChoose />
+        {/* Prima le guide che ti accompagnano, poi il racconto di chi siamo */}
         <Guides />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
+        <About />
+        {/* Galleria editoriale (foto reali) */}
         <Gallery />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <Blog />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <News />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <Reviews />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
+        {/* Cosa è incluso — informazioni utili prima di prenotare */}
+        <Included />
         <FAQ />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
+        {/* CTA finale: verifica disponibilità */}
         <Contact />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
         <Footer />
+        <MobileCta />
       </Suspense>
     </div>
   );

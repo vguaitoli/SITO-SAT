@@ -29,3 +29,9 @@ dist-ssr
 
 .env
 .vite
+.vercel
+.claude
+graphify-out
+
+# Config MCP locale (tooling, non parte del sito)
+.mcp.json

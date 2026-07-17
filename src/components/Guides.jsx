@@ -1,10 +1,7 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ list:async()=>[], filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
 import React from "react";
 import GuideCard from "@/components/GuideCard";
-import guideGianluca from "@/assets/guides/guide-gianluca-serra.png";
-import guideStefano from "@/assets/guides/guide-stefano-atzei.png";
-import guideVittorio from "@/assets/guides/guide-vittorio-guaitoli.png";
+import guideGianluca from "@/assets/guides/guide-gianluca-serra.webp";
+import guideVittorio from "@/assets/guides/guide-vittorio-guaitoli.webp";
 
 const guides = [
   {
@@ -12,12 +9,6 @@ const guides = [
     role: "Guida Esperta",
     desc: "Da oltre 15 anni esplora i sentieri della Sardegna, esperto di percorsi tecnici e sicurezza in fuoristrada.",
     img: guideGianluca,
-  },
-  {
-    name: "Stefano Atzei",
-    role: "Guida Esperta",
-    desc: "Pilota e appassionato di enduro, conosce ogni tratturo dell'entroterra e ama condividere la cultura locale.",
-    img: guideStefano,
   },
   {
     name: "Vittorio Guaitoli",
@@ -29,16 +20,21 @@ const guides = [
 
 export default function Guides() {
   return (
-    <section id="guide" className="bg-[#1C1814] topo-dark py-24 lg:py-32 border-t border-[#A0612A]/20">
-      <div className="max-w-7xl mx-auto px-5 lg:px-8">
-        <div className="text-center mb-16 max-w-2xl mx-auto">
-          <p className="font-button text-[#A0612A] text-xs tracking-[0.3em] uppercase mb-4">Le Nostre Guide</p>
-          <h2 className="font-heading text-5xl lg:text-7xl text-[#F5EBD9] leading-none">
+    <section
+      id="guide"
+      className="border-t border-[#A0612A]/20 bg-[#1C1814] topo-dark py-16 sm:py-24 lg:py-32"
+    >
+      <div className="mx-auto max-w-7xl px-5 lg:px-8">
+        <div className="mx-auto mb-10 max-w-2xl text-center sm:mb-14">
+          <p className="mb-4 font-button text-xs uppercase tracking-[0.3em] text-[#A0612A]">Le Nostre Guide</p>
+          <h2 className="font-heading text-4xl leading-none text-[#F5EBD9] sm:text-5xl lg:text-7xl">
             CHI TI <span className="text-[#A0612A]">ACCOMPAGNA</span>
           </h2>
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-1">
+        {/* Due guide: card affiancate e centrate, contenute su desktop.
+            Griglia definita partendo dal mobile. */}
+        <div className="mx-auto grid max-w-3xl grid-cols-2 gap-3 sm:gap-6">
           {guides.map((g) => (
             <GuideCard key={g.name} guide={g} />
           ))}

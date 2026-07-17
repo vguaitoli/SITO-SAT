@@ -3,6 +3,10 @@ import { Plus, Minus } from "lucide-react";
 
 const faqs = [
   {
+    q: "Che differenza c'è tra Maxienduro ed Enduro?",
+    a: "Sono due mondi diversi. La Maxienduro è la grande moto da viaggio: alta, potente, pensata per macinare chilometri e affrontare lo sterrato senza rinunciare al comfort. L'Enduro è leggera e maneggevole, nata per i sentieri stretti e i passaggi tecnici dove la maxienduro non passa. In più proponiamo Quad (accessibile a tutti), SSV (due posti affiancati con volante e roll-bar) e 4x4. Se non sai quale fa per te, scrivici: ti consigliamo in base alla tua esperienza.",
+  },
+  {
     q: "Che differenza c'è tra Weekend Adventure e Sardegna Trail Week?",
     a: "Il Weekend Adventure è un tour di 4 giorni, ideale per chi ha poco tempo ma vuole vivere un'esperienza intensa. La Sardegna Trail Week è invece un'immersione di 7 giorni tra i percorsi più suggestivi dell'isola. Offriamo anche Tour Personalizzati su misura per gruppi e moto club.",
   },
@@ -55,14 +59,18 @@ export default function FAQ() {
                   )}
                 </span>
               </button>
+              {/* grid-rows 0fr→1fr: si apre sull'altezza reale del testo, senza
+                  tagliare le risposte lunghe come farebbe una max-height fissa. */}
               <div
-                className={`overflow-hidden transition-all duration-300 ${
-                  open === i ? "max-h-60 pb-6" : "max-h-0"
+                className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+                  open === i ? "grid-rows-[1fr] pb-6" : "grid-rows-[0fr]"
                 }`}
               >
-                <p className="font-body text-[#1C1814]/70 text-base lg:text-lg leading-relaxed pr-14">
-                  {faq.a}
-                </p>
+                <div className="overflow-hidden">
+                  <p className="font-body text-[#1C1814]/70 text-base lg:text-lg leading-relaxed pr-14">
+                    {faq.a}
+                  </p>
+                </div>
               </div>
             </div>
           ))}

@@ -50,9 +50,13 @@ export default [
       ],
       "react/prop-types": "off",
       "react/react-in-jsx-scope": "off",
+      // `fetchpriority` (minuscolo) è la forma corretta per React 18.3.x:
+      // React avvisa sulla variante camelCase `fetchPriority`, mentre la regola
+      // (pensata per React 19) vorrebbe il camelCase. Manteniamo il minuscolo,
+      // runtime-pulito, e lo esentiamo qui.
       "react/no-unknown-property": [
         "error",
-        { ignore: ["cmdk-input-wrapper", "toast-close"] },
+        { ignore: ["cmdk-input-wrapper", "toast-close", "fetchpriority"] },
       ],
       "react-hooks/rules-of-hooks": "error",
     },

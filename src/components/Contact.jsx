@@ -2,15 +2,27 @@ const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me
 
 import React, { useState } from "react";
 import { Phone, MessageCircle, Mail, Instagram, Facebook, MapPin, Send, Check } from "lucide-react";
+import { SITE } from "@/config/site";
+import { tours } from "@/components/TourDetails.jsx?modalfix=1";
 
 const contacts = [
-  { label: "Telefono", value: "+39 349 000 0000", href: "tel:+393490000000", icon: Phone },
-  { label: "WhatsApp", value: "Chat immediata", href: "https://wa.me/393490000000?text=Ciao,%20vorrei%20informazioni%20sui%20vostri%20tour", icon: MessageCircle },
-  { label: "Email", value: "info@sardegnatrailavventura.it", href: "mailto:info@sardegnatrailavventura.it", icon: Mail },
-  { label: "Instagram", value: "@sardegnatrailavventura", href: "https://instagram.com/sardegnatrailavventura", icon: Instagram },
-  { label: "Facebook", value: "Sardegna Trail Avventura", href: "https://facebook.com/sardegnatrailavventura", icon: Facebook },
-  { label: "Google Maps", value: "Sardegna, Italia", href: "https://maps.google.com/?q=Sardegna", icon: MapPin },
+  { label: "Telefono", value: SITE.telefono.display, href: SITE.telefono.href, icon: Phone },
+  { label: "WhatsApp", value: "Chat immediata", href: SITE.whatsapp.href, icon: MessageCircle },
+  { label: "Email", value: SITE.email, href: `mailto:${SITE.email}`, icon: Mail },
+  { label: "Instagram", value: "@sardegnatrailavventura", href: SITE.social.instagram, icon: Instagram },
+  { label: "Facebook", value: SITE.nome, href: SITE.social.facebook, icon: Facebook },
+  { label: "Dove siamo", value: SITE.luogo.regione, href: SITE.luogo.mapsHref, icon: MapPin },
 ];
+
+// Finché i recapiti non sono verificati mostriamo solo i canali reali (la
+// posizione): telefono/WhatsApp/email/social restano nascosti ed è il modulo
+// a raccogliere le richieste.
+const visibleContacts = SITE.contattiVerificati
+  ? contacts
+  : contacts.filter((c) => c.label === "Dove siamo");
+
+// Elenco tour reale, con il tipo per orientare la richiesta.
+const tourOptions = tours.map((t) => `${t.name} (${t.type})`);
 
 export default function Contact() {
   const [form, setForm] = useState({
@@ -43,7 +55,11 @@ export default function Contact() {
       setSent(true);
       setForm({ nome: "", email: "", telefono: "", tour: "", data: "", messaggio: "" });
     } catch (err) {
-      setError("Si è verificato un errore. Riprova o contattaci via WhatsApp.");
+      setError(
+        SITE.contattiVerificati
+          ? "Si è verificato un errore. Riprova o contattaci via WhatsApp."
+          : "Si è verificato un errore. Riprova tra qualche istante.",
+      );
     } finally {
       setSending(false);
     }
@@ -67,8 +83,14 @@ export default function Contact() {
           {/* Contact info */}
           <div>
             <h3 className="font-heading text-3xl text-[#F5EBD9] mb-8 tracking-wide">Raggiungici</h3>
+            {!SITE.contattiVerificati && (
+              <p className="mb-6 font-body text-sm leading-relaxed text-[#F5EBD9]/60">
+                Telefono e WhatsApp in aggiornamento: compila il modulo qui a
+                fianco e ti ricontattiamo al più presto.
+              </p>
+            )}
             <div className="space-y-1">
-              {contacts.map((c) => {
+              {visibleContacts.map((c) => {
                 const Icon = c.icon;
                 return (
                   <a
@@ -100,7 +122,8 @@ export default function Contact() {
                 </div>
                 <h3 className="font-heading text-3xl text-[#F5EBD9] mb-3 tracking-wide">Richiesta inviata!</h3>
                 <p className="font-body text-[#F5EBD9]/70 mb-6">
-                  Ti contatteremo entro 24 ore. Per una risposta immediata, scrivici su WhatsApp.
+                  Ti contatteremo entro 24 ore.
+                  {SITE.contattiVerificati && " Per una risposta immediata, scrivici su WhatsApp."}
                 </p>
                 <button
                   onClick={() => setSent(false)}
@@ -113,8 +136,9 @@ export default function Contact() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
-                    <label className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Nome *</label>
+                    <label htmlFor="contact-nome" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Nome *</label>
                     <input
+                      id="contact-nome"
                       name="nome"
                       value={form.nome}
                       onChange={handleChange}
@@ -124,8 +148,9 @@ export default function Contact() {
                     />
                   </div>
                   <div>
-                    <label className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Telefono</label>
+                    <label htmlFor="contact-telefono" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Telefono</label>
                     <input
+                      id="contact-telefono"
                       name="telefono"
                       value={form.telefono}
                       onChange={handleChange}
@@ -135,8 +160,9 @@ export default function Contact() {
                   </div>
                 </div>
                 <div>
-                  <label className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Email *</label>
+                  <label htmlFor="contact-email" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Email *</label>
                   <input
+                    id="contact-email"
                     name="email"
                     type="email"
                     value={form.email}
@@ -148,25 +174,29 @@ export default function Contact() {
                 </div>
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
-                    <label className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Tour</label>
+                    <label htmlFor="contact-tour" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Tour</label>
                     <select
+                      id="contact-tour"
                       name="tour"
                       value={form.tour}
                       onChange={handleChange}
                       className={inputClass + " text-[#F5EBD9]"}
                     >
                       <option value="" className="bg-[#1C1814]">Seleziona...</option>
-                      <option value="Gennargentu Wild" className="bg-[#1C1814]">Gennargentu Wild</option>
-                      <option value="Barbagia Trail" className="bg-[#1C1814]">Barbagia Trail</option>
-                      <option value="Costa & Dune Expedition" className="bg-[#1C1814]">Costa & Dune Expedition</option>
-                      <option value="Supramonte Extreme" className="bg-[#1C1814]">Supramonte Extreme</option>
-                      <option value="Nuraghi Heritage Ride" className="bg-[#1C1814]">Nuraghi Heritage Ride</option>
-                      <option value="Tour Personalizzato" className="bg-[#1C1814]">Tour Personalizzato</option>
+                      {tourOptions.map((t) => (
+                        <option key={t} value={t} className="bg-[#1C1814]">
+                          {t}
+                        </option>
+                      ))}
+                      <option value="Non so ancora / consigliatemi voi" className="bg-[#1C1814]">
+                        Non so ancora / consigliatemi voi
+                      </option>
                     </select>
                   </div>
                   <div>
-                    <label className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Data desiderata</label>
+                    <label htmlFor="contact-data" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Data desiderata</label>
                     <input
+                      id="contact-data"
                       name="data"
                       type="date"
                       value={form.data}
@@ -176,8 +206,9 @@ export default function Contact() {
                   </div>
                 </div>
                 <div>
-                  <label className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Messaggio</label>
+                  <label htmlFor="contact-messaggio" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Messaggio</label>
                   <textarea
+                    id="contact-messaggio"
                     name="messaggio"
                     value={form.messaggio}
                     onChange={handleChange}

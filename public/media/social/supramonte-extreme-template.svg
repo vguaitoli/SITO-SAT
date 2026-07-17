@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-labelledby="title desc">
+  <title id="title">Supramonte Extreme — Sardegna Trail Avventura</title>
+  <desc id="desc">Locandina social modificabile 4:5 per un tour Maxienduro di tre giorni nel Supramonte.</desc>
+  <defs>
+    <linearGradient id="shade-v" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1C1814" stop-opacity=".88"/>
+      <stop offset=".38" stop-color="#1C1814" stop-opacity=".38"/>
+      <stop offset=".68" stop-color="#1C1814" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#1C1814" stop-opacity=".98"/>
+    </linearGradient>
+    <linearGradient id="shade-h" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1C1814" stop-opacity=".84"/>
+      <stop offset=".62" stop-color="#1C1814" stop-opacity=".10"/>
+      <stop offset="1" stop-color="#1C1814" stop-opacity=".30"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="66%" cy="44%" r="74%">
+      <stop offset="0" stop-color="#1C1814" stop-opacity="0"/>
+      <stop offset=".66" stop-color="#1C1814" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#1C1814" stop-opacity=".70"/>
+    </radialGradient>
+    <pattern id="grain" width="64" height="64" patternUnits="userSpaceOnUse">
+      <circle cx="8" cy="14" r="1" fill="#F5EBD9" opacity=".12"/>
+      <circle cx="43" cy="7" r=".7" fill="#F5EBD9" opacity=".09"/>
+      <circle cx="26" cy="38" r=".8" fill="#1C1814" opacity=".20"/>
+      <circle cx="58" cy="48" r="1" fill="#F5EBD9" opacity=".08"/>
+      <path d="M4 55l8-2M47 29l5 2" stroke="#F5EBD9" stroke-width=".6" opacity=".08"/>
+    </pattern>
+    <filter id="logo-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#1C1814" flood-opacity=".75"/>
+    </filter>
+    <clipPath id="cta-shape"><path d="M58 1190H878l24 24v72H82l-24-24z"/></clipPath>
+    <style>
+      .heading { font-family: "Bebas Neue", "Avenir Next Condensed", "Arial Narrow", sans-serif; font-weight: 800; letter-spacing: 4px; }
+      .label { font-family: "Oswald", "Avenir Next Condensed", "Arial Narrow", sans-serif; font-weight: 700; letter-spacing: 5px; }
+      .body { font-family: "Montserrat", "Avenir Next", Arial, sans-serif; font-weight: 600; letter-spacing: 1.3px; }
+      .small { font-size: 18px; }
+      .editable-accent { fill: #A0612A; }
+    </style>
+  </defs>
+
+  <!-- Replace the href below to reuse the template with another tour photo. -->
+  <g id="background">
+    <rect width="1080" height="1350" fill="#1C1814"/>
+    <image id="tour-photo" x="0" y="0" width="1080" height="1350" preserveAspectRatio="xMidYMid slice" xlink:href="supramonte-extreme-background.png"/>
+  </g>
+
+  <g id="cinematic-overlay">
+    <rect width="1080" height="1350" fill="url(#shade-v)"/>
+    <rect width="1080" height="1350" fill="url(#shade-h)"/>
+    <rect width="1080" height="1350" fill="url(#vignette)"/>
+    <rect width="1080" height="1350" fill="url(#grain)" opacity=".42"/>
+    <g fill="none" stroke="#E4D4B0" stroke-width="1.3" opacity=".18">
+      <path d="M676 52c92 17 165 59 202 123 31 54 22 112-18 149-54 49-151 48-204 1-38-34-44-86-14-124 42-54 147-60 208-10"/>
+      <path d="M702 73c76 15 134 48 165 99 24 41 19 84-13 114-43 40-120 39-162 3-31-28-35-68-12-99 34-43 117-47 165-7"/>
+      <path d="M732 99c57 10 101 35 124 73 18 31 14 62-10 84-32 29-90 28-121 1-23-20-27-50-9-72 25-32 87-35 123-6"/>
+      <path d="M907 410c43 28 80 71 98 122 22 64 11 132-30 177"/>
+      <path d="M935 397c49 31 91 79 111 138 25 73 13 151-34 202"/>
+    </g>
+    <path d="M58 801L250 795l32 7 151-4 44 8 265-5 49 6 231-4" fill="none" stroke="#F5EBD9" stroke-width="2" opacity=".30"/>
+    <path d="M58 803l127 2 18-5 126 8 19-6 126 5 15-4 118 7 23-7 121 5" fill="none" stroke="#A0612A" stroke-width="1.2" opacity=".70"/>
+  </g>
+
+  <g id="logo">
+    <image x="58" y="47" width="122" height="122" xlink:href="logo-sardegna-trail-avventura.png" filter="url(#logo-shadow)"/>
+    <text x="200" y="94" class="label small" fill="#F5EBD9">SARDEGNA</text>
+    <text x="200" y="126" class="label small" fill="#E4D4B0" letter-spacing="3">TRAIL AVVENTURA</text>
+    <line x1="200" y1="145" x2="417" y2="145" stroke="#A0612A" stroke-width="4"/>
+  </g>
+
+  <g id="category">
+    <path d="M58 216h218l15 15-15 35H58z" class="editable-accent"/>
+    <text x="82" y="252" class="label" fill="#F5EBD9" font-size="22">MAXIENDURO</text>
+  </g>
+
+  <g id="tour-title">
+    <text x="54" y="402" class="heading" fill="#F5EBD9" font-size="137" textLength="826" lengthAdjust="spacingAndGlyphs">SUPRAMONTE</text>
+    <text x="54" y="531" class="heading editable-accent" font-size="151" textLength="650" lengthAdjust="spacingAndGlyphs">EXTREME</text>
+    <path d="M58 556h388l17 9 109-5 19 5h181" fill="none" stroke="#F5EBD9" stroke-width="2" opacity=".6"/>
+    <path d="M58 556h195" stroke="#A0612A" stroke-width="7"/>
+  </g>
+
+  <g id="locations">
+    <circle cx="70" cy="846" r="8" fill="none" stroke="#A0612A" stroke-width="3"/>
+    <circle cx="70" cy="846" r="2.5" fill="#A0612A"/>
+    <text x="96" y="854" class="label" fill="#F5EBD9" font-size="21" letter-spacing="3">TISCALI · GOLGO · CALA LUNA · BAUNEI</text>
+  </g>
+
+  <g id="period">
+    <text x="58" y="908" class="label" fill="#E4D4B0" font-size="17">PERIODO</text>
+    <text x="175" y="908" class="label" fill="#F5EBD9" font-size="25" letter-spacing="3">OTTOBRE — APRILE</text>
+    <path d="M575 891h18l8 8-8 8h-18l-8-8z" fill="#6B7A3E"/>
+    <text x="620" y="908" class="label" fill="#F5EBD9" font-size="18" letter-spacing="2.5">PRANZO TIPICO INCLUSO</text>
+  </g>
+
+  <g id="technical-data">
+    <rect x="58" y="945" width="964" height="200" fill="#1C1814" fill-opacity=".78" stroke="#F5EBD9" stroke-opacity=".22"/>
+    <path d="M58 945h964M58 1045h964M299 945v200M540 945v200M781 945v200" stroke="#F5EBD9" stroke-opacity=".18" stroke-width="1.5"/>
+    <g transform="translate(82 975)" fill="none" stroke="#A0612A" stroke-width="3">
+      <circle cx="19" cy="17" r="15"/><path d="M19 17V7m0 10 8 5"/>
+    </g>
+    <text x="82" y="1079" class="heading" fill="#F5EBD9" font-size="48">3 GIORNI</text>
+    <text x="82" y="1110" class="label" fill="#E4D4B0" font-size="14">DURATA</text>
+    <g transform="translate(323 975)" fill="none" stroke="#A0612A" stroke-width="3"><path d="M3 27C3 8 31 8 31 27S59 46 59 27"/><circle cx="3" cy="27" r="4" fill="#A0612A"/><circle cx="59" cy="27" r="4" fill="#A0612A"/></g>
+    <text x="323" y="1079" class="heading" fill="#F5EBD9" font-size="48">260 KM</text>
+    <text x="323" y="1110" class="label" fill="#E4D4B0" font-size="14">DISTANZA</text>
+    <g transform="translate(564 976)" fill="none" stroke="#A0612A" stroke-width="3"><path d="M2 34l13-22 13 22 12-18 13 18"/><path d="M0 38h56"/></g>
+    <text x="564" y="1079" class="heading" fill="#F5EBD9" font-size="48">88%</text>
+    <text x="564" y="1110" class="label" fill="#E4D4B0" font-size="14">STERRATO</text>
+    <g transform="translate(805 974)" fill="none" stroke="#A0612A" stroke-width="3"><path d="M26 2l19 8v14c0 17-11 27-19 31-8-4-19-14-19-31V10z"/><path d="M17 27l7 7 13-16"/></g>
+    <text x="805" y="1079" class="heading" fill="#F5EBD9" font-size="42">ESPERTO</text>
+    <text x="805" y="1110" class="label" fill="#E4D4B0" font-size="14">LIVELLO</text>
+  </g>
+
+  <g id="cta">
+    <g clip-path="url(#cta-shape)">
+      <rect x="58" y="1190" width="844" height="96" class="editable-accent"/>
+      <path d="M26 1290L158 1163M112 1318l132-127M784 1308l132-127" stroke="#F5EBD9" stroke-width="2" opacity=".12"/>
+    </g>
+    <path d="M58 1190H878l24 24v72H82l-24-24z" fill="none" stroke="#F5EBD9" stroke-opacity=".28" stroke-width="2"/>
+    <text x="96" y="1252" class="label" fill="#F5EBD9" font-size="26" letter-spacing="4">PRENOTA LA TUA AVVENTURA</text>
+    <path d="M818 1238h35m-14-14 14 14-14 14" fill="none" stroke="#F5EBD9" stroke-width="4"/>
+    <text x="940" y="1214" class="heading" fill="#F5EBD9" font-size="26" text-anchor="middle">STA</text>
+    <text x="940" y="1247" class="label" fill="#E4D4B0" font-size="11" text-anchor="middle" letter-spacing="2">SARDEGNA</text>
+    <text x="940" y="1267" class="label" fill="#E4D4B0" font-size="11" text-anchor="middle" letter-spacing="2">TRAIL</text>
+    <text x="940" y="1287" class="label" fill="#E4D4B0" font-size="11" text-anchor="middle" letter-spacing="2">AVVENTURA</text>
+  </g>
+
+  <path d="M34 33h56M34 33v56M1046 33h-56M1046 33v56M34 1317h56M34 1317v-56M1046 1317h-56M1046 1317v-56" fill="none" stroke="#E4D4B0" stroke-width="2" opacity=".34"/>
+</svg>

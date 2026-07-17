@@ -1,113 +1,171 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ list:async()=>[], filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
 import React from "react";
+import { Link } from "react-router-dom";
 import { Phone, Mail, Instagram, Facebook, MessageCircle } from "lucide-react";
+import { SITE } from "@/config/site";
+import { CATEGORIE } from "@/data/categorie";
+import { fotoProps } from "@/data/foto-helpers";
 
-const galleryRibbon = [
-  "/media/hero-trail.png?v=real2",
-  "/media/coast-trail.png?v=real2",
-  "/media/hero-trail.png?v=real2",
-  "/media/sunset-group.png?v=real2",
-  "/media/nuraghe-stop.png?v=real2",
-  "/media/sunset-group.png?v=real2",
+// Nastro fotografico dal materiale reale, senza ripetizioni ravvicinate.
+const ribbonSlugs = [
+  "hero-enduro-gruppo",
+  "hero-4x4-costa",
+  "hero-quad-convoglio",
+  "hero-ssv-guado",
+  "maxienduro-tenere",
+  "pinnetta-sosta",
 ];
+const ribbon = ribbonSlugs.map(fotoProps).filter(Boolean);
+
+const navItems = [
+  { label: "Esperienze", href: "#esperienze" },
+  { label: "Tour", href: "/itinerari" },
+  { label: "Chi Siamo", href: "#guide" },
+  { label: "Gallery", href: "#gallery" },
+  { label: "Blog", href: "/blog" },
+  { label: "Eventi", href: "/eventi" },
+  { label: "FAQ", href: "#faq" },
+  { label: "Contatti", href: "#contatti" },
+];
+
+// Le àncore (#) puntano alla home; i percorsi assoluti restano tali.
+const toTarget = (href) => (href.startsWith("#") ? `/${href}` : href);
 
 export default function Footer() {
   return (
-    <footer className="bg-[#1C1814] border-t border-[#A0612A]/30">
-      {/* Gallery ribbon */}
-      <div className="overflow-hidden border-b border-[#F5EBD9]/10 py-4">
-        <div className="flex gap-2 animate-[scroll_30s_linear_infinite] hover:[animation-play-state:paused]">
-          {[...galleryRibbon, ...galleryRibbon].map((src, i) => (
+    <footer className="border-t border-[var(--accent)]/30 bg-[var(--obsidian)]">
+      {/* Nastro fotografico scorrevole */}
+      <div className="overflow-hidden border-b border-[var(--border-on-dark)] py-4">
+        <div className="flex gap-2 animate-[scroll_40s_linear_infinite] hover:[animation-play-state:paused] motion-reduce:animate-none">
+          {[...ribbon, ...ribbon].map((img, i) => (
             <img
               key={i}
-              src={src}
+              src={img.src}
+              srcSet={img.srcSet}
+              sizes="128px"
               alt=""
+              aria-hidden="true"
               loading="lazy"
               decoding="async"
-              className="h-20 w-32 object-cover flex-shrink-0 grayscale hover:grayscale-0 transition-all"
+              className="h-20 w-32 flex-shrink-0 object-cover grayscale transition-all hover:grayscale-0"
             />
           ))}
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-5 lg:px-8 py-16">
-        <div className="grid md:grid-cols-3 gap-12 mb-12">
+      <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
+        <div className="mb-12 grid gap-12 md:grid-cols-4">
           {/* Brand */}
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <span className="font-heading text-4xl text-[#F5EBD9] tracking-wider">STA</span>
-              <span className="font-button text-xs text-[#E4D4B0] tracking-[0.2em] uppercase leading-tight border-l border-[#A0612A] pl-3">
-                Sardegna<br />Trail Avventura
+          <div className="md:col-span-2">
+            <div className="mb-4 flex items-center gap-3">
+              <img
+                src="/media/logo-sardegna-trail-avventura.png"
+                alt=""
+                width={48}
+                height={48}
+                className="h-12 w-12 shrink-0 object-contain"
+              />
+              <span className="border-l border-[var(--accent)] pl-3 font-button text-xs uppercase leading-tight tracking-[0.2em] text-[var(--accent-soft)]">
+                Sardegna
+                <br />
+                Trail Avventura
               </span>
             </div>
-            <p className="font-heading text-2xl text-[#A0612A] tracking-wide leading-tight">
+            <p className="max-w-sm font-heading text-2xl leading-tight tracking-wide text-[var(--accent)]">
               "La Sardegna che non ti aspetti."
+            </p>
+            <p className="mt-4 max-w-sm font-body text-sm leading-relaxed text-[var(--granite-mist)]/60">
+              Tour off-road guidati in Maxienduro, Enduro, Quad, SSV e 4x4, tra
+              montagne, sterrati, nuraghi e coste selvagge.
             </p>
           </div>
 
-          {/* Links */}
+          {/* Navigazione + Esperienze */}
           <div>
-            <h4 className="font-button text-xs tracking-[0.2em] uppercase text-[#E4D4B0] mb-5">Navigazione</h4>
+            <h4 className="mb-5 font-button text-xs uppercase tracking-[0.2em] text-[var(--accent-soft)]">
+              Naviga
+            </h4>
             <ul className="space-y-3">
-              {[
-                { label: "Home", href: "#hero" },
-                { label: "Tour", href: "#tour" },
-                { label: "Chi Siamo", href: "#chi-siamo" },
-                { label: "Gallery", href: "#gallery" },
-                { label: "FAQ", href: "#faq" },
-                { label: "Contatti", href: "#contatti" },
-              ].map((l) => (
+              {navItems.map((l) => (
                 <li key={l.href}>
-                  <a href={l.href} className="font-body text-sm text-[#F5EBD9]/70 hover:text-[#A0612A] transition-colors">
+                  <Link
+                    to={toTarget(l.href)}
+                    className="font-body text-sm text-[var(--granite-mist)]/70 transition-colors hover:text-[var(--accent)]"
+                  >
                     {l.label}
-                  </a>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <h4 className="mb-3 mt-6 font-button text-xs uppercase tracking-[0.2em] text-[var(--accent-soft)]">
+              Esperienze
+            </h4>
+            <ul className="flex flex-wrap gap-x-4 gap-y-2">
+              {CATEGORIE.map((c) => (
+                <li key={c.id}>
+                  <Link
+                    to={`/esperienze/${c.id}`}
+                    className="font-body text-sm text-[var(--granite-mist)]/70 transition-colors hover:text-[var(--accent)]"
+                  >
+                    {c.nome}
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Contacts */}
+          {/* Contatti */}
           <div>
-            <h4 className="font-button text-xs tracking-[0.2em] uppercase text-[#E4D4B0] mb-5">Contatti</h4>
-            <ul className="space-y-4">
-              <li>
-                <a href="tel:+393490000000" className="flex items-center gap-3 font-body text-sm text-[#F5EBD9]/70 hover:text-[#A0612A] transition-colors">
-                  <Phone size={16} /> +39 349 000 0000
-                </a>
-              </li>
-              <li>
-                <a href="mailto:info@sardegnatrailavventura.it" className="flex items-center gap-3 font-body text-sm text-[#F5EBD9]/70 hover:text-[#A0612A] transition-colors">
-                  <Mail size={16} /> info@sardegnatrailavventura.it
-                </a>
-              </li>
-              <li>
-                <a href="https://wa.me/393490000000" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 font-body text-sm text-[#F5EBD9]/70 hover:text-[#A0612A] transition-colors">
-                  <MessageCircle size={16} /> WhatsApp
-                </a>
-              </li>
-              <li>
-                <a href="https://instagram.com/sardegnatrailavventura" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 font-body text-sm text-[#F5EBD9]/70 hover:text-[#A0612A] transition-colors">
-                  <Instagram size={16} /> @sardegnatrailavventura
-                </a>
-              </li>
-              <li>
-                <a href="https://facebook.com/sardegnatrailavventura" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 font-body text-sm text-[#F5EBD9]/70 hover:text-[#A0612A] transition-colors">
-                  <Facebook size={16} /> Sardegna Trail Avventura
-                </a>
-              </li>
-            </ul>
+            <h4 className="mb-5 font-button text-xs uppercase tracking-[0.2em] text-[var(--accent-soft)]">
+              Contatti
+            </h4>
+            {SITE.contattiVerificati ? (
+              <ul className="space-y-4">
+                <li>
+                  <a href={SITE.telefono.href} className="flex items-center gap-3 font-body text-sm text-[var(--granite-mist)]/70 transition-colors hover:text-[var(--accent)]">
+                    <Phone size={16} aria-hidden="true" /> {SITE.telefono.display}
+                  </a>
+                </li>
+                <li>
+                  <a href={`mailto:${SITE.email}`} className="flex items-center gap-3 font-body text-sm text-[var(--granite-mist)]/70 transition-colors hover:text-[var(--accent)]">
+                    <Mail size={16} aria-hidden="true" /> {SITE.email}
+                  </a>
+                </li>
+                <li>
+                  <a href={SITE.whatsapp.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 font-body text-sm text-[var(--granite-mist)]/70 transition-colors hover:text-[var(--accent)]">
+                    <MessageCircle size={16} aria-hidden="true" /> WhatsApp
+                  </a>
+                </li>
+                <li>
+                  <a href={SITE.social.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 font-body text-sm text-[var(--granite-mist)]/70 transition-colors hover:text-[var(--accent)]">
+                    <Instagram size={16} aria-hidden="true" /> @sardegnatrailavventura
+                  </a>
+                </li>
+                <li>
+                  <a href={SITE.social.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 font-body text-sm text-[var(--granite-mist)]/70 transition-colors hover:text-[var(--accent)]">
+                    <Facebook size={16} aria-hidden="true" /> {SITE.nome}
+                  </a>
+                </li>
+              </ul>
+            ) : (
+              <p className="font-body text-sm leading-relaxed text-[var(--granite-mist)]/60">
+                Recapiti in aggiornamento.{" "}
+                <Link to="/#contatti" className="text-[var(--accent-soft)] underline transition-colors hover:text-[var(--accent)]">
+                  Scrivici dal modulo di contatto
+                </Link>{" "}
+                e ti rispondiamo al più presto.
+              </p>
+            )}
           </div>
         </div>
 
         <div className="fissure-light mb-8" />
 
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="font-body text-xs text-[#F5EBD9]/40 text-center md:text-left">
-            © {new Date().getFullYear()} Sardegna Trail Avventura. Tutti i diritti riservati.
+        <div className="flex flex-col items-center justify-between gap-4 pb-16 md:flex-row md:pb-0">
+          <p className="text-center font-body text-xs text-[var(--granite-mist)]/40 md:text-left">
+            © {new Date().getFullYear()} {SITE.nome}. Tutti i diritti riservati.
           </p>
-          <p className="font-body text-xs text-[#F5EBD9]/40">
-            Tour Maxienduro · Enduro · Quad in Sardegna
+          <p className="font-body text-xs text-[var(--granite-mist)]/40">
+            Maxienduro · Enduro · Quad · SSV · 4x4 — Sardegna
           </p>
         </div>
       </div>

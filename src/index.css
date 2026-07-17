@@ -25,14 +25,39 @@
     --ring: 26 58% 38%;
     --radius: 0.25rem;
 
-    /* Granito & Sabbia palette — warm earthy tones */
-    --obsidian: #1C1814;
-    --granite-mist: #F5EBD9;
-    --oxblood: #A0612A;
-    --wild-sage: #6B7A3E;
-    --aeolian-sand: #E4D4B0;
-    --carbon: #252019;
-    --graphite: #2F2A22;
+    /* ---- Palette "Granito & Sabbia" (colori base del brand) ---- */
+    --obsidian: #1C1814;      /* nero caldo di fondo */
+    --granite-mist: #F5EBD9;  /* sabbia chiara / testo su fondo scuro */
+    --oxblood: #A0612A;       /* terra di Sardegna, colore accento/CTA */
+    --oxblood-bright: #B87033;/* hover della CTA */
+    --wild-sage: #6B7A3E;     /* verde macchia, accento secondario */
+    --wild-sage-bright: #7E8F4A;
+    --aeolian-sand: #E4D4B0;  /* sabbia eolica, dettagli */
+    --carbon: #252019;        /* superficie scura alternativa */
+    --graphite: #2F2A22;      /* bordi/superfici su fondo scuro */
+
+    /* ---- Token semantici: riferirsi a questi nei componenti ---- */
+    --surface-dark: var(--obsidian);
+    --surface-dark-alt: var(--carbon);
+    --surface-light: var(--granite-mist);
+    --text-on-dark: var(--granite-mist);
+    --text-on-dark-muted: rgba(245, 235, 217, 0.72);
+    --text-on-light: var(--obsidian);
+    --text-on-light-muted: rgba(28, 24, 20, 0.7);
+    --cta: var(--oxblood);
+    --cta-hover: var(--oxblood-bright);
+    --cta-text: var(--granite-mist);
+    --accent: var(--oxblood);
+    --accent-soft: var(--aeolian-sand);
+    --border-on-dark: rgba(245, 235, 217, 0.14);
+    --border-on-light: rgba(28, 24, 20, 0.14);
+    --focus-ring: var(--aeolian-sand);
+    /* Stati dei form */
+    --field-border: rgba(245, 235, 217, 0.22);
+    --field-border-focus: var(--oxblood);
+    --field-text: var(--granite-mist);
+    --field-placeholder: rgba(245, 235, 217, 0.42);
+    --field-invalid: #C0532C;
 
     --font-heading: "Bebas Neue", system-ui, sans-serif;
     --font-body: "Montserrat", system-ui, sans-serif;
@@ -54,8 +79,47 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
-    background-color: var(--granite-mist);
-    color: var(--obsidian);
+    background-color: var(--obsidian);
+    color: var(--granite-mist);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  /* Focus visibile e coerente su tutti gli elementi interattivi (WCAG 2.2). */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible,
+  summary:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* Target di tap accessibili su mobile per i controlli piccoli. */
+  @media (pointer: coarse) {
+    a,
+    button {
+      -webkit-tap-highlight-color: transparent;
+    }
+  }
+}
+
+/* Rispetto delle preferenze di riduzione del movimento. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

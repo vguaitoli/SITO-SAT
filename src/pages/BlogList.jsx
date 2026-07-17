@@ -62,7 +62,7 @@ export default function BlogList() {
               <Link key={post.id} to={`/blog/${post.id}`} className="group relative bg-[#252019] overflow-hidden">
                 <div className="aspect-[4/3] overflow-hidden">
                   <img
-                    src={post.cover_image || "/media/sunset-group.png?v=real2"}
+                    src={post.cover_image || "/media/reali/gruppo-altopiano-1200.webp"}
                     alt={post.title}
                     className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
                   />

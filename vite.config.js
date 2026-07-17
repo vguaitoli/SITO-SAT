@@ -16,5 +16,9 @@ export default defineConfig({
       visualEditAgent: true
     }),
     react(),
-  ]
+  ],
+  // Onora la porta assegnata dall'ambiente (PORT); altrimenti default di Vite.
+  server: {
+    port: process.env.PORT ? Number(process.env.PORT) : undefined,
+  },
 });

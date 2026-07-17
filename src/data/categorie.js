@@ -1,0 +1,80 @@
+/**
+ * Le cinque categorie di esperienza di Sardegna Trail Avventura.
+ *
+ * Le descrizioni raccontano il CARATTERE di ciascuna disciplina e del mezzo
+ * (informazioni generali sul tipo di veicolo), senza inventare dati operativi
+ * dei tour: durate, livelli e periodi restano quelli reali definiti in
+ * src/components/TourDetails.jsx e vengono associati dinamicamente per "type".
+ */
+
+export const CATEGORIE = [
+  {
+    id: "maxienduro",
+    nome: "Maxienduro",
+    // Tipo del tour in TourDetails a cui questa categoria è collegata.
+    tourType: "Maxienduro",
+    // Slug foto (manifest src/data/foto.js).
+    fotoCard: "cat-maxienduro",
+    fotoHero: "hero-maxienduro-panorama",
+    galleria: ["maxienduro-tenere", "maxienduro-sosta-bosco", "hero-maxienduro-panorama"],
+    claim: "Grandi distanze, nessun limite",
+    intro:
+      "Le grandi maxienduro da viaggio: moto alte e potenti, pensate per macinare chilometri su asfalto e affrontare lo sterrato senza fermarsi. La scelta di chi vuole attraversare l'isola da costa a costa con il comfort di una moto da turismo e l'anima del fuoristrada.",
+    adatto: "Piloti con esperienza su moto pesanti, a proprio agio nella guida in piedi sullo sterrato.",
+  },
+  {
+    id: "enduro",
+    nome: "Enduro",
+    tourType: "Enduro",
+    fotoCard: "cat-enduro",
+    fotoHero: "hero-enduro-gruppo",
+    galleria: ["enduro-sentiero", "enduro-vetta", "hero-enduro-gruppo"],
+    claim: "Leggera, agile, tecnica",
+    intro:
+      "Moto da enduro leggere e maneggevoli, nate per i sentieri stretti e i passaggi tecnici. Dove la maxienduro non arriva, l'enduro danza: mulattiere, tratturi e single track nel cuore più selvaggio della Barbagia e del Supramonte.",
+    adatto: "Chi ama la guida tecnica e i percorsi impegnativi, dal livello avanzato in su.",
+  },
+  {
+    id: "quad",
+    nome: "Quad",
+    tourType: "Quad",
+    fotoCard: "cat-quad",
+    fotoHero: "hero-quad-convoglio",
+    galleria: ["quad-pietraia", "hero-quad-convoglio"],
+    claim: "Il fuoristrada per tutti",
+    intro:
+      "Quattro ruote, tanta stabilità e nessuna esperienza richiesta. Il quad è il modo più immediato per vivere lo sterrato sardo: divertente, sicuro e accessibile anche a chi non ha mai guidato fuoristrada.",
+    adatto: "Tutti, anche i principianti assoluti: si guida con la stessa logica di un mezzo a manubrio.",
+  },
+  {
+    id: "ssv",
+    nome: "SSV",
+    // Nessun tour SSV nei contenuti attuali: la categoria rimanda alla richiesta info.
+    tourType: null,
+    fotoCard: "cat-ssv",
+    fotoHero: "hero-ssv-guado",
+    galleria: ["ssv-roccia", "ssv-bandiera", "ssv-spiaggia-flotta"],
+    claim: "Guida affiancata, adrenalina condivisa",
+    intro:
+      "Side-by-Side: veicoli a due posti affiancati, con volante, cinture e roll-bar. Tutta l'adrenalina del fuoristrada estremo in totale sicurezza, da condividere con chi ti siede accanto. Guado dei torrenti, guadi e pietraie diventano puro divertimento.",
+    adatto: "Chi cerca emozioni forti volendo guidare — o vivere l'esperienza da passeggero.",
+  },
+  {
+    id: "4x4",
+    nome: "4x4",
+    tourType: "4x4",
+    fotoCard: "cat-4x4",
+    fotoHero: "hero-4x4-costa",
+    galleria: ["4x4-guado", "4x4-crinale", "4x4-borgo-pietra"],
+    claim: "L'avventura senza compromessi",
+    intro:
+      "Fuoristrada veri, attrezzati per l'off-road più impegnativo. Altipiani, guadi, coste remote e borghi minerari raggiungibili solo su quattro ruote motrici: il 4x4 è la spedizione per esplorare la Sardegna più nascosta con tutto il gruppo a bordo.",
+    adatto: "Appassionati di off-road e famiglie o gruppi che vogliono esplorare insieme.",
+  },
+];
+
+const byId = new Map(CATEGORIE.map((c) => [c.id, c]));
+
+export function categoria(id) {
+  return byId.get(id) || null;
+}

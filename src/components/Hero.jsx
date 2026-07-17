@@ -1,73 +1,180 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ list:async()=>[], filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
+import React, { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { motion, useReducedMotion } from "framer-motion";
+import { MapPin, ArrowRight } from "lucide-react";
+import { CATEGORIE } from "@/data/categorie";
+import { fotoProps } from "@/data/foto-helpers";
 
-import React from "react";
-import { ChevronDown, MapPin } from "lucide-react";
+const bg = fotoProps("hero-maxienduro-panorama");
 
-const HERO_IMG = "/media/hero-trail.png?v=real2";
+// Loop video hero (Pexels, licenza libera): drone che segue un fuoristrada
+// su una sterrata tra la macchia mediterranea. 1080p desktop, 540p mobile.
+const VIDEO_DESKTOP = "/media/hero-offroad-loop-1080.mp4";
+const VIDEO_MOBILE = "/media/hero-offroad-loop-540.mp4";
+
+const container = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1, delayChildren: 0.15 } },
+};
+const item = {
+  hidden: { opacity: 0, y: 26 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+};
 
 export default function Hero() {
+  const reduce = useReducedMotion();
+  const [videoReady, setVideoReady] = useState(false);
+  const videoRef = useRef(null);
+
+  // Alcuni browser mettono in pausa i video quando la pagina va in
+  // background e non sempre li riavviano: riprendiamo noi al ritorno.
+  useEffect(() => {
+    const resume = () => {
+      const v = videoRef.current;
+      if (!document.hidden && v && v.paused) v.play().catch(() => {});
+    };
+    document.addEventListener("visibilitychange", resume);
+    return () => document.removeEventListener("visibilitychange", resume);
+  }, []);
+  const motionProps = reduce
+    ? {}
+    : { variants: container, initial: "hidden", animate: "visible" };
+  const child = reduce ? {} : { variants: item };
+
+  // Niente video se l'utente preferisce meno animazioni o ha il risparmio dati.
+  const saveData =
+    typeof navigator !== "undefined" && navigator.connection?.saveData;
+  const showVideo = !reduce && !saveData;
+  // Sorgente in base alla larghezza reale; se non determinabile, desktop.
+  const vw =
+    typeof window !== "undefined"
+      ? window.innerWidth || document.documentElement.clientWidth
+      : 0;
+  const videoSrc = vw > 0 && vw < 768 ? VIDEO_MOBILE : VIDEO_DESKTOP;
+
   return (
-    <section id="hero" className="relative min-h-screen w-full overflow-hidden bg-[#1C1814]">
-      {/* Background image */}
+    <section
+      id="hero"
+      className="relative flex min-h-[100svh] w-full flex-col overflow-hidden bg-[var(--obsidian)]"
+    >
+      {/* Sfondo: fotografia reale, prioritaria (above the fold). */}
       <div className="absolute inset-0">
         <img
-          src={HERO_IMG}
-          alt=""
-          className="w-full h-full object-cover animate-[heroPan_18s_ease-in-out_infinite_alternate]" />
-        
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1C1814] via-[#1C1814]/50 to-[#1C1814]/30" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#1C1814]/80 via-transparent to-transparent" />
+          src={bg.src}
+          srcSet={bg.srcSet}
+          sizes="100vw"
+          alt={bg.alt}
+          width={1800}
+          height={Math.round(1800 / bg.aspect)}
+          fetchpriority="high"
+          decoding="async"
+          className={`h-full w-full object-cover object-center ${reduce ? "" : "animate-[heroPan_22s_ease-out_forwards]"}`}
+        />
+        {/* Video in loop sopra la foto: entra in dissolvenza quando è
+            bufferizzato, così la foto resta l'LCP e non blocca il primo paint. */}
+        {showVideo && (
+          <video
+            ref={videoRef}
+            src={videoSrc}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-hidden="true"
+            tabIndex={-1}
+            onPlaying={() => setVideoReady(true)}
+            onCanPlay={(e) => {
+              e.currentTarget.play().catch(() => {});
+            }}
+            className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-1000 ${videoReady ? "opacity-100" : "opacity-0"}`}
+          />
+        )}
+        {/* Gradienti per la leggibilità del testo. */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--obsidian)] via-[var(--obsidian)]/55 to-[var(--obsidian)]/40" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[var(--obsidian)]/85 via-[var(--obsidian)]/35 to-transparent" />
+        <div className="absolute inset-0 topo-dark opacity-50" />
       </div>
 
-      {/* Topographic overlay */}
-      <div className="absolute inset-0 topo-dark opacity-60" />
+      {/* Contenuto */}
+      {/* Spaziature compatte su mobile: la striscia delle categorie deve restare
+          dentro la prima schermata anche sui telefoni piccoli. */}
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-5 pb-8 pt-24 sm:pb-12 sm:pt-28 lg:px-8">
+        <motion.div className="max-w-4xl" {...motionProps}>
+          <motion.div
+            {...child}
+            className="mb-4 flex items-center gap-2 font-button text-xs uppercase tracking-[0.3em] text-[var(--accent-soft)] sm:mb-6"
+          >
+            <MapPin size={14} aria-hidden="true" />
+            <span>Sardegna · Tour off-road guidati</span>
+          </motion.div>
 
-      {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-5 lg:px-8 min-h-screen flex flex-col justify-center pt-28 pb-20">
-        <div className="max-w-4xl">
-          <div className="flex items-center gap-2 text-[#E4D4B0] mb-6 font-button text-xs tracking-[0.3em] uppercase">
-            <MapPin size={14} />
-            <span>SARDEGNA · </span>
-          </div>
-
-          <h1 className="font-heading text-[#F5EBD9] leading-[0.9] mb-8">
-            <span className="block text-5xl sm:text-7xl lg:text-8xl text-transparent" style={{ WebkitTextStroke: "2px #F5EBD9" }}>
-              LA VERA SARDEGNA
-            </span>
-            <span className="block text-5xl sm:text-7xl lg:text-8xl text-transparent" style={{ WebkitTextStroke: "2px #F5EBD9" }}>
-              NON SI GUARDA.
-            </span>
-            <span className="block text-6xl sm:text-8xl lg:text-9xl text-[#A0612A] mt-2">
-              SI VIVE.
-            </span>
+          <h1 className="mb-5 font-heading leading-[0.88] text-[var(--granite-mist)] sm:mb-7">
+            <motion.span {...child} className="block text-5xl sm:text-7xl lg:text-8xl">
+              Non visitare la Sardegna.
+            </motion.span>
+            <motion.span
+              {...child}
+              className="block text-6xl text-[var(--accent)] sm:text-8xl lg:text-9xl"
+            >
+              Vivila.
+            </motion.span>
           </h1>
 
-          <p className="font-body text-[#F5EBD9]/85 text-lg lg:text-xl max-w-2xl leading-relaxed mb-10">Tour guidati fuoristrada Enduro, Maxienduro, Quad e 4x4 tra montagne, sterrati, spiagge, nuraghi e panorami mozzafiato. Scopri l'isola più autentica con guide locali esperte.
+          <motion.p
+            {...child}
+            className="mb-6 max-w-2xl font-body text-base leading-relaxed text-[var(--granite-mist)]/90 drop-shadow sm:mb-9 sm:text-lg lg:text-xl"
+          >
+            Esperienze fuoristrada in Maxienduro, Enduro, Quad, SSV e 4x4. Dai
+            sentieri del Supramonte alle coste selvagge, con guide sarde che
+            conoscono ogni tratturo dell'isola.
+          </motion.p>
 
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4">
+          <motion.div {...child} className="flex flex-col gap-4 sm:flex-row">
             <a
               href="#contatti"
-              className="btn-mech bg-[#A0612A] hover:bg-[#b87033] text-[#F5EBD9] px-8 py-4 text-base text-center">
-              
-              Prenota il tuo Tour
+              className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--cta)] px-8 py-4 text-base text-[var(--cta-text)] transition-colors hover:bg-[var(--cta-hover)]"
+            >
+              Verifica disponibilità
+              <ArrowRight size={18} aria-hidden="true" />
             </a>
             <a
-              href="#tour"
-              className="btn-mech border-2 border-[#F5EBD9]/80 hover:border-[#F5EBD9] hover:bg-[#F5EBD9] hover:text-[#1C1814] text-[#F5EBD9] px-8 py-4 text-base text-center transition-colors">
-              
-              Scopri gli Itinerari
+              href="#esperienze"
+              className="btn-mech inline-flex items-center justify-center border-2 border-[var(--granite-mist)]/70 px-8 py-4 text-base text-[var(--granite-mist)] transition-colors hover:border-[var(--granite-mist)] hover:bg-[var(--granite-mist)] hover:text-[var(--obsidian)]"
+            >
+              Scopri le esperienze
             </a>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
 
-      {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 animate-bounce">
-        <span className="font-button text-[10px] text-[#F5EBD9]/60 tracking-[0.3em] uppercase">Scorri</span>
-        <ChevronDown size={20} className="text-[#A0612A]" />
-      </div>
-    </section>);
+      {/* Accesso alle cinque categorie: rappresenta tutto l'universo del brand. */}
+      <motion.nav
+        aria-label="Le cinque esperienze"
+        {...(reduce
+          ? {}
+          : { variants: item, initial: "hidden", animate: "visible", transition: { delay: 0.6 } })}
+        className="relative z-10 border-t border-[var(--border-on-dark)] bg-[var(--obsidian)]/40 backdrop-blur-sm"
+      >
+        <ul className="mx-auto grid max-w-7xl grid-cols-5 divide-x divide-[var(--border-on-dark)] px-2 sm:px-5 lg:px-8">
+          {CATEGORIE.map((c) => (
+            <li key={c.id}>
+              <Link
+                to={`/esperienze/${c.id}`}
+                className="group flex h-full flex-col items-center justify-center gap-1 px-1 py-4 text-center transition-colors hover:bg-[var(--accent)]/15"
+              >
+                <span className="font-heading text-lg leading-none text-[var(--granite-mist)] transition-colors group-hover:text-[var(--accent-soft)] sm:text-2xl">
+                  {c.nome}
+                </span>
+                <span className="hidden font-button text-[10px] uppercase tracking-[0.15em] text-[var(--granite-mist)]/50 sm:block">
+                  Scopri
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </motion.nav>
 
+    </section>
+  );
 }

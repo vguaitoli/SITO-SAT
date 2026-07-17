@@ -14,6 +14,8 @@ import ResetPassword from './pages/ResetPassword';
 // Add page imports here
 import Home from './pages/Home.jsx?blogposts=2';
 import TourItinerari from './pages/TourItinerari';
+import CategoriaPage from './pages/CategoriaPage';
+import Events from './pages/Events';
 import BlogList from './pages/BlogList.jsx?blogposts=2';
 import BlogDetail from './pages/BlogDetail.jsx?blogposts=2';
 import BlogAdmin from './pages/BlogAdmin';
@@ -50,7 +52,9 @@ const AuthenticatedApp = () => {
     <Route path="/reset-password" element={<ResetPassword />} />
     {/* Add your page Route elements here */}
     <Route path="/" element={<Home />} />
+    <Route path="/esperienze/:cat" element={<CategoriaPage />} />
     <Route path="/itinerari" element={<TourItinerari />} />
+    <Route path="/eventi" element={<Events />} />
     <Route path="/blog" element={<BlogList />} />
     <Route path="/blog/:id" element={<BlogDetail />} />
     <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
