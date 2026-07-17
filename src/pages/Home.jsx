@@ -13,7 +13,6 @@ const TrustBar = lazy(() => import("@/components/TrustBar"));
 const Categorie = lazy(() => import("@/components/Categorie"));
 const TourInEvidenza = lazy(() => import("@/components/TourInEvidenza"));
 const Experience = lazy(() => import("@/components/Experience"));
-const WhyChoose = lazy(() => import("@/components/WhyChoose"));
 const About = lazy(() => import("@/components/About"));
 const Guides = lazy(() => import("@/components/Guides.jsx?guideportraits=3"));
 const Gallery = lazy(() => import("@/components/Gallery"));
@@ -45,8 +44,6 @@ export default function Home() {
         <TourInEvidenza />
         {/* Racconto del territorio: cosa vivrai in Sardegna */}
         <Experience />
-        {/* Perché scegliere Sardegna Trail Avventura */}
-        <WhyChoose />
         {/* Prima le guide che ti accompagnano, poi il racconto di chi siamo */}
         <Guides />
         <About />
