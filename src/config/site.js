@@ -7,9 +7,9 @@
  */
 
 // Numero di telefono in formato internazionale, solo cifre, per i link tel:/wa.me.
-const PHONE_E164 = "393490000000"; // DA SOSTITUIRE
+const PHONE_E164 = "393487981591";
 // Come mostrarlo a schermo.
-const PHONE_DISPLAY = "+39 349 000 0000"; // DA SOSTITUIRE
+const PHONE_DISPLAY = "+39 348 79 81 591";
 
 const WHATSAPP_MESSAGE =
   "Ciao! Vorrei verificare la disponibilità per un tour off-road in Sardegna.";
@@ -17,7 +17,7 @@ const WHATSAPP_MESSAGE =
 export const SITE = {
   nome: "Sardegna Trail Avventura",
   tagline: "Tour off-road guidati in Sardegna",
-  email: "info@sardegnatrailavventura.it", // DA SOSTITUIRE
+  email: "sardegnatrailavventura@gmail.com",
   telefono: {
     e164: PHONE_E164,
     display: PHONE_DISPLAY,
@@ -28,15 +28,17 @@ export const SITE = {
     href: `https://wa.me/${PHONE_E164}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`,
   },
   social: {
-    instagram: "https://instagram.com/sardegnatrailavventura", // DA SOSTITUIRE
-    facebook: "https://facebook.com/sardegnatrailavventura", // DA SOSTITUIRE
+    // Stesso handle su entrambe le piattaforme.
+    handle: "@sardegnatrailavventura",
+    instagram: "https://instagram.com/sardegnatrailavventura",
+    facebook: "https://facebook.com/sardegnatrailavventura",
   },
   luogo: {
     regione: "Sardegna, Italia",
     mapsHref: "https://maps.google.com/?q=Sardegna",
   },
   // true quando i contatti reali sono stati inseriti: nasconde l'avviso di redazione.
-  contattiVerificati: false,
+  contattiVerificati: true,
 };
 
 /** Costruisce un link WhatsApp con un messaggio precompilato specifico. */

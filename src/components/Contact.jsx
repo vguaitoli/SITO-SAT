@@ -9,8 +9,8 @@ const contacts = [
   { label: "Telefono", value: SITE.telefono.display, href: SITE.telefono.href, icon: Phone },
   { label: "WhatsApp", value: "Chat immediata", href: SITE.whatsapp.href, icon: MessageCircle },
   { label: "Email", value: SITE.email, href: `mailto:${SITE.email}`, icon: Mail },
-  { label: "Instagram", value: "@sardegnatrailavventura", href: SITE.social.instagram, icon: Instagram },
-  { label: "Facebook", value: SITE.nome, href: SITE.social.facebook, icon: Facebook },
+  // Facebook e Instagram accorpati sotto un unico canale "Social".
+  { label: "Social", value: SITE.social.handle, social: true },
   { label: "Dove siamo", value: SITE.luogo.regione, href: SITE.luogo.mapsHref, icon: MapPin },
 ];
 
@@ -91,6 +91,40 @@ export default function Contact() {
             )}
             <div className="space-y-1">
               {visibleContacts.map((c) => {
+                // Riga "Social": due icone (Instagram + Facebook) sotto lo stesso handle.
+                if (c.social) {
+                  return (
+                    <div
+                      key={c.label}
+                      className="flex items-center gap-4 py-4 border-b border-[#F5EBD9]/10"
+                    >
+                      <span className="flex gap-2 flex-shrink-0">
+                        <a
+                          href={SITE.social.instagram}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="Instagram"
+                          className="w-11 h-11 border border-[#6B7A3E]/50 hover:border-[#A0612A] hover:bg-[#A0612A] flex items-center justify-center transition-all group/ig"
+                        >
+                          <Instagram size={18} className="text-[#E4D4B0] group-hover/ig:text-[#F5EBD9] transition-colors" />
+                        </a>
+                        <a
+                          href={SITE.social.facebook}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="Facebook"
+                          className="w-11 h-11 border border-[#6B7A3E]/50 hover:border-[#A0612A] hover:bg-[#A0612A] flex items-center justify-center transition-all group/fb"
+                        >
+                          <Facebook size={18} className="text-[#E4D4B0] group-hover/fb:text-[#F5EBD9] transition-colors" />
+                        </a>
+                      </span>
+                      <div className="flex-1">
+                        <p className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50">{c.label}</p>
+                        <p className="font-body text-[#F5EBD9]">{c.value}</p>
+                      </div>
+                    </div>
+                  );
+                }
                 const Icon = c.icon;
                 return (
                   <a

@@ -135,15 +135,16 @@ export default function Footer() {
                     <MessageCircle size={16} aria-hidden="true" /> WhatsApp
                   </a>
                 </li>
-                <li>
-                  <a href={SITE.social.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 font-body text-sm text-[var(--granite-mist)]/70 transition-colors hover:text-[var(--accent)]">
-                    <Instagram size={16} aria-hidden="true" /> @sardegnatrailavventura
-                  </a>
-                </li>
-                <li>
-                  <a href={SITE.social.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 font-body text-sm text-[var(--granite-mist)]/70 transition-colors hover:text-[var(--accent)]">
-                    <Facebook size={16} aria-hidden="true" /> {SITE.nome}
-                  </a>
+                <li className="flex items-center gap-3 font-body text-sm text-[var(--granite-mist)]/70">
+                  <span className="flex items-center gap-2">
+                    <a href={SITE.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="transition-colors hover:text-[var(--accent)]">
+                      <Instagram size={16} aria-hidden="true" />
+                    </a>
+                    <a href={SITE.social.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="transition-colors hover:text-[var(--accent)]">
+                      <Facebook size={16} aria-hidden="true" />
+                    </a>
+                  </span>
+                  {SITE.social.handle}
                 </li>
               </ul>
             ) : (
