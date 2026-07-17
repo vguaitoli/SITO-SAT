@@ -71,6 +71,20 @@ export const CATEGORIE = [
       "Fuoristrada veri, attrezzati per l'off-road più impegnativo. Altipiani, guadi, coste remote e borghi minerari raggiungibili solo su quattro ruote motrici: il 4x4 è la spedizione per esplorare la Sardegna più nascosta con tutto il gruppo a bordo.",
     adatto: "Appassionati di off-road e famiglie o gruppi che vogliono esplorare insieme.",
   },
+  {
+    id: "e-bike",
+    nome: "E-Bike",
+    tourType: "E-Bike",
+    // SEGNAPOSTO: foto di territorio/esperienza — da sostituire con foto reali
+    // di e-bike quando disponibili (fotoCard, fotoHero, galleria).
+    fotoCard: "grotta-mineraria",
+    fotoHero: "pinnetta-sosta",
+    galleria: ["pinnetta-sosta", "pranzo-tavolata", "grotta-mineraria"],
+    claim: "Natura, silenzio, zero fatica",
+    intro:
+      "Mountain bike a pedalata assistita per vivere la Sardegna in modo lento e immersivo. L'e-bike annulla la fatica delle salite e ti porta dove i mezzi a motore non arrivano: sentieri silenziosi, nuraghi nascosti e borghi dell'entroterra, a contatto totale con la natura.",
+    adatto: "Tutti, anche senza allenamento: la pedalata assistita rende ogni salita accessibile.",
+  },
 ];
 
 const byId = new Map(CATEGORIE.map((c) => [c.id, c]));

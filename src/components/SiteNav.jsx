@@ -117,7 +117,7 @@ export default function SiteNav() {
               </Link>
             ))}
 
-            {/* Accesso rapido alle cinque categorie */}
+            {/* Accesso rapido alle categorie */}
             <p className="mt-5 font-button text-[10px] uppercase tracking-[0.25em] text-[var(--granite-mist)]/50">
               Le esperienze
             </p>

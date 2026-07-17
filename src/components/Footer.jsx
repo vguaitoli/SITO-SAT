@@ -74,8 +74,8 @@ export default function Footer() {
               "La Sardegna che non ti aspetti."
             </p>
             <p className="mt-4 max-w-sm font-body text-sm leading-relaxed text-[var(--granite-mist)]/60">
-              Tour off-road guidati in Maxienduro, Enduro, Quad, SSV e 4x4, tra
-              montagne, sterrati, nuraghi e coste selvagge.
+              Tour off-road guidati in Maxienduro, Enduro, Quad, SSV, 4x4 ed
+              e-bike, tra montagne, sterrati, nuraghi e coste selvagge.
             </p>
           </div>
 
@@ -166,7 +166,7 @@ export default function Footer() {
             © {new Date().getFullYear()} {SITE.nome}. Tutti i diritti riservati.
           </p>
           <p className="font-body text-xs text-[var(--granite-mist)]/40">
-            Maxienduro · Enduro · Quad · SSV · 4x4 — Sardegna
+            Maxienduro · Enduro · Quad · SSV · 4x4 · E-Bike — Sardegna
           </p>
         </div>
       </div>

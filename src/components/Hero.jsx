@@ -159,9 +159,9 @@ export default function Hero() {
             {...child}
             className="mb-6 max-w-2xl font-body text-base leading-relaxed text-[var(--granite-mist)]/90 drop-shadow sm:mb-9 sm:text-lg lg:text-xl"
           >
-            Esperienze fuoristrada in Maxienduro, Enduro, Quad, SSV e 4x4. Dai
-            sentieri del Supramonte alle coste selvagge, con guide sarde che
-            conoscono ogni tratturo dell'isola.
+            Esperienze fuoristrada in Maxienduro, Enduro, Quad, SSV, 4x4 ed
+            e-bike. Dai sentieri del Supramonte alle coste selvagge, con guide
+            sarde che conoscono ogni tratturo dell'isola.
           </motion.p>
 
           <motion.div {...child} className="flex flex-col gap-4 sm:flex-row">
@@ -182,15 +182,15 @@ export default function Hero() {
         </motion.div>
       </div>
 
-      {/* Accesso alle cinque categorie: rappresenta tutto l'universo del brand. */}
+      {/* Accesso alle esperienze: rappresenta tutto l'universo del brand. */}
       <motion.nav
-        aria-label="Le cinque esperienze"
+        aria-label="Le esperienze"
         {...(reduce
           ? {}
           : { variants: item, initial: "hidden", animate: "visible", transition: { delay: 0.6 } })}
         className="relative z-10 border-t border-[var(--border-on-dark)] bg-[var(--obsidian)]/40 backdrop-blur-sm"
       >
-        <ul className="mx-auto grid max-w-7xl grid-cols-5 divide-x divide-[var(--border-on-dark)] px-2 sm:px-5 lg:px-8">
+        <ul className="mx-auto grid max-w-7xl grid-cols-3 divide-x divide-y divide-[var(--border-on-dark)] px-2 sm:grid-cols-6 sm:divide-y-0 sm:px-5 lg:px-8">
           {CATEGORIE.map((c) => (
             <li key={c.id}>
               <Link

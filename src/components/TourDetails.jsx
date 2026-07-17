@@ -161,6 +161,27 @@ export const tours = [
     ],
   },
   {
+    name: "Sardegna E-Bike Experience",
+    type: "E-Bike",
+    durata: "2 Giorni",
+    km: "70 km",
+    livello: "Facile",
+    sterrato: "65%",
+    interesse: "Nuraghi, Pinnette, Borghi, Costa",
+    pranzo: true,
+    periodo: "Tutto l'anno",
+    date: null,
+    // Itinerario TIPO (di esempio), non un tour a catalogo con date confermate:
+    // pensato per e-bike a pedalata assistita, personalizzabile per ogni gruppo.
+    descrizione: "Itinerario tipo su e-bike a pedalata assistita: due giorni tra sterrati facili, nuraghi e borghi dell'entroterra. Personalizzabile per ogni gruppo.",
+    groups: ["weekend"],
+    meteo: { lat: 40.0, lng: 9.5, nome: "Sardegna centrale" },
+    tappe: [
+      { title: "Sterrati e nuraghi", desc: "Prima giornata tra sterrati facili e siti nuragici: la pedalata assistita rende ogni salita accessibile, senza fretta e a contatto con la natura." },
+      { title: "Borghi e costa", desc: "Seconda giornata verso i borghi dell'entroterra e uno scorcio di costa, tra soste panoramiche, prodotti tipici e sentieri silenziosi." },
+    ],
+  },
+  {
     name: "Custom Moto Club",
     type: "Su Misura",
     durata: "Variabile",
@@ -217,6 +238,14 @@ const tappaPools = {
     "cat-4x4",
     "gruppo-altopiano",
   ],
+  // SEGNAPOSTO: foto di territorio/esperienza per le tappe e-bike.
+  "E-Bike": [
+    "pinnetta-sosta",
+    "grotta-mineraria",
+    "pranzo-tavolata",
+    "gruppo-altopiano",
+    "moto-costa",
+  ],
 };
 
 for (const tour of tours) {
@@ -232,6 +261,7 @@ export const typeColors = {
   Enduro: "#6B7A3E",
   Quad: "#C9A227",
   "4x4": "#8B5E3C",
+  "E-Bike": "#4F8A6B",
   "Su Misura": "#B08968",
 };
 
