@@ -24,6 +24,7 @@ const item = {
 export default function Hero() {
   const reduce = useReducedMotion();
   const [videoReady, setVideoReady] = useState(false);
+  const [videoError, setVideoError] = useState(false);
   const videoRef = useRef(null);
 
   // Alcuni browser mettono in pausa i video quando la pagina va in
@@ -44,7 +45,7 @@ export default function Hero() {
   // Niente video se l'utente preferisce meno animazioni o ha il risparmio dati.
   const saveData =
     typeof navigator !== "undefined" && navigator.connection?.saveData;
-  const showVideo = !reduce && !saveData;
+  const showVideo = !reduce && !saveData && !videoError;
   // Sorgente in base alla larghezza reale; se non determinabile, desktop.
   const vw =
     typeof window !== "undefined"
@@ -57,21 +58,23 @@ export default function Hero() {
       id="hero"
       className="relative flex min-h-[100svh] w-full flex-col overflow-hidden bg-[var(--obsidian)]"
     >
-      {/* Sfondo: fotografia reale, prioritaria (above the fold). */}
+      {/* Sfondo scuro pieno: il video entra in dissolvenza dal buio, senza far
+          intravedere prima una foto. La fotografia resta solo come fallback
+          quando il video non parte (reduced-motion, risparmio dati o errore). */}
       <div className="absolute inset-0">
-        <img
-          src={bg.src}
-          srcSet={bg.srcSet}
-          sizes="100vw"
-          alt={bg.alt}
-          width={1800}
-          height={Math.round(1800 / bg.aspect)}
-          fetchpriority="high"
-          decoding="async"
-          className={`h-full w-full object-cover object-center ${reduce ? "" : "animate-[heroPan_22s_ease-out_forwards]"}`}
-        />
-        {/* Video in loop sopra la foto: entra in dissolvenza quando è
-            bufferizzato, così la foto resta l'LCP e non blocca il primo paint. */}
+        {!showVideo && (
+          <img
+            src={bg.src}
+            srcSet={bg.srcSet}
+            sizes="100vw"
+            alt={bg.alt}
+            width={1800}
+            height={Math.round(1800 / bg.aspect)}
+            fetchpriority="high"
+            decoding="async"
+            className={`h-full w-full object-cover object-center ${reduce ? "" : "animate-[heroPan_22s_ease-out_forwards]"}`}
+          />
+        )}
         {showVideo && (
           <video
             ref={videoRef}
@@ -87,6 +90,7 @@ export default function Hero() {
             onCanPlay={(e) => {
               e.currentTarget.play().catch(() => {});
             }}
+            onError={() => setVideoError(true)}
             className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-1000 ${videoReady ? "opacity-100" : "opacity-0"}`}
           />
         )}
