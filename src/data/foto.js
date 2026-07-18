@@ -353,5 +353,29 @@ export const FOTO = [
       1800
     ],
     "source": "chi-siamo-gruppo-spiaggia.webp"
+  },
+  {
+    "slug": "ebike-costa",
+    "cat": "e-bike",
+    "alt": "Ciclista in mountain bike su una spiaggia sarda, con il mare cristallino sullo sfondo",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "ebike-costa.webp"
+  },
+  {
+    "slug": "ebike-pineta",
+    "cat": "e-bike",
+    "alt": "Mountain bike appoggiata a un pino su una caletta turchese della Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "ebike-pineta.webp"
   }
 ];

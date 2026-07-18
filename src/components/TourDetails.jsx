@@ -238,13 +238,11 @@ const tappaPools = {
     "cat-4x4",
     "gruppo-altopiano",
   ],
-  // SEGNAPOSTO: foto di territorio/esperienza per le tappe e-bike.
   "E-Bike": [
+    "ebike-costa",
+    "ebike-pineta",
     "pinnetta-sosta",
     "grotta-mineraria",
-    "pranzo-tavolata",
-    "gruppo-altopiano",
-    "moto-costa",
   ],
 };
 

@@ -75,11 +75,9 @@ export const CATEGORIE = [
     id: "e-bike",
     nome: "E-Bike",
     tourType: "E-Bike",
-    // SEGNAPOSTO: foto di territorio/esperienza — da sostituire con foto reali
-    // di e-bike quando disponibili (fotoCard, fotoHero, galleria).
-    fotoCard: "grotta-mineraria",
-    fotoHero: "pinnetta-sosta",
-    galleria: ["pinnetta-sosta", "pranzo-tavolata", "grotta-mineraria"],
+    fotoCard: "ebike-pineta",
+    fotoHero: "ebike-costa",
+    galleria: ["ebike-costa", "ebike-pineta", "pinnetta-sosta"],
     claim: "Natura, silenzio, zero fatica",
     intro:
       "Mountain bike a pedalata assistita per vivere la Sardegna in modo lento e immersivo. L'e-bike annulla la fatica delle salite e ti porta dove i mezzi a motore non arrivano: sentieri silenziosi, nuraghi nascosti e borghi dell'entroterra, a contatto totale con la natura.",
