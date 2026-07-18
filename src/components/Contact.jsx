@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { Phone, MessageCircle, Mail, Instagram, Facebook, MapPin, Send, Check } from "lucide-react";
 import { SITE, WEB3FORMS_ACCESS_KEY } from "@/config/site";
 import { tours } from "@/components/TourDetails.jsx?modalfix=1";
@@ -30,6 +31,8 @@ export default function Contact() {
     tour: "",
     data: "",
     messaggio: "",
+    // Dichiarazione di presa visione dell'informativa privacy (obbligatoria).
+    privacy: false,
     // Honeypot anti-spam: campo invisibile agli utenti reali, spesso compilato
     // dai bot. Se arriva valorizzato, la richiesta viene scartata in silenzio.
     botcheck: "",
@@ -39,7 +42,8 @@ export default function Contact() {
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, type, value, checked } = e.target;
+    setForm({ ...form, [name]: type === "checkbox" ? checked : value });
   };
 
   const handleSubmit = async (e) => {
@@ -73,7 +77,7 @@ export default function Contact() {
         throw new Error(result.message || "Invio non riuscito");
       }
       setSent(true);
-      setForm({ nome: "", email: "", telefono: "", tour: "", data: "", messaggio: "", botcheck: "" });
+      setForm({ nome: "", email: "", telefono: "", tour: "", data: "", messaggio: "", privacy: false, botcheck: "" });
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
       setError(
@@ -283,6 +287,24 @@ export default function Contact() {
                     placeholder="Raccontaci la tua avventura ideale..."
                   />
                 </div>
+                <label htmlFor="contact-privacy" className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    id="contact-privacy"
+                    name="privacy"
+                    type="checkbox"
+                    checked={form.privacy}
+                    onChange={handleChange}
+                    required
+                    className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[#A0612A]"
+                  />
+                  <span className="font-body text-xs leading-relaxed text-[#F5EBD9]/60">
+                    Ho letto l'
+                    <Link to="/privacy" className="text-[#A0612A] underline hover:text-[#b87033]">
+                      informativa privacy
+                    </Link>{" "}
+                    e acconsento al trattamento dei miei dati per rispondere alla richiesta. *
+                  </span>
+                </label>
                 {error && <p className="font-body text-sm text-[#A0612A]">{error}</p>}
                 <button
                   type="submit"

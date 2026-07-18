@@ -19,6 +19,8 @@ import Events from './pages/Events';
 import BlogList from './pages/BlogList.jsx?blogposts=2';
 import BlogDetail from './pages/BlogDetail.jsx?blogposts=2';
 import BlogAdmin from './pages/BlogAdmin';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import CookiePolicy from './pages/CookiePolicy';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -57,6 +59,8 @@ const AuthenticatedApp = () => {
     <Route path="/eventi" element={<Events />} />
     <Route path="/blog" element={<BlogList />} />
     <Route path="/blog/:id" element={<BlogDetail />} />
+    <Route path="/privacy" element={<PrivacyPolicy />} />
+    <Route path="/cookie-policy" element={<CookiePolicy />} />
     <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
       <Route path="/blog/admin" element={<BlogAdmin />} />
     </Route>

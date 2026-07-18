@@ -161,6 +161,30 @@ export default function Footer() {
 
         <div className="fissure-light mb-8" />
 
+        {/* Dati legali del Titolare + informative */}
+        <div className="mb-6 flex flex-col items-center gap-4 md:flex-row md:justify-between">
+          <p className="text-center font-body text-xs leading-relaxed text-[var(--granite-mist)]/40 md:text-left">
+            {SITE.legale.ragioneSociale} · {SITE.legale.formaGiuridica} · P.IVA {SITE.legale.partitaIva}
+            <br className="hidden md:block" />
+            <span className="md:hidden"> · </span>
+            {SITE.legale.sede}
+          </p>
+          <nav className="flex items-center gap-4" aria-label="Informative legali">
+            <Link
+              to="/privacy"
+              className="font-body text-xs text-[var(--granite-mist)]/60 underline transition-colors hover:text-[var(--accent)]"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              to="/cookie-policy"
+              className="font-body text-xs text-[var(--granite-mist)]/60 underline transition-colors hover:text-[var(--accent)]"
+            >
+              Cookie Policy
+            </Link>
+          </nav>
+        </div>
+
         <div className="flex flex-col items-center justify-between gap-4 pb-16 md:flex-row md:pb-0">
           <p className="text-center font-body text-xs text-[var(--granite-mist)]/40 md:text-left">
             © {new Date().getFullYear()} {SITE.nome}. Tutti i diritti riservati.

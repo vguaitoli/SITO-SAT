@@ -37,6 +37,14 @@ export const SITE = {
     regione: "Sardegna, Italia",
     mapsHref: "https://maps.google.com/?q=Sardegna",
   },
+  // Dati fiscali del Titolare del trattamento (ditta individuale).
+  // Usati nel footer, nell'informativa privacy e nella cookie policy.
+  legale: {
+    ragioneSociale: "Sardegna Trail Avventura",
+    formaGiuridica: "Ditta individuale",
+    partitaIva: "03063400901",
+    sede: "Strada Vicinale Zinziodda Li Buttagari, 111 — 07100 Sassari (SS)",
+  },
   // true quando i contatti reali sono stati inseriti: nasconde l'avviso di redazione.
   contattiVerificati: true,
 };
