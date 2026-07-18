@@ -4,7 +4,7 @@
   ],
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/(login|register|forgot-password|reset-password|blog/admin)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]

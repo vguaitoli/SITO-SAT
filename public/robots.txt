@@ -1,3 +1,9 @@
-# Sito non ancora pubblico: blocca l'indicizzazione da parte dei motori di ricerca.
 User-agent: *
-Disallow: /
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /blog/admin
+Allow: /
+
+Sitemap: https://www.sardegnatrailavventura.it/sitemap.xml
