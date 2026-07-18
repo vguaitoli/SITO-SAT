@@ -1,8 +1,6 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ list:async()=>[], filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
 import React, { useState } from "react";
 import { Phone, MessageCircle, Mail, Instagram, Facebook, MapPin, Send, Check } from "lucide-react";
-import { SITE } from "@/config/site";
+import { SITE, WEB3FORMS_ACCESS_KEY } from "@/config/site";
 import { tours } from "@/components/TourDetails.jsx?modalfix=1";
 
 const contacts = [
@@ -32,6 +30,9 @@ export default function Contact() {
     tour: "",
     data: "",
     messaggio: "",
+    // Honeypot anti-spam: campo invisibile agli utenti reali, spesso compilato
+    // dai bot. Se arriva valorizzato, la richiesta viene scartata in silenzio.
+    botcheck: "",
   });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -43,18 +44,38 @@ export default function Contact() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Honeypot: un bot che compila questo campo nascosto viene ignorato senza
+    // mostrare errori né inviare nulla.
+    if (form.botcheck) return;
     setSending(true);
     setError("");
     try {
-      const body = `Nuova richiesta di prenotazione:\n\nNome: ${form.nome}\nEmail: ${form.email}\nTelefono: ${form.telefono}\nTour: ${form.tour}\nData desiderata: ${form.data}\n\nMessaggio:\n${form.messaggio}`;
-      await db.integrations.Core.SendEmail({
-        to: SITE.email,
-        subject: `Nuova richiesta: ${form.tour || "Tour"} - ${form.nome}`,
-        body,
+      if (!WEB3FORMS_ACCESS_KEY) {
+        throw new Error("Web3Forms non configurato: manca VITE_WEB3FORMS_ACCESS_KEY.");
+      }
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_ACCESS_KEY,
+          subject: `Nuova richiesta: ${form.tour || "Tour"} - ${form.nome}`,
+          from_name: "Sito Sardegna Trail Avventura",
+          nome: form.nome,
+          email: form.email,
+          telefono: form.telefono,
+          tour: form.tour,
+          data_desiderata: form.data,
+          messaggio: form.messaggio,
+        }),
       });
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.message || "Invio non riuscito");
+      }
       setSent(true);
-      setForm({ nome: "", email: "", telefono: "", tour: "", data: "", messaggio: "" });
+      setForm({ nome: "", email: "", telefono: "", tour: "", data: "", messaggio: "", botcheck: "" });
     } catch (err) {
+      if (import.meta.env.DEV) console.error(err);
       setError(
         SITE.contattiVerificati
           ? "Si è verificato un errore. Riprova o contattaci via WhatsApp."
@@ -168,6 +189,17 @@ export default function Contact() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Honeypot anti-spam: fuori schermo, invisibile e non raggiungibile da tastiera per un utente reale. */}
+                <input
+                  type="text"
+                  name="botcheck"
+                  value={form.botcheck}
+                  onChange={handleChange}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  className="absolute -left-[9999px] h-0 w-0 overflow-hidden"
+                />
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="contact-nome" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Nome *</label>
