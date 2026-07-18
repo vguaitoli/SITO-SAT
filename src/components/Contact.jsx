@@ -48,7 +48,7 @@ export default function Contact() {
     try {
       const body = `Nuova richiesta di prenotazione:\n\nNome: ${form.nome}\nEmail: ${form.email}\nTelefono: ${form.telefono}\nTour: ${form.tour}\nData desiderata: ${form.data}\n\nMessaggio:\n${form.messaggio}`;
       await db.integrations.Core.SendEmail({
-        to: "info@sardegnatrailavventura.it",
+        to: SITE.email,
         subject: `Nuova richiesta: ${form.tour || "Tour"} - ${form.nome}`,
         body,
       });
