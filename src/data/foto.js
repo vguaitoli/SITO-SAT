@@ -439,5 +439,249 @@ export const FOTO = [
       1800
     ],
     "source": "WhatsApp Image 2026-07-13 at 14.54.51.webp"
+  },
+  {
+    "slug": "carousel-maxienduro-1",
+    "cat": "maxienduro",
+    "alt": "Maxienduro su uno sterrato panoramico tra le montagne, cielo azzurro con nuvole sparse",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "20260328_112040.webp"
+  },
+  {
+    "slug": "carousel-maxienduro-2",
+    "cat": "maxienduro",
+    "alt": "Rider in sosta su un sentiero fiorito di ginestre, con il mare sullo sfondo",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "20260329_174845.webp"
+  },
+  {
+    "slug": "carousel-maxienduro-3",
+    "cat": "maxienduro",
+    "alt": "Maxienduro su un crinale panoramico tra i pini, cielo azzurro con nuvole",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "20260328_124349.webp"
+  },
+  {
+    "slug": "carousel-enduro-1",
+    "cat": "enduro",
+    "alt": "Gruppo di moto da enduro in sosta su un crinale roccioso panoramico",
+    "aspect": 1.3333,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.24.webp"
+  },
+  {
+    "slug": "carousel-enduro-2",
+    "cat": "enduro",
+    "alt": "Rider da enduro su una spiaggia di ciottoli, davanti al mare",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.25.webp"
+  },
+  {
+    "slug": "carousel-enduro-3",
+    "cat": "enduro",
+    "alt": "Rider da enduro in sosta con vista panoramica sulle colline e il mare",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.26.webp"
+  },
+  {
+    "slug": "carousel-quad-1",
+    "cat": "quad",
+    "alt": "Quad e SSV in fila su un sentiero nel bosco",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-13 at 15.26.54.webp"
+  },
+  {
+    "slug": "carousel-quad-2",
+    "cat": "quad",
+    "alt": "Quad su una pista sterrata in quota, con il mare sullo sfondo",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-13 at 15.26.55 (1).webp"
+  },
+  {
+    "slug": "carousel-quad-3",
+    "cat": "quad",
+    "alt": "Due persone a bordo di un quad su un altopiano, con vista sulla costa",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-13 at 15.26.55 (2).webp"
+  },
+  {
+    "slug": "carousel-ssv-1",
+    "cat": "ssv",
+    "alt": "Flotta di SSV schierati su un altopiano panoramico",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-13 at 15.26.48.webp"
+  },
+  {
+    "slug": "carousel-ssv-2",
+    "cat": "ssv",
+    "alt": "SSV panoramico su un crinale con vista sulle colline e il mare",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-13 at 15.26.59.webp"
+  },
+  {
+    "slug": "carousel-ssv-3",
+    "cat": "ssv",
+    "alt": "SSV lungo un letto di torrente in ghiaia, circondato dal bosco",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-13 at 15.27.01.webp"
+  },
+  {
+    "slug": "carousel-4x4-1",
+    "cat": "4x4",
+    "alt": "Fuoristrada 4x4 durante il guado di un fiume, spruzzi d'acqua in primo piano",
+    "aspect": 2.1645,
+    "widths": [
+      480,
+      768,
+      1200,
+      1800
+    ],
+    "source": "WhatsApp Image 2026-07-13 at 14.54.49 (4).webp"
+  },
+  {
+    "slug": "carousel-4x4-2",
+    "cat": "4x4",
+    "alt": "Fuoristrada 4x4 su un sentiero roccioso immerso nel bosco",
+    "aspect": 2.1645,
+    "widths": [
+      480,
+      768,
+      1200,
+      1800
+    ],
+    "source": "WhatsApp Image 2026-07-13 at 14.54.51 (3).webp"
+  },
+  {
+    "slug": "carousel-4x4-3",
+    "cat": "4x4",
+    "alt": "Convoglio di fuoristrada 4x4 in salita su un crinale panoramico",
+    "aspect": 2.1645,
+    "widths": [
+      480,
+      768,
+      1200,
+      1800
+    ],
+    "source": "WhatsApp Image 2026-07-13 at 14.54.52.webp"
+  },
+  {
+    "slug": "carousel-4x4exp-1",
+    "cat": "4x4-experience",
+    "alt": "Fuoristrada 4x4 su un dolce altopiano erboso, atmosfera tranquilla",
+    "aspect": 2.1645,
+    "widths": [
+      480,
+      768,
+      1200,
+      1800
+    ],
+    "source": "WhatsApp Image 2026-07-13 at 14.54.49 (2).webp"
+  },
+  {
+    "slug": "carousel-4x4exp-2",
+    "cat": "4x4-experience",
+    "alt": "Fuoristrada 4x4 lungo una pista di campagna tra gli alberi",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-13 at 14.54.48 (1).webp"
+  },
+  {
+    "slug": "carousel-ebike-1",
+    "cat": "e-bike",
+    "alt": "E-bike appoggiata a un capanno di osservazione in legno, davanti a una laguna",
+    "aspect": 1.3333,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-19 at 12.45.27.webp"
+  },
+  {
+    "slug": "carousel-ebike-2",
+    "cat": "e-bike",
+    "alt": "Ciclista in e-bike lungo la costa, con isole e mare cristallino sullo sfondo",
+    "aspect": 1.3333,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-19 at 12.45.28.webp"
+  },
+  {
+    "slug": "carousel-ebike-3",
+    "cat": "e-bike",
+    "alt": "E-bike in sosta su un tavolo da picnic all'ombra dei pini, vista mare",
+    "aspect": 1.3322,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-19 at 12.45.29.webp"
   }
 ];
