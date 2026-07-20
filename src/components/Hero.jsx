@@ -190,7 +190,7 @@ export default function Hero() {
           : { variants: item, initial: "hidden", animate: "visible", transition: { delay: 0.6 } })}
         className="relative z-10 border-t border-[var(--border-on-dark)] bg-[var(--obsidian)]/40 backdrop-blur-sm"
       >
-        <ul className="mx-auto grid max-w-7xl grid-cols-3 divide-x divide-y divide-[var(--border-on-dark)] px-2 sm:grid-cols-6 sm:divide-y-0 sm:px-5 lg:px-8">
+        <ul className="mx-auto grid max-w-7xl grid-cols-4 divide-x divide-y divide-[var(--border-on-dark)] px-2 sm:grid-cols-7 sm:divide-y-0 sm:px-5 lg:px-8">
           {CATEGORIE.map((c) => (
             <li key={c.id}>
               <Link

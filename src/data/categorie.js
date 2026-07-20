@@ -72,6 +72,19 @@ export const CATEGORIE = [
     adatto: "Appassionati di off-road e famiglie o gruppi che vogliono esplorare insieme.",
   },
   {
+    id: "4x4-experience",
+    nome: "4x4 Experience",
+    // Nessun tour dedicato nei contenuti attuali: la categoria rimanda alla richiesta info.
+    tourType: null,
+    fotoCard: "4x4exp-crinale",
+    fotoHero: "4x4exp-salita",
+    galleria: ["4x4exp-salita", "4x4exp-crinale", "4x4exp-nuvole", "4x4exp-guado", "4x4exp-bosco"],
+    claim: "L'avventura, seduti a bordo",
+    intro:
+      "Vivi il fuoristrada più estremo senza guidare: sali a bordo dei 4x4 dell'organizzazione, guidati dalle nostre guide esperte, e lasciati portare tra crinali, guadi e salite ripide che il fuoristrada normale non affronta. Tutta l'adrenalina dell'off-road, zero pensieri.",
+    adatto: "Chi vuole vivere l'adrenalina del fuoristrada estremo da passeggero, senza bisogno di patente o esperienza di guida.",
+  },
+  {
     id: "e-bike",
     nome: "E-Bike",
     tourType: "E-Bike",

@@ -93,6 +93,18 @@ const PHOTOS = [
     alt: "Ciclista in mountain bike su una spiaggia sarda, con il mare cristallino sullo sfondo" },
   { src: "ebike-pineta.webp", slug: "ebike-pineta", cat: "e-bike",
     alt: "Mountain bike appoggiata a un pino su una caletta turchese della Sardegna" },
+
+  // ---- 4x4 Experience (tour da passeggero a bordo dei 4x4 dell'organizzazione) ----
+  { src: "WhatsApp Image 2026-07-13 at 15.27.02 (2).webp", slug: "4x4exp-salita", cat: "4x4-experience",
+    alt: "Fuoristrada 4x4 dell'organizzazione in ripida salita su un crinale roccioso" },
+  { src: "WhatsApp Image 2026-07-13 at 14.54.48.webp", slug: "4x4exp-crinale", cat: "4x4-experience",
+    alt: "Convoglio di fuoristrada 4x4 in fila su un crinale panoramico tra le montagne sarde" },
+  { src: "WhatsApp Image 2026-07-13 at 14.54.50.webp", slug: "4x4exp-nuvole", cat: "4x4-experience",
+    alt: "Fuoristrada 4x4 su un crinale sopra il mare di nuvole tra le montagne della Sardegna" },
+  { src: "WhatsApp Image 2026-07-13 at 15.26.33.webp", slug: "4x4exp-guado", cat: "4x4-experience",
+    alt: "Fuoristrada 4x4 durante il guado di un fiume tra la vegetazione primaverile" },
+  { src: "WhatsApp Image 2026-07-13 at 14.54.51.webp", slug: "4x4exp-bosco", cat: "4x4-experience",
+    alt: "Fuoristrada 4x4 lungo un sentiero sterrato immerso nel bosco" },
 ];
 
 async function main() {

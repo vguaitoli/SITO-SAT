@@ -377,5 +377,67 @@ export const FOTO = [
       1200
     ],
     "source": "ebike-pineta.webp"
+  },
+  {
+    "slug": "4x4exp-salita",
+    "cat": "4x4-experience",
+    "alt": "Fuoristrada 4x4 dell'organizzazione in ripida salita su un crinale roccioso",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-13 at 15.27.02 (2).webp"
+  },
+  {
+    "slug": "4x4exp-crinale",
+    "cat": "4x4-experience",
+    "alt": "Convoglio di fuoristrada 4x4 in fila su un crinale panoramico tra le montagne sarde",
+    "aspect": 2.168,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-13 at 14.54.48.webp"
+  },
+  {
+    "slug": "4x4exp-nuvole",
+    "cat": "4x4-experience",
+    "alt": "Fuoristrada 4x4 su un crinale sopra il mare di nuvole tra le montagne della Sardegna",
+    "aspect": 2.1651,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-13 at 14.54.50.webp"
+  },
+  {
+    "slug": "4x4exp-guado",
+    "cat": "4x4-experience",
+    "alt": "Fuoristrada 4x4 durante il guado di un fiume tra la vegetazione primaverile",
+    "aspect": 2.1645,
+    "widths": [
+      480,
+      768,
+      1200,
+      1800
+    ],
+    "source": "WhatsApp Image 2026-07-13 at 15.26.33.webp"
+  },
+  {
+    "slug": "4x4exp-bosco",
+    "cat": "4x4-experience",
+    "alt": "Fuoristrada 4x4 lungo un sentiero sterrato immerso nel bosco",
+    "aspect": 2.1645,
+    "widths": [
+      480,
+      768,
+      1200,
+      1800
+    ],
+    "source": "WhatsApp Image 2026-07-13 at 14.54.51.webp"
   }
 ];

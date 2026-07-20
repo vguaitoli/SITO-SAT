@@ -61,11 +61,11 @@ export default function Categorie() {
           eyebrow="Le esperienze"
           title="Scegli la tua"
           accent="avventura"
-          intro="Sei modi di vivere lo sterrato sardo, dalla maxienduro all'e-bike. Ogni mezzo ha il suo carattere, il suo ritmo e i suoi percorsi: scegli quello che fa per te."
+          intro="Sette modi di vivere lo sterrato sardo, dalla maxienduro all'e-bike, fino all'esperienza da passeggero sui nostri 4x4. Ogni mezzo ha il suo carattere, il suo ritmo e i suoi percorsi: scegli quello che fa per te."
           className="mb-14"
         />
 
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
           {CATEGORIE.map((cat, i) => (
             <Reveal key={cat.id} delay={i * 0.06}>
               <Card cat={cat} />
