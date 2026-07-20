@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
-import { ArrowRight, MessageCircle, Check } from "lucide-react";
+import { ArrowRight, MessageCircle, Check, Route } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import MobileCta from "@/components/MobileCta";
@@ -35,17 +35,25 @@ export default function CategoriaPage() {
 
       {/* Hero della categoria */}
       <header className="relative flex min-h-[70svh] items-end overflow-hidden pt-28">
-        <img
-          src={hero.src}
-          srcSet={hero.srcSet}
-          sizes="100vw"
-          alt={hero.alt}
-          width={1600}
-          height={Math.round(1600 / hero.aspect)}
-          fetchpriority="high"
-          decoding="async"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
+        {hero ? (
+          <img
+            src={hero.src}
+            srcSet={hero.srcSet}
+            sizes="100vw"
+            alt={hero.alt}
+            width={1600}
+            height={Math.round(1600 / hero.aspect)}
+            fetchpriority="high"
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          // Nessuna foto reale ancora disponibile per questa categoria: un'icona
+          // al posto di una foto inventata o non pertinente.
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--surface-dark-alt)] to-[var(--obsidian)]">
+            <Route size={160} className="text-[var(--accent)]/15" aria-hidden="true" strokeWidth={1} />
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--obsidian)] via-[var(--obsidian)]/60 to-[var(--obsidian)]/45" />
         {/* Scrim superiore: tiene leggibile la navigazione sopra le foto chiare. */}
         <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[var(--obsidian)]/90 to-transparent" />
@@ -87,24 +95,26 @@ export default function CategoriaPage() {
         </div>
       </section>
 
-      {/* Galleria della categoria */}
-      <section className="bg-[var(--obsidian)] pb-16 lg:pb-24">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
-            {c.galleria.map((slug, i) => (
-              <Reveal key={slug} delay={i * 0.07} className={i === 0 ? "col-span-2 lg:col-span-1" : ""}>
-                <Photo
-                  slug={slug}
-                  ratio="4/3"
-                  sizes="(min-width: 1024px) 33vw, 50vw"
-                  className="h-full w-full"
-                  imgClassName="transition-transform duration-700 hover:scale-105"
-                />
-              </Reveal>
-            ))}
+      {/* Galleria della categoria (assente finché non ci sono foto reali) */}
+      {c.galleria.length > 0 && (
+        <section className="bg-[var(--obsidian)] pb-16 lg:pb-24">
+          <div className="mx-auto max-w-7xl px-5 lg:px-8">
+            <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+              {c.galleria.map((slug, i) => (
+                <Reveal key={slug} delay={i * 0.07} className={i === 0 ? "col-span-2 lg:col-span-1" : ""}>
+                  <Photo
+                    slug={slug}
+                    ratio="4/3"
+                    sizes="(min-width: 1024px) 33vw, 50vw"
+                    className="h-full w-full"
+                    imgClassName="transition-transform duration-700 hover:scale-105"
+                  />
+                </Reveal>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Tour reali della categoria, oppure richiesta informazioni */}
       <section id="tour" className="bg-[var(--surface-light)] topo-bg py-24 lg:py-32">
@@ -207,13 +217,19 @@ export default function CategoriaPage() {
                 to={`/esperienze/${o.id}`}
                 className="group relative block aspect-[4/3] overflow-hidden bg-[var(--obsidian)]"
               >
-                <Photo
-                  slug={o.fotoCard}
-                  ratio="4/3"
-                  sizes="(min-width: 1024px) 25vw, 50vw"
-                  className="absolute inset-0 h-full w-full"
-                  imgClassName="opacity-70 transition-all duration-500 group-hover:scale-105 group-hover:opacity-95"
-                />
+                {o.fotoCard ? (
+                  <Photo
+                    slug={o.fotoCard}
+                    ratio="4/3"
+                    sizes="(min-width: 1024px) 25vw, 50vw"
+                    className="absolute inset-0 h-full w-full"
+                    imgClassName="opacity-70 transition-all duration-500 group-hover:scale-105 group-hover:opacity-95"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--surface-dark-alt)] to-[var(--obsidian)]">
+                    <Route size={40} className="text-[var(--accent)]/20" aria-hidden="true" strokeWidth={1.25} />
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--obsidian)] to-transparent" />
                 <span className="absolute bottom-4 left-4 font-heading text-2xl text-[var(--granite-mist)] transition-colors group-hover:text-[var(--accent-soft)]">
                   {o.nome}

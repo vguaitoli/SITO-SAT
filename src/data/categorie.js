@@ -85,6 +85,22 @@ export const CATEGORIE = [
     adatto: "Chi vuole vivere l'adrenalina del fuoristrada estremo da passeggero, senza bisogno di patente o esperienza di guida.",
   },
   {
+    id: "tour-stradali",
+    nome: "Tour Stradali",
+    // Nessun tour dedicato nei contenuti attuali: la categoria rimanda alla richiesta info.
+    tourType: null,
+    // Nessuna foto reale ancora disponibile per questa categoria: fotoCard/fotoHero
+    // restano null finché non verranno fornite. I componenti mostrano un
+    // segnaposto grafico (icona), mai una foto non pertinente o inventata.
+    fotoCard: null,
+    fotoHero: null,
+    galleria: [],
+    claim: "L'isola, un tornante alla volta",
+    intro:
+      "Le strade panoramiche della Sardegna raccontano l'isola da un'altra prospettiva: coste a strapiombo, tornanti tra i monti e borghi di pietra, tutto su asfalto. Percorsi pensati per chi ama viaggiare comodo, senza rinunciare all'emozione della strada.",
+    adatto: "Chi preferisce l'asfalto allo sterrato: adatto a moto e auto, da soli o in piccoli gruppi.",
+  },
+  {
     id: "e-bike",
     nome: "E-Bike",
     tourType: "E-Bike",

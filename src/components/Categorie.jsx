@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Route } from "lucide-react";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 import { CATEGORIE } from "@/data/categorie";
@@ -19,15 +19,23 @@ function Card({ cat }) {
       className="group relative block aspect-[4/5] h-full overflow-hidden bg-[var(--obsidian)]"
       aria-label={`${cat.nome} — ${cta}`}
     >
-      <img
-        src={photo.src}
-        srcSet={photo.srcSet}
-        sizes="(min-width: 768px) 33vw, 50vw"
-        alt={photo.alt}
-        loading="lazy"
-        decoding="async"
-        className="absolute inset-0 h-full w-full object-cover opacity-75 transition-all duration-700 ease-out group-hover:scale-105 group-hover:opacity-95"
-      />
+      {photo ? (
+        <img
+          src={photo.src}
+          srcSet={photo.srcSet}
+          sizes="(min-width: 768px) 33vw, 50vw"
+          alt={photo.alt}
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover opacity-75 transition-all duration-700 ease-out group-hover:scale-105 group-hover:opacity-95"
+        />
+      ) : (
+        // Nessuna foto reale ancora disponibile per questa categoria: un'icona
+        // al posto di una foto inventata o non pertinente.
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--surface-dark-alt)] to-[var(--obsidian)]">
+          <Route size={72} className="text-[var(--accent)]/25" aria-hidden="true" strokeWidth={1.25} />
+        </div>
+      )}
       <div className="absolute inset-0 bg-gradient-to-t from-[var(--obsidian)] via-[var(--obsidian)]/45 to-transparent" />
 
       <div className="absolute inset-x-0 bottom-0 p-6 transition-transform duration-500 ease-out group-hover:-translate-y-1 lg:p-7">
@@ -61,7 +69,7 @@ export default function Categorie() {
           eyebrow="Le esperienze"
           title="Scegli la tua"
           accent="avventura"
-          intro="Sette modi di vivere lo sterrato sardo, dalla maxienduro all'e-bike, fino all'esperienza da passeggero sui nostri 4x4. Ogni mezzo ha il suo carattere, il suo ritmo e i suoi percorsi: scegli quello che fa per te."
+          intro="Otto modi di vivere la Sardegna, dallo sterrato più estremo ai tour su strada. Ogni mezzo ha il suo carattere, il suo ritmo e i suoi percorsi: scegli quello che fa per te."
           className="mb-14"
         />
 
