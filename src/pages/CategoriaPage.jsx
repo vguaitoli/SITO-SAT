@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import MobileCta from "@/components/MobileCta";
 import Reveal from "@/components/Reveal";
 import Photo from "@/components/Photo";
+import PhotoRibbon from "@/components/PhotoRibbon";
 import TourCard from "@/components/TourCard.jsx?modalfix=1";
 import { tours, typeColors } from "@/components/TourDetails.jsx?modalfix=1";
 import { CATEGORIE, categoria } from "@/data/categorie";
@@ -94,6 +95,13 @@ export default function CategoriaPage() {
           </Reveal>
         </div>
       </section>
+
+      {/* Nastro fotografico a scorrimento (assente finché non ci sono foto reali) */}
+      {c.carosello?.length > 0 && (
+        <div className="border-y border-[var(--border-on-dark)] bg-[var(--obsidian)] py-4">
+          <PhotoRibbon slugs={c.carosello} />
+        </div>
+      )}
 
       {/* Galleria della categoria (assente finché non ci sono foto reali) */}
       {c.galleria.length > 0 && (

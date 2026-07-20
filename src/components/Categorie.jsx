@@ -1,68 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
-import { useReducedMotion } from "framer-motion";
 import { ArrowRight, Route } from "lucide-react";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 import { CATEGORIE } from "@/data/categorie";
 import { fotoProps } from "@/data/foto-helpers";
 
-const SLIDE_MS = 4500;
-
-/**
- * Carosello a dissolvenza tra le foto reali della categoria (cat.carosello).
- * In pausa al passaggio del mouse e disattivato con prefers-reduced-motion
- * (mostra solo la prima foto, ferma).
- */
-function CardCarousel({ slugs, alt }) {
-  const photos = slugs.map(fotoProps).filter(Boolean);
-  const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const reduce = useReducedMotion();
-
-  useEffect(() => {
-    if (reduce || paused || photos.length < 2) return;
-    const id = setInterval(() => {
-      setIndex((i) => (i + 1) % photos.length);
-    }, SLIDE_MS);
-    return () => clearInterval(id);
-  }, [reduce, paused, photos.length]);
-
-  if (photos.length === 0) return null;
-
-  return (
-    <div
-      className="absolute inset-0"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
-      {photos.map((photo, i) => (
-        <img
-          key={photo.slug}
-          src={photo.src}
-          srcSet={photo.srcSet}
-          sizes="(min-width: 768px) 33vw, 50vw"
-          alt={i === 0 ? alt : ""}
-          aria-hidden={i === 0 ? undefined : true}
-          loading="lazy"
-          decoding="async"
-          className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ease-out ${
-            i === index
-              ? "opacity-75 group-hover:scale-105 group-hover:opacity-95"
-              : "opacity-0"
-          }`}
-        />
-      ))}
-    </div>
-  );
-}
-
 /**
  * "Scegli la tua avventura": una card per ciascuna categoria, in una griglia
  * uniforme che scala con il numero di esperienze.
  */
 function Card({ cat }) {
-  const slugs = cat.carosello?.length ? cat.carosello : [cat.fotoCard].filter(Boolean);
+  const photo = fotoProps(cat.fotoCard);
   const cta = cat.tourType ? "Scopri i tour" : "Richiedi informazioni";
   return (
     <Link
@@ -70,8 +19,16 @@ function Card({ cat }) {
       className="group relative block aspect-[4/5] h-full overflow-hidden bg-[var(--obsidian)]"
       aria-label={`${cat.nome} — ${cta}`}
     >
-      {slugs.length > 0 ? (
-        <CardCarousel slugs={slugs} alt={`${cat.nome}: ${cat.claim}`} />
+      {photo ? (
+        <img
+          src={photo.src}
+          srcSet={photo.srcSet}
+          sizes="(min-width: 768px) 33vw, 50vw"
+          alt={photo.alt}
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover opacity-75 transition-all duration-700 ease-out group-hover:scale-105 group-hover:opacity-95"
+        />
       ) : (
         // Nessuna foto reale ancora disponibile per questa categoria: un'icona
         // al posto di una foto inventata o non pertinente.

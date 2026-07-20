@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Phone, Mail, Instagram, Facebook, MessageCircle } from "lucide-react";
 import { SITE } from "@/config/site";
 import { CATEGORIE } from "@/data/categorie";
-import { fotoProps } from "@/data/foto-helpers";
+import PhotoRibbon from "@/components/PhotoRibbon";
 
 // Nastro fotografico dal materiale reale, senza ripetizioni ravvicinate.
 const ribbonSlugs = [
@@ -14,7 +14,6 @@ const ribbonSlugs = [
   "maxienduro-tenere",
   "pinnetta-sosta",
 ];
-const ribbon = ribbonSlugs.map(fotoProps).filter(Boolean);
 
 const navItems = [
   { label: "Esperienze", href: "#esperienze" },
@@ -34,22 +33,8 @@ export default function Footer() {
   return (
     <footer className="border-t border-[var(--accent)]/30 bg-[var(--obsidian)]">
       {/* Nastro fotografico scorrevole */}
-      <div className="overflow-hidden border-b border-[var(--border-on-dark)] py-4">
-        <div className="flex gap-2 animate-[scroll_40s_linear_infinite] hover:[animation-play-state:paused] motion-reduce:animate-none">
-          {[...ribbon, ...ribbon].map((img, i) => (
-            <img
-              key={i}
-              src={img.src}
-              srcSet={img.srcSet}
-              sizes="128px"
-              alt=""
-              aria-hidden="true"
-              loading="lazy"
-              decoding="async"
-              className="h-20 w-32 flex-shrink-0 object-cover grayscale transition-all hover:grayscale-0"
-            />
-          ))}
-        </div>
+      <div className="border-b border-[var(--border-on-dark)] py-4">
+        <PhotoRibbon slugs={ribbonSlugs} className="h-20 w-32" />
       </div>
 
       <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
