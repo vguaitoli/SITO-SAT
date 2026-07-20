@@ -64,7 +64,7 @@ export const CATEGORIE = [
     nome: "4x4",
     tourType: "4x4",
     fotoCard: "cat-4x4",
-    fotoHero: "hero-4x4-costa",
+    fotoHero: "4x4exp-salita",
     galleria: ["4x4-guado", "4x4-crinale", "4x4-borgo-pietra"],
     claim: "L'avventura senza compromessi",
     intro:
@@ -77,7 +77,7 @@ export const CATEGORIE = [
     // Nessun tour dedicato nei contenuti attuali: la categoria rimanda alla richiesta info.
     tourType: null,
     fotoCard: "4x4exp-crinale",
-    fotoHero: "4x4exp-salita",
+    fotoHero: "4x4exp-nuvole",
     galleria: ["4x4exp-salita", "4x4exp-crinale", "4x4exp-nuvole", "4x4exp-guado", "4x4exp-bosco"],
     claim: "La Sardegna, comodi a bordo",
     intro:
