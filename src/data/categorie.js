@@ -79,10 +79,10 @@ export const CATEGORIE = [
     fotoCard: "4x4exp-crinale",
     fotoHero: "4x4exp-salita",
     galleria: ["4x4exp-salita", "4x4exp-crinale", "4x4exp-nuvole", "4x4exp-guado", "4x4exp-bosco"],
-    claim: "L'avventura, seduti a bordo",
+    claim: "La Sardegna, comodi a bordo",
     intro:
-      "Vivi il fuoristrada più estremo senza guidare: sali a bordo dei 4x4 dell'organizzazione, guidati dalle nostre guide esperte, e lasciati portare tra crinali, guadi e salite ripide che il fuoristrada normale non affronta. Tutta l'adrenalina dell'off-road, zero pensieri.",
-    adatto: "Chi vuole vivere l'adrenalina del fuoristrada estremo da passeggero, senza bisogno di patente o esperienza di guida.",
+      "Sali a bordo dei 4x4 dell'organizzazione e lasciati portare alla scoperta della Sardegna più nascosta, guidati dalle nostre guide esperte. Nessuna patente, nessuna esperienza di guida richiesta: basta sedersi, godersi il panorama e vivere l'emozione del fuoristrada in tutta comodità e sicurezza, adatto anche a famiglie con bambini.",
+    adatto: "Famiglie con bambini, gruppi e chiunque voglia vivere il fuoristrada da passeggero, senza guidare e senza pensieri.",
   },
   {
     id: "tour-stradali",
