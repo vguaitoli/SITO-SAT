@@ -98,30 +98,9 @@ export default function CategoriaPage() {
 
       {/* Nastro fotografico a scorrimento (assente finché non ci sono foto reali) */}
       {c.carosello?.length > 0 && (
-        <div className="border-y border-[var(--border-on-dark)] bg-[var(--obsidian)] py-4">
+        <div className="border-y border-[var(--border-on-dark)] bg-[var(--obsidian)] py-4 mb-16 lg:mb-24">
           <PhotoRibbon slugs={c.carosello} />
         </div>
-      )}
-
-      {/* Galleria della categoria (assente finché non ci sono foto reali) */}
-      {c.galleria.length > 0 && (
-        <section className="bg-[var(--obsidian)] pb-16 lg:pb-24">
-          <div className="mx-auto max-w-7xl px-5 lg:px-8">
-            <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
-              {c.galleria.map((slug, i) => (
-                <Reveal key={slug} delay={i * 0.07} className={i === 0 ? "col-span-2 lg:col-span-1" : ""}>
-                  <Photo
-                    slug={slug}
-                    ratio="4/3"
-                    sizes="(min-width: 1024px) 33vw, 50vw"
-                    className="h-full w-full"
-                    imgClassName="transition-transform duration-700 hover:scale-105"
-                  />
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
       )}
 
       {/* Tour reali della categoria, oppure richiesta informazioni */}

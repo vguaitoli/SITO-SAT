@@ -16,8 +16,7 @@ export const CATEGORIE = [
     // Slug foto (manifest src/data/foto.js).
     fotoCard: "cat-maxienduro",
     fotoHero: "hero-maxienduro-panorama",
-    galleria: ["maxienduro-tenere", "maxienduro-sosta-bosco", "hero-maxienduro-panorama"],
-    // Carosello nella card home: foto reali distinte, mai ripetute in altre categorie.
+    // Carosello nella pagina categoria: foto reali distinte, mai ripetute in altre categorie.
     carosello: ["cat-maxienduro", "carousel-maxienduro-1", "carousel-maxienduro-2", "carousel-maxienduro-3"],
     claim: "Grandi distanze, nessun limite",
     intro:
@@ -30,7 +29,6 @@ export const CATEGORIE = [
     tourType: "Enduro",
     fotoCard: "cat-enduro",
     fotoHero: "hero-enduro-gruppo",
-    galleria: ["enduro-sentiero", "enduro-vetta", "hero-enduro-gruppo"],
     carosello: ["cat-enduro", "carousel-enduro-1", "carousel-enduro-2", "carousel-enduro-3"],
     claim: "Leggera, agile, tecnica",
     intro:
@@ -43,7 +41,6 @@ export const CATEGORIE = [
     tourType: "Quad",
     fotoCard: "cat-quad",
     fotoHero: "hero-quad-convoglio",
-    galleria: ["quad-pietraia", "hero-quad-convoglio"],
     carosello: ["cat-quad", "carousel-quad-1", "carousel-quad-2", "carousel-quad-3"],
     claim: "Il fuoristrada per tutti",
     intro:
@@ -57,7 +54,6 @@ export const CATEGORIE = [
     tourType: null,
     fotoCard: "cat-ssv",
     fotoHero: "hero-ssv-guado",
-    galleria: ["ssv-roccia", "ssv-bandiera", "ssv-spiaggia-flotta"],
     carosello: ["cat-ssv", "carousel-ssv-1", "carousel-ssv-2", "carousel-ssv-3"],
     claim: "Guida affiancata, adrenalina condivisa",
     intro:
@@ -70,7 +66,6 @@ export const CATEGORIE = [
     tourType: "4x4",
     fotoCard: "cat-4x4",
     fotoHero: "4x4exp-salita",
-    galleria: ["4x4-guado", "4x4-crinale", "4x4-borgo-pietra"],
     carosello: ["cat-4x4", "carousel-4x4-1", "carousel-4x4-2", "carousel-4x4-3"],
     claim: "L'avventura senza compromessi",
     intro:
@@ -84,7 +79,6 @@ export const CATEGORIE = [
     tourType: null,
     fotoCard: "4x4exp-crinale",
     fotoHero: "4x4exp-nuvole",
-    galleria: ["4x4exp-salita", "4x4exp-crinale", "4x4exp-nuvole", "4x4exp-guado", "4x4exp-bosco"],
     carosello: ["4x4exp-crinale", "carousel-4x4exp-1", "carousel-4x4exp-2", "4x4exp-nuvole"],
     claim: "La Sardegna, comodi a bordo",
     intro:
@@ -101,7 +95,6 @@ export const CATEGORIE = [
     // segnaposto grafico (icona), mai una foto non pertinente o inventata.
     fotoCard: null,
     fotoHero: null,
-    galleria: [],
     // Nessun carosello: nessuna foto reale disponibile per questa categoria.
     carosello: [],
     claim: "L'isola, un tornante alla volta",
@@ -115,7 +108,6 @@ export const CATEGORIE = [
     tourType: "E-Bike",
     fotoCard: "ebike-pineta",
     fotoHero: "ebike-costa",
-    galleria: ["ebike-costa", "ebike-pineta", "pinnetta-sosta"],
     carosello: ["ebike-pineta", "carousel-ebike-1", "carousel-ebike-2", "carousel-ebike-3"],
     claim: "Natura, silenzio, zero fatica",
     intro:
