@@ -16,6 +16,18 @@ export const FOTO = [
     "source": "IMG_1646.webp"
   },
   {
+    "slug": "hero-maxienduro-crinale",
+    "cat": "maxienduro",
+    "alt": "Rider in sosta sulla maxienduro su un crinale roccioso, panorama sulle montagne sarde sotto un cielo con nuvole",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "IMG_1642.webp"
+  },
+  {
     "slug": "hero-enduro-gruppo",
     "cat": "enduro",
     "alt": "Moto da enduro e rider su un sentiero fiorito tra le montagne della Sardegna",

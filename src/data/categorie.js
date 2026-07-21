@@ -15,7 +15,7 @@ export const CATEGORIE = [
     tourType: "Maxienduro",
     // Slug foto (manifest src/data/foto.js).
     fotoCard: "cat-maxienduro",
-    fotoHero: "hero-maxienduro-panorama",
+    fotoHero: "hero-maxienduro-crinale",
     // Carosello nella pagina categoria: foto reali distinte, mai ripetute in altre categorie.
     carosello: ["cat-maxienduro", "carousel-maxienduro-1", "carousel-maxienduro-2", "carousel-maxienduro-3"],
     claim: "Grandi distanze, nessun limite",

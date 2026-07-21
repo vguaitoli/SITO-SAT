@@ -25,6 +25,8 @@ const PHOTOS = [
   // ---- Hero: una foto per categoria, per rappresentare tutto il brand ----
   { src: "IMG_1646.webp", slug: "hero-maxienduro-panorama", cat: "maxienduro",
     alt: "Due maxienduro parcheggiate su uno sterrato panoramico con le montagne sarde sullo sfondo" },
+  { src: "IMG_1642.webp", slug: "hero-maxienduro-crinale", cat: "maxienduro",
+    alt: "Rider in sosta sulla maxienduro su un crinale roccioso, panorama sulle montagne sarde sotto un cielo con nuvole" },
   { src: "20260329_174144.webp", slug: "hero-enduro-gruppo", cat: "enduro",
     alt: "Moto da enduro e rider su un sentiero fiorito tra le montagne della Sardegna" },
   { src: "WhatsApp Image 2026-07-13 at 15.26.50.webp", slug: "hero-quad-convoglio", cat: "quad",
