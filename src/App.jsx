@@ -11,6 +11,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import { Analytics } from '@vercel/analytics/react';
 // Add page imports here
 import Home from './pages/Home.jsx?blogposts=2';
 import TourItinerari from './pages/TourItinerari';
@@ -79,6 +80,7 @@ function App() {
           <AuthenticatedApp />
         </Router>
         <Toaster />
+        <Analytics />
       </QueryClientProvider>
     </AuthProvider>
   )
