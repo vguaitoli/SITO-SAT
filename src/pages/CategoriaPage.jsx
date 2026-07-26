@@ -11,7 +11,7 @@ import TourCard from "@/components/TourCard.jsx";
 import { tours, typeColors } from "@/components/TourDetails.jsx";
 import { CATEGORIE, categoria } from "@/data/categorie";
 import { fotoProps } from "@/data/foto-helpers";
-import { SITE, whatsappLink } from "@/config/site";
+import { CTA_LABELS, SITE, TOUR_GROUP, whatsappLink } from "@/config/site";
 import guideGianluca from "@/assets/guides/guide-gianluca-serra.webp";
 
 /**
@@ -51,7 +51,7 @@ export default function CategoriaPage() {
           "Guida locale esperta",
           "Trasporto bagagli",
           "Assistenza tecnica",
-          "Tag GPS live",
+          "Dispositivo GPS Live Tracking",
           "Agriturismo mezza pensione",
           "Gadget esclusivi",
         ];
@@ -145,7 +145,7 @@ export default function CategoriaPage() {
                   {tourCategoria.length === 1
                     ? "Un itinerario a catalogo, con dati tecnici completi."
                     : `${tourCategoria.length} itinerari a catalogo, con dati tecnici completi.`}{" "}
-                  Ogni tour è personalizzabile per il tuo gruppo.
+                  Ogni tour è personalizzabile per il tuo gruppo. {TOUR_GROUP.sentence}
                 </p>
               </Reveal>
               <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -174,7 +174,7 @@ export default function CategoriaPage() {
                     to={contactTarget}
                     className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--cta)] px-8 py-4 text-base text-[var(--cta-text)] hover:bg-[var(--cta-hover)]"
                   >
-                    Chiedi informazioni sul corso
+                    {CTA_LABELS.primary}
                     <ArrowRight size={18} aria-hidden="true" />
                   </Link>
                   {SITE.contattiVerificati && (
@@ -185,7 +185,7 @@ export default function CategoriaPage() {
                       className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--wild-sage)] px-8 py-4 text-base text-[var(--granite-mist)] hover:bg-[var(--wild-sage-bright)]"
                     >
                       <MessageCircle size={18} aria-hidden="true" />
-                      Scrivici su WhatsApp
+                      {CTA_LABELS.whatsapp}
                     </a>
                   )}
                 </div>
@@ -238,7 +238,7 @@ export default function CategoriaPage() {
                   to={contactTarget}
                   className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--cta)] px-8 py-4 text-base text-[var(--cta-text)] hover:bg-[var(--cta-hover)]"
                 >
-                  Verifica mezzo e disponibilità
+                  {CTA_LABELS.primary}
                   <ArrowRight size={18} aria-hidden="true" />
                 </Link>
                 {SITE.contattiVerificati && (
@@ -249,7 +249,7 @@ export default function CategoriaPage() {
                     className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--wild-sage)] px-8 py-4 text-base text-[var(--granite-mist)] hover:bg-[var(--wild-sage-bright)]"
                   >
                     <MessageCircle size={18} aria-hidden="true" />
-                    Scrivici su WhatsApp
+                    {CTA_LABELS.whatsapp}
                   </a>
                 )}
               </div>
@@ -273,7 +273,7 @@ export default function CategoriaPage() {
                   to={contactTarget}
                   className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--cta)] px-8 py-4 text-base text-[var(--cta-text)] hover:bg-[var(--cta-hover)]"
                 >
-                  Richiedi informazioni
+                  {CTA_LABELS.primary}
                   <ArrowRight size={18} aria-hidden="true" />
                 </Link>
                 {SITE.contattiVerificati && (
@@ -284,7 +284,7 @@ export default function CategoriaPage() {
                     className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--wild-sage)] px-8 py-4 text-base text-[var(--granite-mist)] hover:bg-[var(--wild-sage-bright)]"
                   >
                     <MessageCircle size={18} aria-hidden="true" />
-                    Scrivici su WhatsApp
+                    {CTA_LABELS.whatsapp}
                   </a>
                 )}
               </div>
@@ -307,7 +307,7 @@ export default function CategoriaPage() {
               </>
             ) : (
               <>
-                In ogni tour <span className="text-[var(--accent)]">è incluso</span>
+                In base al tour <span className="text-[var(--accent)]">può essere incluso</span>
               </>
             )}
           </h2>
@@ -319,6 +319,16 @@ export default function CategoriaPage() {
               </li>
             ))}
           </ul>
+          {!isCourse && !isRental && (
+            <p className="mt-6 font-body text-sm leading-relaxed text-[var(--granite-mist)]/60">
+              Quando previsto, il dispositivo GPS Live Tracking viene fornito
+              dall'organizzazione, che può così verificare in ogni momento che il gruppo
+              rimanga compatto e che nessun partecipante resti isolato o si disperda
+              lungo il percorso. Non viene utilizzato come navigatore e non fornisce
+              indicazioni di percorso ai partecipanti. Servizi e dotazioni vengono
+              confermati prima della prenotazione.
+            </p>
+          )}
           {isRental && (
             <p className="mt-6 font-body text-sm leading-relaxed text-[var(--granite-mist)]/55">
               Disponibilità, tariffa, deposito, documenti, coperture e condizioni
@@ -390,21 +400,26 @@ export default function CategoriaPage() {
                 ? "Raccontaci quale tour vuoi vivere, quando desideri partire e quale mezzo preferisci. Verificheremo la soluzione più adatta e ti invieremo tutte le condizioni prima della conferma."
                 : "Dicci quando vorresti venire: verifichiamo la disponibilità e ti diciamo qual è il percorso giusto per te."}
           </p>
-          <Link
-            to={contactTarget}
-            className="btn-mech mt-8 inline-flex items-center gap-2.5 bg-[var(--cta)] px-8 py-4 text-base text-[var(--cta-text)] hover:bg-[var(--cta-hover)]"
-          >
-            {isCourse ? "Informazioni sui corsi" : isRental ? "Richiedi disponibilità" : "Verifica disponibilità"}
-            <ArrowRight size={18} aria-hidden="true" />
-          </Link>
-          {SITE.contattiVerificati && (
-            <p className="mt-4 font-body text-sm text-[var(--granite-mist)]/50">
-              Oppure scrivici a{" "}
-              <a href={`mailto:${SITE.email}`} className="underline hover:text-[var(--accent)]">
-                {SITE.email}
+          <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
+            <Link
+              to={contactTarget}
+              className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--cta)] px-8 py-4 text-base text-[var(--cta-text)] hover:bg-[var(--cta-hover)]"
+            >
+              {CTA_LABELS.primary}
+              <ArrowRight size={18} aria-hidden="true" />
+            </Link>
+            {SITE.contattiVerificati && (
+              <a
+                href={whatsappLink(`Ciao! Vorrei verificare la disponibilità per ${c.nome}.`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--wild-sage)] px-8 py-4 text-base text-[var(--granite-mist)] hover:bg-[var(--wild-sage-bright)]"
+              >
+                <MessageCircle size={18} aria-hidden="true" />
+                {CTA_LABELS.whatsapp}
               </a>
-            </p>
-          )}
+            )}
+          </div>
         </div>
       </section>
 

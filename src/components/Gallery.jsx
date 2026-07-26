@@ -8,23 +8,23 @@ import { fotoProps } from "@/data/foto-helpers";
  * dell'esperienza. Tutte le foto sono reali (manifest src/data/foto.js).
  */
 const items = [
-  { slug: "hero-maxienduro-panorama", label: "Maxienduro", span: "col-span-2 row-span-2" },
-  { slug: "hero-ssv-guado", label: "SSV" },
-  { slug: "4x4-guado", label: "4x4" },
-  { slug: "hero-quad-convoglio", label: "Quad" },
-  { slug: "enduro-vetta", label: "Enduro" },
-  { slug: "pranzo-tavolata", label: "I pranzi", span: "col-span-2" },
-  { slug: "pinnetta-sosta", label: "Il territorio" },
-  { slug: "guida-sentiero", label: "Le guide" },
-  { slug: "ssv-spiaggia-flotta", label: "Le coste", span: "col-span-2" },
-  { slug: "grotta-mineraria", label: "I percorsi" },
-  { slug: "4x4-crinale", label: "I crinali" },
+  { slug: "hero-maxienduro-panorama", span: "col-span-2 row-span-2" },
+  { slug: "hero-ssv-guado" },
+  { slug: "4x4-guado" },
+  { slug: "hero-quad-convoglio" },
+  { slug: "enduro-vetta" },
+  { slug: "pranzo-tavolata", span: "col-span-2" },
+  { slug: "pinnetta-sosta" },
+  { slug: "guida-sentiero" },
+  { slug: "ssv-spiaggia-flotta", span: "col-span-2" },
+  { slug: "grotta-mineraria" },
+  { slug: "4x4-crinale" },
 ];
 
 const images = items
   .map((it) => {
     const f = fotoProps(it.slug);
-    return f ? { ...f, label: it.label, span: it.span || "" } : null;
+    return f ? { ...f, span: it.span || "" } : null;
   })
   .filter(Boolean);
 
@@ -62,10 +62,6 @@ export default function Gallery() {
                   decoding="async"
                   className="h-full w-full object-cover grayscale-[30%] transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[var(--obsidian)]/80 via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-90" />
-                <span className="absolute bottom-4 left-4 z-10 font-button text-xs uppercase tracking-[0.2em] text-[var(--granite-mist)]">
-                  {img.label}
-                </span>
               </button>
             </li>
           ))}

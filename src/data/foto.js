@@ -695,5 +695,877 @@ export const FOTO = [
       1200
     ],
     "source": "WhatsApp Image 2026-07-19 at 12.45.29.webp"
+  },
+  {
+    "slug": "noleggio-discesa-vallata",
+    "cat": "generale",
+    "alt": "Rider in discesa su un sentiero sterrato tra le montagne, con una vallata boscosa sullo sfondo",
+    "aspect": 1.3333,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "noleggio-discesa-vallata-src.webp"
+  },
+  {
+    "slug": "carousel-maxienduro-4",
+    "cat": "maxienduro",
+    "alt": "Maxienduro su un sentiero sterrato panoramico in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "20260327_121227.webp"
+  },
+  {
+    "slug": "carousel-maxienduro-5",
+    "cat": "maxienduro",
+    "alt": "Rider in sosta con la maxienduro tra le montagne sarde",
+    "aspect": 1.3281,
+    "widths": [
+      480,
+      768,
+      1200,
+      1800
+    ],
+    "source": "Guida Gianluca Nuova.webp"
+  },
+  {
+    "slug": "carousel-maxienduro-6",
+    "cat": "maxienduro",
+    "alt": "Gruppo in maxienduro lungo un percorso panoramico in Sardegna",
+    "aspect": 0.7471,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-18 at 20.20.27 (1).webp"
+  },
+  {
+    "slug": "carousel-maxienduro-7",
+    "cat": "maxienduro",
+    "alt": "Maxienduro su un crinale con vista sulle montagne sarde",
+    "aspect": 1.3333,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-19 at 13.44.03 (1).webp"
+  },
+  {
+    "slug": "carousel-maxienduro-8",
+    "cat": "maxienduro",
+    "alt": "Rider in maxienduro tra i boschi della Sardegna",
+    "aspect": 1.3333,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-19 at 13.44.03 (2).webp"
+  },
+  {
+    "slug": "carousel-maxienduro-9",
+    "cat": "maxienduro",
+    "alt": "Maxienduro parcheggiate durante una sosta panoramica",
+    "aspect": 1.3333,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-19 at 13.44.03 (3).webp"
+  },
+  {
+    "slug": "carousel-maxienduro-10",
+    "cat": "maxienduro",
+    "alt": "Convoglio di maxienduro su una pista sterrata in Sardegna",
+    "aspect": 0.4861,
+    "widths": [
+      480,
+      768
+    ],
+    "source": "WhatsApp Image 2026-07-19 at 13.44.03.webp"
+  },
+  {
+    "slug": "carousel-maxienduro-11",
+    "cat": "maxienduro",
+    "alt": "Maxienduro su un sentiero costiero in Sardegna",
+    "aspect": 1.3333,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-19 at 13.44.04 (2).webp"
+  },
+  {
+    "slug": "carousel-maxienduro-12",
+    "cat": "maxienduro",
+    "alt": "Maxienduro su un sentiero sterrato panoramico in Sardegna",
+    "aspect": 1.3333,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-19 at 13.44.04.webp"
+  },
+  {
+    "slug": "carousel-maxienduro-13",
+    "cat": "maxienduro",
+    "alt": "Rider in sosta con la maxienduro tra le montagne sarde",
+    "aspect": 1.3333,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-19 at 13.44.06.webp"
+  },
+  {
+    "slug": "carousel-maxienduro-14",
+    "cat": "maxienduro",
+    "alt": "Gruppo in maxienduro lungo un percorso panoramico in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "guida Vittorio nuova.webp"
+  },
+  {
+    "slug": "carousel-enduro-4",
+    "cat": "enduro",
+    "alt": "Rider enduro su un sentiero sterrato in Sardegna",
+    "aspect": 1.3333,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.24 (4).webp"
+  },
+  {
+    "slug": "carousel-enduro-5",
+    "cat": "enduro",
+    "alt": "Moto da enduro in sosta con vista sul mare",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.24 (5).webp"
+  },
+  {
+    "slug": "carousel-enduro-6",
+    "cat": "enduro",
+    "alt": "Rider enduro durante un guado in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.24 (6).webp"
+  },
+  {
+    "slug": "carousel-enduro-7",
+    "cat": "enduro",
+    "alt": "Gruppo enduro in sosta panoramica in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.25 (2).webp"
+  },
+  {
+    "slug": "carousel-enduro-8",
+    "cat": "enduro",
+    "alt": "Rider enduro su un crinale con vista sulla costa sarda",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.25 (3).webp"
+  },
+  {
+    "slug": "carousel-enduro-9",
+    "cat": "enduro",
+    "alt": "Moto da enduro lungo un sentiero tra la macchia mediterranea",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.25 (4).webp"
+  },
+  {
+    "slug": "carousel-enduro-10",
+    "cat": "enduro",
+    "alt": "Rider enduro in azione su un percorso sterrato",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.25 (5).webp"
+  },
+  {
+    "slug": "carousel-enduro-11",
+    "cat": "enduro",
+    "alt": "Moto da enduro in sosta vicino alla costa sarda",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.26 (2).webp"
+  },
+  {
+    "slug": "carousel-enduro-12",
+    "cat": "enduro",
+    "alt": "Rider enduro su un sentiero sterrato in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.26 (3).webp"
+  },
+  {
+    "slug": "carousel-enduro-13",
+    "cat": "enduro",
+    "alt": "Moto da enduro in sosta con vista sul mare",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.26 (4).webp"
+  },
+  {
+    "slug": "carousel-enduro-14",
+    "cat": "enduro",
+    "alt": "Rider enduro durante un guado in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.26 (5).webp"
+  },
+  {
+    "slug": "carousel-enduro-15",
+    "cat": "enduro",
+    "alt": "Gruppo enduro in sosta panoramica in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.26 (6).webp"
+  },
+  {
+    "slug": "carousel-enduro-16",
+    "cat": "enduro",
+    "alt": "Rider enduro su un crinale con vista sulla costa sarda",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.26 (7).webp"
+  },
+  {
+    "slug": "carousel-enduro-17",
+    "cat": "enduro",
+    "alt": "Moto da enduro lungo un sentiero tra la macchia mediterranea",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.27 (1).webp"
+  },
+  {
+    "slug": "carousel-enduro-18",
+    "cat": "enduro",
+    "alt": "Rider enduro in azione su un percorso sterrato",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.27 (2).webp"
+  },
+  {
+    "slug": "carousel-enduro-19",
+    "cat": "enduro",
+    "alt": "Moto da enduro in sosta vicino alla costa sarda",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.27 (3).webp"
+  },
+  {
+    "slug": "carousel-enduro-20",
+    "cat": "enduro",
+    "alt": "Rider enduro su un sentiero sterrato in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.27 (4).webp"
+  },
+  {
+    "slug": "carousel-enduro-21",
+    "cat": "enduro",
+    "alt": "Moto da enduro in sosta con vista sul mare",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.27 (5).webp"
+  },
+  {
+    "slug": "carousel-enduro-22",
+    "cat": "enduro",
+    "alt": "Rider enduro durante un guado in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.27 (6).webp"
+  },
+  {
+    "slug": "carousel-enduro-23",
+    "cat": "enduro",
+    "alt": "Gruppo enduro in sosta panoramica in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.27.webp"
+  },
+  {
+    "slug": "carousel-enduro-24",
+    "cat": "enduro",
+    "alt": "Rider enduro su un crinale con vista sulla costa sarda",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.28 (1).webp"
+  },
+  {
+    "slug": "carousel-enduro-25",
+    "cat": "enduro",
+    "alt": "Moto da enduro lungo un sentiero tra la macchia mediterranea",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.30.28 (2).webp"
+  },
+  {
+    "slug": "carousel-enduro-26",
+    "cat": "enduro",
+    "alt": "Rider enduro in azione su un percorso sterrato",
+    "aspect": 0.5625,
+    "widths": [
+      480,
+      768
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.32.34 (1).webp"
+  },
+  {
+    "slug": "carousel-enduro-27",
+    "cat": "enduro",
+    "alt": "Moto da enduro in sosta vicino alla costa sarda",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.37 (1).webp"
+  },
+  {
+    "slug": "carousel-enduro-28",
+    "cat": "enduro",
+    "alt": "Rider enduro su un sentiero sterrato in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.37.webp"
+  },
+  {
+    "slug": "carousel-enduro-29",
+    "cat": "enduro",
+    "alt": "Moto da enduro in sosta con vista sul mare",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.44 (1).webp"
+  },
+  {
+    "slug": "carousel-enduro-30",
+    "cat": "enduro",
+    "alt": "Rider enduro durante un guado in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.44 (2).webp"
+  },
+  {
+    "slug": "carousel-enduro-31",
+    "cat": "enduro",
+    "alt": "Gruppo enduro in sosta panoramica in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.44 (3).webp"
+  },
+  {
+    "slug": "carousel-enduro-32",
+    "cat": "enduro",
+    "alt": "Rider enduro su un crinale con vista sulla costa sarda",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.44 (4).webp"
+  },
+  {
+    "slug": "carousel-enduro-33",
+    "cat": "enduro",
+    "alt": "Moto da enduro lungo un sentiero tra la macchia mediterranea",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.44 (5).webp"
+  },
+  {
+    "slug": "carousel-enduro-34",
+    "cat": "enduro",
+    "alt": "Rider enduro in azione su un percorso sterrato",
+    "aspect": 0.5622,
+    "widths": [
+      480,
+      768
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.44.webp"
+  },
+  {
+    "slug": "carousel-enduro-35",
+    "cat": "enduro",
+    "alt": "Moto da enduro in sosta vicino alla costa sarda",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.45 (1).webp"
+  },
+  {
+    "slug": "carousel-enduro-36",
+    "cat": "enduro",
+    "alt": "Rider enduro su un sentiero sterrato in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.45 (2).webp"
+  },
+  {
+    "slug": "carousel-enduro-37",
+    "cat": "enduro",
+    "alt": "Moto da enduro in sosta con vista sul mare",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.45 (3).webp"
+  },
+  {
+    "slug": "carousel-enduro-38",
+    "cat": "enduro",
+    "alt": "Rider enduro durante un guado in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.45 (4).webp"
+  },
+  {
+    "slug": "carousel-enduro-39",
+    "cat": "enduro",
+    "alt": "Gruppo enduro in sosta panoramica in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.45 (5).webp"
+  },
+  {
+    "slug": "carousel-enduro-40",
+    "cat": "enduro",
+    "alt": "Rider enduro su un crinale con vista sulla costa sarda",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.45.webp"
+  },
+  {
+    "slug": "carousel-enduro-41",
+    "cat": "enduro",
+    "alt": "Moto da enduro lungo un sentiero tra la macchia mediterranea",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.46 (1).webp"
+  },
+  {
+    "slug": "carousel-enduro-42",
+    "cat": "enduro",
+    "alt": "Rider enduro in azione su un percorso sterrato",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.46 (2).webp"
+  },
+  {
+    "slug": "carousel-enduro-43",
+    "cat": "enduro",
+    "alt": "Moto da enduro in sosta vicino alla costa sarda",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.46 (3).webp"
+  },
+  {
+    "slug": "carousel-enduro-44",
+    "cat": "enduro",
+    "alt": "Rider enduro su un sentiero sterrato in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.46 (4).webp"
+  },
+  {
+    "slug": "carousel-enduro-45",
+    "cat": "enduro",
+    "alt": "Moto da enduro in sosta con vista sul mare",
+    "aspect": 1.3333,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.46 (6).webp"
+  },
+  {
+    "slug": "carousel-enduro-46",
+    "cat": "enduro",
+    "alt": "Rider enduro durante un guado in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.46 (7).webp"
+  },
+  {
+    "slug": "carousel-enduro-47",
+    "cat": "enduro",
+    "alt": "Gruppo enduro in sosta panoramica in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.46.webp"
+  },
+  {
+    "slug": "carousel-enduro-48",
+    "cat": "enduro",
+    "alt": "Rider enduro su un crinale con vista sulla costa sarda",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.47 (3).webp"
+  },
+  {
+    "slug": "carousel-enduro-49",
+    "cat": "enduro",
+    "alt": "Moto da enduro lungo un sentiero tra la macchia mediterranea",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.47 (4).webp"
+  },
+  {
+    "slug": "carousel-enduro-50",
+    "cat": "enduro",
+    "alt": "Rider enduro in azione su un percorso sterrato",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.48 (2).webp"
+  },
+  {
+    "slug": "carousel-enduro-51",
+    "cat": "enduro",
+    "alt": "Moto da enduro in sosta vicino alla costa sarda",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.48 (3).webp"
+  },
+  {
+    "slug": "carousel-enduro-52",
+    "cat": "enduro",
+    "alt": "Rider enduro su un sentiero sterrato in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.48 (5).webp"
+  },
+  {
+    "slug": "carousel-enduro-53",
+    "cat": "enduro",
+    "alt": "Moto da enduro in sosta con vista sul mare",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.48.webp"
+  },
+  {
+    "slug": "carousel-enduro-54",
+    "cat": "enduro",
+    "alt": "Rider enduro durante un guado in Sardegna",
+    "aspect": 0.5626,
+    "widths": [
+      480,
+      768
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.49 (1).webp"
+  },
+  {
+    "slug": "carousel-enduro-55",
+    "cat": "enduro",
+    "alt": "Gruppo enduro in sosta panoramica in Sardegna",
+    "aspect": 0.5626,
+    "widths": [
+      480,
+      768
+    ],
+    "source": "WhatsApp Image 2026-07-16 at 13.33.50.webp"
+  },
+  {
+    "slug": "carousel-enduro-56",
+    "cat": "enduro",
+    "alt": "Rider enduro su un crinale con vista sulla costa sarda",
+    "aspect": 1.5,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-18 at 20.20.29 (1).webp"
+  },
+  {
+    "slug": "carousel-enduro-57",
+    "cat": "enduro",
+    "alt": "Moto da enduro lungo un sentiero tra la macchia mediterranea",
+    "aspect": 1.5,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-18 at 20.20.29.webp"
+  },
+  {
+    "slug": "carousel-ssv-4",
+    "cat": "ssv",
+    "alt": "SSV su un sentiero sterrato in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-18 at 20.20.18 (1).webp"
+  },
+  {
+    "slug": "carousel-ssv-5",
+    "cat": "ssv",
+    "alt": "SSV in sosta panoramica sulle colline sarde",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-18 at 20.20.18 (2).webp"
+  },
+  {
+    "slug": "carousel-ssv-6",
+    "cat": "ssv",
+    "alt": "SSV durante un guado in Sardegna",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-18 at 20.20.18 (4).webp"
+  },
+  {
+    "slug": "carousel-ssv-7",
+    "cat": "ssv",
+    "alt": "Convoglio di SSV su una pista sterrata",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-18 at 20.20.19 (1).webp"
+  },
+  {
+    "slug": "carousel-ssv-8",
+    "cat": "ssv",
+    "alt": "SSV al tramonto lungo un percorso panoramico",
+    "aspect": 0.75,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-18 at 20.20.19 (3).webp"
+  },
+  {
+    "slug": "carousel-4x4-4",
+    "cat": "4x4",
+    "alt": "Fuoristrada 4x4 su un sentiero panoramico in Sardegna",
+    "aspect": 1.3333,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-18 at 20.20.28 (1).webp"
+  },
+  {
+    "slug": "carousel-4x4-5",
+    "cat": "4x4",
+    "alt": "Convoglio di 4x4 lungo un percorso tra le colline sarde",
+    "aspect": 1.3333,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "WhatsApp Image 2026-07-18 at 20.20.28 (5).webp"
   }
 ];

@@ -1,7 +1,8 @@
 import React from "react";
 import { createPortal } from "react-dom";
-import { X, Clock, Gauge, TrendingUp, ShieldCheck, Send } from "lucide-react";
+import { X, Clock, Gauge, TrendingUp, ShieldCheck, Send, MessageCircle, Users } from "lucide-react";
 import { fotoProps } from "@/data/foto-helpers";
+import { CTA_LABELS, SITE, TOUR_GROUP } from "@/config/site";
 
 const EQUIPAGGIAMENTO = [
   "Mezzo con gomme tassellate o miste in buono stato, tagliando recente e paramotore/paracolpi montati",
@@ -40,10 +41,11 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
         </div>
 
         <div className="p-6">
-          <div className="flex gap-6 mb-6 font-body text-sm text-[#F5EBD9]/80">
+          <div className="mb-6 flex flex-wrap gap-6 font-body text-sm text-[#F5EBD9]/80">
             <span className="flex items-center gap-1.5"><Clock size={14} style={{ color }} /> {tour.durata}</span>
             <span className="flex items-center gap-1.5"><Gauge size={14} style={{ color }} /> {tour.km}</span>
             <span className="flex items-center gap-1.5"><TrendingUp size={14} style={{ color }} /> {tour.livello}</span>
+            <span className="flex items-center gap-1.5"><Users size={14} style={{ color }} /> {TOUR_GROUP.label}</span>
           </div>
 
           <p className="font-body text-sm text-[#F5EBD9]/70 leading-relaxed mb-8">{tour.descrizione}</p>
@@ -99,14 +101,27 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
             </ul>
           </div>
 
-          <a
-            href="/#contatti"
-            onClick={onClose}
-            className="btn-mech mt-8 w-full bg-[#A0612A] hover:bg-[#b87033] text-[#F5EBD9] px-8 py-4 text-base flex items-center justify-center gap-3"
-          >
-            Iscriviti a questo tour
-            <Send size={16} />
-          </a>
+          <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            <a
+              href="/#contatti"
+              onClick={onClose}
+              className="btn-mech flex w-full items-center justify-center gap-3 bg-[#A0612A] px-8 py-4 text-base text-[#F5EBD9] hover:bg-[#b87033]"
+            >
+              {CTA_LABELS.primary}
+              <Send size={16} aria-hidden="true" />
+            </a>
+            {SITE.contattiVerificati && (
+              <a
+                href={SITE.whatsapp.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-mech flex w-full items-center justify-center gap-3 bg-[var(--wild-sage)] px-8 py-4 text-base text-[var(--granite-mist)] hover:bg-[var(--wild-sage-bright)]"
+              >
+                <MessageCircle size={16} aria-hidden="true" />
+                {CTA_LABELS.whatsapp}
+              </a>
+            )}
+          </div>
         </div>
       </div>
     </div>,

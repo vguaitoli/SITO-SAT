@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, MessageCircle, ArrowRight } from "lucide-react";
-import { SITE } from "@/config/site";
+import { CTA_LABELS, SITE } from "@/config/site";
 import { CATEGORIE } from "@/data/categorie";
 
 const navLinks = [
@@ -86,14 +86,14 @@ export default function SiteNav() {
               className="btn-mech hidden items-center gap-2.5 bg-[var(--wild-sage)] px-5 py-3 text-sm text-[var(--granite-mist)] hover:bg-[var(--wild-sage-bright)] 2xl:flex"
             >
               <MessageCircle size={16} aria-hidden="true" />
-              WhatsApp
+              {CTA_LABELS.whatsapp}
             </a>
           )}
           <Link
             to="/#contatti"
             className="btn-mech hidden items-center gap-2 bg-[var(--cta)] px-5 py-2.5 text-sm text-[var(--cta-text)] hover:bg-[var(--cta-hover)] md:flex"
           >
-            Verifica disponibilità
+            {CTA_LABELS.primary}
           </Link>
           <button
             onClick={() => setOpen((o) => !o)}
@@ -139,6 +139,14 @@ export default function SiteNav() {
             </div>
 
             <div className="mt-5 flex flex-col gap-2">
+              <Link
+                to="/#contatti"
+                onClick={() => setOpen(false)}
+                className="btn-mech flex items-center justify-center gap-2 bg-[var(--cta)] px-5 py-3 text-sm text-[var(--cta-text)]"
+              >
+                {CTA_LABELS.primary}
+                <ArrowRight size={16} aria-hidden="true" />
+              </Link>
               {SITE.contattiVerificati && (
                 <a
                   href={SITE.whatsapp.href}
@@ -148,17 +156,9 @@ export default function SiteNav() {
                   className="btn-mech flex items-center justify-center gap-2 bg-[var(--wild-sage)] px-5 py-3 text-sm text-[var(--granite-mist)]"
                 >
                   <MessageCircle size={16} aria-hidden="true" />
-                  WhatsApp
+                  {CTA_LABELS.whatsapp}
                 </a>
               )}
-              <Link
-                to="/#contatti"
-                onClick={() => setOpen(false)}
-                className="btn-mech flex items-center justify-center gap-2 bg-[var(--cta)] px-5 py-3 text-sm text-[var(--cta-text)]"
-              >
-                Verifica disponibilità
-                <ArrowRight size={16} aria-hidden="true" />
-              </Link>
             </div>
           </nav>
         </div>

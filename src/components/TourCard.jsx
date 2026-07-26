@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, Gauge, TrendingUp, Percent, MapPin, UtensilsCrossed, Calendar, Flame, Navigation } from "lucide-react";
+import { ArrowRight, Clock, Gauge, TrendingUp, Percent, MapPin, UtensilsCrossed, Calendar, Navigation, Users } from "lucide-react";
 import TourFullDetailsModal from "@/components/TourFullDetailsModal.jsx";
+import { TOUR_GROUP } from "@/config/site";
 
 export default function TourCard({ tour, color }) {
   const [flipped, setFlipped] = useState(false);
@@ -68,6 +69,13 @@ export default function TourCard({ tour, color }) {
             </div>
             <div className="col-span-2 flex flex-col gap-1">
               <span className="font-button text-[10px] tracking-[0.15em] uppercase text-[#F5EBD9]/40 flex items-center gap-1.5">
+                <Users size={12} aria-hidden="true" />
+                Partecipanti
+              </span>
+              <span className="font-body text-sm font-semibold text-[#F5EBD9]">{TOUR_GROUP.label}</span>
+            </div>
+            <div className="col-span-2 flex flex-col gap-1">
+              <span className="font-button text-[10px] tracking-[0.15em] uppercase text-[#F5EBD9]/40 flex items-center gap-1.5">
                 <MapPin size={12} />
                 Punti di interesse
               </span>
@@ -86,23 +94,19 @@ export default function TourCard({ tour, color }) {
               <span className="font-body text-sm text-[#F5EBD9]/80 leading-tight">{tour.periodo}</span>
             </div>
             <p className="font-body text-sm text-[#F5EBD9]/60 leading-relaxed mt-1">{tour.descrizione}</p>
-            <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center mt-2">
               <button
                 onClick={(e) => { e.stopPropagation(); setShowFull(true); }}
                 className="btn-mech inline-flex items-center gap-2 text-[#A0612A] hover:text-[#E4D4B0] border-b border-[#A0612A] hover:border-[#E4D4B0] pb-1 w-fit text-sm transition-colors font-heading tracking-wide"
               >
-                <Flame size={16} />
-                BRAAAAP
+                Vedi il programma
+                <ArrowRight size={16} aria-hidden="true" />
               </button>
-              <span className="font-button text-[10px] tracking-[0.1em] uppercase text-[#F5EBD9]/40 flex items-center gap-1.5">
-                <Navigation size={12} style={{ color }} />
-                Traccia GPS
-              </span>
             </div>
           </div>
         </div>
 
-        {/* BACK — stylized route map */}
+        {/* BACK — anteprima grafica illustrativa dell'itinerario */}
         <div
           className="flip-card-face flip-card-back flex flex-col h-full"
           style={{
@@ -114,7 +118,7 @@ export default function TourCard({ tour, color }) {
           <div className="p-6 pb-3 flex items-center justify-between">
             <span className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 flex items-center gap-1.5">
               <Navigation size={12} />
-              Traccia GPS
+              Anteprima del tour
             </span>
             <span className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]" style={{ color }}>
               {tour.type}

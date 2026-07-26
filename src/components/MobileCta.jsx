@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { MessageCircle, CalendarCheck } from "lucide-react";
-import { SITE } from "@/config/site";
+import { CTA_LABELS, SITE } from "@/config/site";
 
 /**
  * Barra CTA persistente ma discreta, solo su mobile. Compare dopo la hero e
@@ -24,26 +24,26 @@ export default function MobileCta() {
       }`}
       aria-hidden={!visible}
     >
+      <Link
+        to="/#contatti"
+        className="flex flex-1 items-center justify-center gap-2 bg-[var(--cta)] px-2 py-3.5 text-center font-button text-xs uppercase leading-tight tracking-wider text-[var(--cta-text)]"
+        tabIndex={visible ? 0 : -1}
+      >
+        <CalendarCheck size={17} aria-hidden="true" />
+        {CTA_LABELS.primary}
+      </Link>
       {SITE.contattiVerificati && (
         <a
           href={SITE.whatsapp.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex flex-1 items-center justify-center gap-2 bg-[var(--wild-sage)] py-3.5 font-button text-sm uppercase tracking-wider text-[var(--granite-mist)]"
+          className="flex flex-1 items-center justify-center gap-2 bg-[var(--wild-sage)] px-2 py-3.5 text-center font-button text-xs uppercase leading-tight tracking-wider text-[var(--granite-mist)]"
           tabIndex={visible ? 0 : -1}
         >
           <MessageCircle size={17} aria-hidden="true" />
-          WhatsApp
+          {CTA_LABELS.whatsapp}
         </a>
       )}
-      <Link
-        to="/#contatti"
-        className="flex flex-1 items-center justify-center gap-2 bg-[var(--cta)] py-3.5 font-button text-sm uppercase tracking-wider text-[var(--cta-text)]"
-        tabIndex={visible ? 0 : -1}
-      >
-        <CalendarCheck size={17} aria-hidden="true" />
-        Disponibilità
-      </Link>
     </div>
   );
 }

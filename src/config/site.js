@@ -14,6 +14,16 @@ const PHONE_DISPLAY = "+39 348 79 81 591";
 const WHATSAPP_MESSAGE =
   "Ciao! Vorrei verificare la disponibilità per un tour off-road in Sardegna.";
 
+export const CTA_LABELS = {
+  primary: "Verifica disponibilità",
+  whatsapp: "Scrivici su WhatsApp",
+};
+
+export const TOUR_GROUP = {
+  label: "Da 5 a 10 partecipanti",
+  sentence: "I tour sono organizzati per gruppi da 5 a 10 partecipanti.",
+};
+
 export const SITE = {
   nome: "Sardegna Trail Avventura",
   tagline: "Tour e corsi off-road in Sardegna",

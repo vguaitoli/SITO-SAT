@@ -64,9 +64,6 @@ export default function GalleryLightbox({ image, onClose, onNext, onPrev }) {
       >
         <ChevronRight size={40} />
       </button>
-      <p className="absolute bottom-6 left-1/2 -translate-x-1/2 font-button text-xs tracking-[0.2em] uppercase text-[#F5EBD9]/80">
-        {image.label}
-      </p>
     </div>
   );
 }

@@ -158,6 +158,12 @@
   .font-body {
     font-family: var(--font-body);
   }
+  .font-body:not(input):not(textarea):not(select):not(button) {
+    text-align: justify;
+    text-align-last: left;
+    hyphens: auto;
+    overflow-wrap: anywhere;
+  }
   .font-button {
     font-family: var(--font-button);
     letter-spacing: 0.08em;

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Phone, MessageCircle, Mail, Instagram, Facebook, MapPin, Send, Check } from "lucide-react";
-import { SITE, WEB3FORMS_ACCESS_KEY } from "@/config/site";
+import { CTA_LABELS, SITE, WEB3FORMS_ACCESS_KEY } from "@/config/site";
 import { tours } from "@/components/TourDetails.jsx";
 import { CATEGORIE } from "@/data/categorie";
 
@@ -324,9 +324,20 @@ export default function Contact() {
                   disabled={sending}
                   className="btn-mech w-full bg-[#A0612A] hover:bg-[#b87033] disabled:opacity-50 text-[#F5EBD9] px-8 py-4 text-base flex items-center justify-center gap-3"
                 >
-                  {sending ? "Invio in corso..." : "Richiedi informazioni"}
+                  {sending ? "Invio in corso..." : CTA_LABELS.primary}
                   {!sending && <Send size={16} />}
                 </button>
+                {SITE.contattiVerificati && (
+                  <a
+                    href={SITE.whatsapp.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-mech flex w-full items-center justify-center gap-3 bg-[var(--wild-sage)] px-8 py-4 text-base text-[var(--granite-mist)] hover:bg-[var(--wild-sage-bright)]"
+                  >
+                    <MessageCircle size={16} aria-hidden="true" />
+                    {CTA_LABELS.whatsapp}
+                  </a>
+                )}
               </form>
             )}
           </div>

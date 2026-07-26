@@ -5,6 +5,7 @@ import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 import TourCard from "@/components/TourCard.jsx";
 import { tours, typeColors } from "@/components/TourDetails.jsx";
+import { TOUR_GROUP } from "@/config/site";
 
 /**
  * "Tour in evidenza": un assaggio di itinerari reali direttamente in home.
@@ -27,7 +28,7 @@ export default function TourInEvidenza() {
             eyebrow="Gli itinerari"
             title="Tour in"
             accent="evidenza"
-            intro="Una selezione dei nostri percorsi, per mezzo e durata diversi. Ogni tour è personalizzabile e ha una scheda tecnica completa."
+            intro={`Una selezione dei nostri percorsi, per mezzo e durata diversi. Ogni tour è personalizzabile e ha una scheda tecnica completa. ${TOUR_GROUP.sentence}`}
             tone="light"
             className="mb-0"
           />

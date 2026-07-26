@@ -3,6 +3,7 @@ import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import MobileCta from "@/components/MobileCta";
 import TourDetails, { tours } from "@/components/TourDetails.jsx";
+import { TOUR_GROUP } from "@/config/site";
 
 /**
  * Catalogo completo dei tour. Il formato (weekend / settimana / su misura),
@@ -37,7 +38,7 @@ export default function TourItinerari() {
         <p className="mt-6 max-w-2xl font-body text-lg text-[var(--granite-mist)]/70">
           Ogni tour con scheda tecnica completa: durata, chilometri, livello, percentuale
           di sterrato, punti di interesse e periodo consigliato. Filtra per formato o
-          scegli il mezzo dalle esperienze.
+          scegli il mezzo dalle esperienze. {TOUR_GROUP.sentence}
         </p>
 
         {/* Filtro per formato */}

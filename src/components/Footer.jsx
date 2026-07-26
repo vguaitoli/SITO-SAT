@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Phone, Mail, Instagram, Facebook, MessageCircle } from "lucide-react";
-import { SITE } from "@/config/site";
+import { CTA_LABELS, SITE } from "@/config/site";
 import { CATEGORIE } from "@/data/categorie";
 import PhotoRibbon from "@/components/PhotoRibbon";
 
@@ -117,7 +117,7 @@ export default function Footer() {
                 </li>
                 <li>
                   <a href={SITE.whatsapp.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 font-body text-sm text-[var(--granite-mist)]/70 transition-colors hover:text-[var(--accent)]">
-                    <MessageCircle size={16} aria-hidden="true" /> WhatsApp
+                    <MessageCircle size={16} aria-hidden="true" /> {CTA_LABELS.whatsapp}
                   </a>
                 </li>
                 <li className="flex items-center gap-3 font-body text-sm text-[var(--granite-mist)]/70">

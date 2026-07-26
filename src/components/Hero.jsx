@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
-import { MapPin, ArrowRight } from "lucide-react";
+import { MapPin, ArrowRight, MessageCircle } from "lucide-react";
 import { CATEGORIE } from "@/data/categorie";
+import { CTA_LABELS, SITE, TOUR_GROUP } from "@/config/site";
 
 const HERO_LOGO = "/media/logo-sardegna-trail-avventura.png";
 
@@ -214,16 +215,27 @@ export default function Hero() {
               href="#contatti"
               className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--cta)] px-8 py-4 text-base text-[var(--cta-text)] transition-colors hover:bg-[var(--cta-hover)]"
             >
-              Verifica disponibilità
+              {CTA_LABELS.primary}
               <ArrowRight size={18} aria-hidden="true" />
             </a>
-            <a
-              href="#esperienze"
-              className="btn-mech inline-flex items-center justify-center border-2 border-[var(--granite-mist)]/70 px-8 py-4 text-base text-[var(--granite-mist)] transition-colors hover:border-[var(--granite-mist)] hover:bg-[var(--granite-mist)] hover:text-[var(--obsidian)]"
-            >
-              Scopri le esperienze
-            </a>
+            {SITE.contattiVerificati && (
+              <a
+                href={SITE.whatsapp.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--wild-sage)] px-8 py-4 text-base text-[var(--granite-mist)] transition-colors hover:bg-[var(--wild-sage-bright)]"
+              >
+                <MessageCircle size={18} aria-hidden="true" />
+                {CTA_LABELS.whatsapp}
+              </a>
+            )}
           </motion.div>
+          <motion.p
+            {...child}
+            className="mt-4 font-body text-sm text-[var(--granite-mist)]/65"
+          >
+            {TOUR_GROUP.sentence}
+          </motion.p>
         </motion.div>
       </div>
 

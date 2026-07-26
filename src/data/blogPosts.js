@@ -13,7 +13,7 @@ export const blogPosts = [
 
 Il tour dura **3 giorni** e copre circa **260 km**, con una percentuale di sterrato dell'**88%**. È pensato per piloti di livello **esperto**, abituati a gestire la moto su fondi misti, pietra, salite tecniche e discese panoramiche.
 
-La prima tappa porta verso **Tiscali**, tra doline, sentieri nascosti e tracce nuragiche immerse nella roccia. Qui la guida locale fa la differenza: non si tratta solo di seguire una traccia GPS, ma di leggere il territorio, scegliere il ritmo giusto e vivere il percorso con sicurezza.
+La prima tappa porta verso **Tiscali**, tra doline, sentieri nascosti e tracce nuragiche immerse nella roccia. Qui la guida locale fa la differenza: il gruppo procede insieme, leggendo il territorio, scegliendo il ritmo giusto e vivendo il percorso con sicurezza.
 
 Il secondo giorno si entra nel cuore dell'altopiano del **Golgo**, tra passaggi spettacolari e panorami che aprono lo sguardo verso canyon e montagne. Ogni sosta diventa parte dell'esperienza: una foto, un racconto, un pranzo tipico, il tempo di respirare davvero la Sardegna.
 

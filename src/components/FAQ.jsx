@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Plus, Minus } from "lucide-react";
+import { TOUR_GROUP } from "@/config/site";
 
 const faqs = [
   {
@@ -8,15 +9,19 @@ const faqs = [
   },
   {
     q: "Che differenza c'è tra Weekend Adventure e Sardegna Trail Week?",
-    a: "Il Weekend Adventure è un tour di 4 giorni, ideale per chi ha poco tempo ma vuole vivere un'esperienza intensa. La Sardegna Trail Week è invece un'immersione di 7 giorni tra i percorsi più suggestivi dell'isola. Offriamo anche Tour Personalizzati su misura per gruppi e moto club.",
+    a: "I Weekend Adventure comprendono itinerari brevi da 2 a 4 giorni, pensati per chi vuole vivere un'esperienza intensa senza affrontare un'intera settimana. Durata e difficoltà sono indicate nella scheda di ogni tour. La Sardegna Trail Week è invece un'immersione di 7 giorni tra i percorsi più suggestivi dell'isola. Offriamo anche tour personalizzati su misura per gruppi e moto club.",
   },
   {
     q: "Che livello è richiesto?",
     a: "Offriamo tour per tutti i livelli: da principiante (tour in quad e percorsi accessibili) fino a esperto (sentieri tecnici del Supramonte in Maxienduro ed Enduro). Ogni scheda tecnica indica il livello richiesto. Se non sei sicuro, contattaci e ti consiglieremo l'itinerario giusto per te.",
   },
   {
+    q: "Quante persone partecipano a ogni tour?",
+    a: `${TOUR_GROUP.sentence} Questo ci permette di seguire il gruppo con attenzione e mantenere l'esperienza coinvolgente, sicura e ben organizzata.`,
+  },
+  {
     q: "Cosa è incluso nel prezzo del tour?",
-    a: "Ogni tour comprende guida esperta locale, trasporto bagagli, assistenza tecnica, GPS live tag per seguire il percorso, mezza pensione in agriturismo e gadget esclusivi Sardegna Trail Avventura.",
+    a: "In base alla tipologia di tour, la proposta può comprendere guida locale esperta, trasporto bagagli, assistenza tecnica, mezza pensione in agriturismo, gadget esclusivi e un dispositivo GPS Live Tracking fornito dall'organizzazione. Quando previsto, il dispositivo consente alle guide di verificare in ogni momento che il gruppo rimanga compatto e che nessun partecipante resti isolato o si disperda lungo il percorso. Non viene utilizzato come navigatore e non fornisce indicazioni di percorso ai partecipanti. Tutti i servizi inclusi vengono confermati prima della prenotazione.",
   },
   {
     q: "È possibile noleggiare la moto?",

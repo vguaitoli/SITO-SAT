@@ -17,7 +17,7 @@ export const CATEGORIE = [
     fotoCard: "hero-maxienduro-crinale",
     fotoHero: "hero-maxienduro-crinale",
     // Carosello nella pagina categoria: foto reali distinte, mai ripetute in altre categorie.
-    carosello: ["cat-maxienduro", "carousel-maxienduro-1", "carousel-maxienduro-2", "carousel-maxienduro-3"],
+    carosello: ["cat-maxienduro", "carousel-maxienduro-1", "carousel-maxienduro-2", "carousel-maxienduro-3", "carousel-maxienduro-4", "carousel-maxienduro-5", "carousel-maxienduro-6", "carousel-maxienduro-7", "carousel-maxienduro-8", "carousel-maxienduro-9", "carousel-maxienduro-10", "carousel-maxienduro-11", "carousel-maxienduro-12", "carousel-maxienduro-13", "carousel-maxienduro-14"],
     claim: "Grandi distanze, nessun limite",
     intro:
       "Un tour in maxienduro in Sardegna è la scelta di chi vuole macinare chilometri veri: moto da viaggio alte e potenti, pensate per affrontare asfalto e sterrato senza fermarsi mai. La soluzione ideale per attraversare l'isola da costa a costa, con il comfort di una moto da turismo e l'anima del fuoristrada.",
@@ -29,7 +29,7 @@ export const CATEGORIE = [
     tourType: "Enduro",
     fotoCard: "cat-enduro",
     fotoHero: "hero-enduro-gruppo",
-    carosello: ["cat-enduro", "carousel-enduro-1", "carousel-enduro-2", "carousel-enduro-3"],
+    carosello: ["cat-enduro", "carousel-enduro-1", "carousel-enduro-2", "carousel-enduro-3", "carousel-enduro-4", "carousel-enduro-5", "carousel-enduro-6", "carousel-enduro-7", "carousel-enduro-8", "carousel-enduro-9", "carousel-enduro-10", "carousel-enduro-11", "carousel-enduro-12", "carousel-enduro-13", "carousel-enduro-14", "carousel-enduro-15", "carousel-enduro-16", "carousel-enduro-17", "carousel-enduro-18", "carousel-enduro-19", "carousel-enduro-20", "carousel-enduro-21", "carousel-enduro-22", "carousel-enduro-23", "carousel-enduro-24", "carousel-enduro-25", "carousel-enduro-26", "carousel-enduro-27", "carousel-enduro-28", "carousel-enduro-29", "carousel-enduro-30", "carousel-enduro-31", "carousel-enduro-32", "carousel-enduro-33", "carousel-enduro-34", "carousel-enduro-35", "carousel-enduro-36", "carousel-enduro-37", "carousel-enduro-38", "carousel-enduro-39", "carousel-enduro-40", "carousel-enduro-41", "carousel-enduro-42", "carousel-enduro-43", "carousel-enduro-44", "carousel-enduro-45", "carousel-enduro-46", "carousel-enduro-47", "carousel-enduro-48", "carousel-enduro-49", "carousel-enduro-50", "carousel-enduro-51", "carousel-enduro-52", "carousel-enduro-53", "carousel-enduro-54", "carousel-enduro-55", "carousel-enduro-56", "carousel-enduro-57"],
     claim: "Leggera, agile, tecnica",
     intro:
       "Un tour enduro in Sardegna su moto leggere e maneggevoli, nate per i sentieri stretti e i passaggi tecnici. Dove la maxienduro non arriva, l'enduro danza: mulattiere, tratturi e single track nel cuore più selvaggio della Barbagia e del Supramonte.",
@@ -54,7 +54,7 @@ export const CATEGORIE = [
     tourType: null,
     fotoCard: "cat-ssv",
     fotoHero: "hero-ssv-guado",
-    carosello: ["cat-ssv", "carousel-ssv-1", "carousel-ssv-2", "carousel-ssv-3"],
+    carosello: ["cat-ssv", "carousel-ssv-1", "carousel-ssv-2", "carousel-ssv-3", "carousel-ssv-4", "carousel-ssv-5", "carousel-ssv-6", "carousel-ssv-7", "carousel-ssv-8"],
     claim: "Guida affiancata, adrenalina condivisa",
     intro:
       "Side-by-Side: veicoli a due posti affiancati, con volante, cinture e roll-bar. Un'esperienza in SSV in Sardegna regala tutta l'adrenalina del fuoristrada, da condividere con chi ti siede accanto. Torrenti, guadi e pietraie diventano puro divertimento.",
@@ -66,7 +66,7 @@ export const CATEGORIE = [
     tourType: "4x4",
     fotoCard: "cat-4x4",
     fotoHero: "4x4exp-salita",
-    carosello: ["cat-4x4", "carousel-4x4-1", "carousel-4x4-2", "carousel-4x4-3"],
+    carosello: ["cat-4x4", "carousel-4x4-1", "carousel-4x4-2", "carousel-4x4-3", "carousel-4x4-4", "carousel-4x4-5"],
     claim: "L'avventura senza compromessi",
     intro:
       "Fuoristrada veri, attrezzati per l'off-road più impegnativo. Altipiani, guadi, coste remote e borghi minerari raggiungibili solo su quattro ruote motrici: un tour in 4x4 è la spedizione per esplorare la Sardegna più nascosta con tutto il gruppo a bordo.",
@@ -136,8 +136,8 @@ export const CATEGORIE = [
     kind: "rental",
     // Servizio di noleggio, non un itinerario a catalogo: nessun tour associato.
     tourType: null,
-    fotoCard: "hero-maxienduro-panorama",
-    fotoHero: "hero-maxienduro-panorama",
+    fotoCard: "noleggio-discesa-vallata",
+    fotoHero: "noleggio-discesa-vallata",
     carosello: ["maxienduro-tenere", "enduro-vetta", "quad-pietraia"],
     claim: "Non hai il mezzo. Hai già l'avventura.",
     intro:

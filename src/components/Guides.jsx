@@ -13,7 +13,7 @@ const guides = [
   {
     name: "Vittorio Guaitoli",
     role: "Guida Esperta",
-    desc: "Specialista in assistenza tecnica e navigazione GPS, garantisce un'avventura sicura ad ogni tappa del tour.",
+    desc: "Specialista in assistenza tecnica e gestione del gruppo, garantisce un'avventura sicura ad ogni tappa del tour.",
     img: guideVittorio,
   },
 ];
