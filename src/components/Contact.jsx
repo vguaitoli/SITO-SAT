@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Phone, MessageCircle, Mail, Instagram, Facebook, MapPin, Send, Check } from "lucide-react";
 import { SITE, WEB3FORMS_ACCESS_KEY } from "@/config/site";
 import { tours } from "@/components/TourDetails.jsx";
+import { CATEGORIE } from "@/data/categorie";
 
 const contacts = [
   { label: "Telefono", value: SITE.telefono.display, href: SITE.telefono.href, icon: Phone },
@@ -20,8 +21,11 @@ const visibleContacts = SITE.contattiVerificati
   ? contacts
   : contacts.filter((c) => c.label === "Dove siamo");
 
-// Elenco tour reale, con il tipo per orientare la richiesta.
-const tourOptions = tours.map((t) => `${t.name} (${t.type})`);
+// Elenco delle proposte reali, con i corsi separati dagli itinerari.
+const tourOptions = [
+  ...tours.map((t) => `${t.name} (${t.type})`),
+  ...CATEGORIE.filter((c) => c.kind === "course").map((c) => c.nome),
+];
 
 export default function Contact() {
   const [form, setForm] = useState({
@@ -62,7 +66,7 @@ export default function Contact() {
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           access_key: WEB3FORMS_ACCESS_KEY,
-          subject: `Nuova richiesta: ${form.tour || "Tour"} - ${form.nome}`,
+          subject: `Nuova richiesta: ${form.tour || "Esperienza"} - ${form.nome}`,
           from_name: "Sito Sardegna Trail Avventura",
           nome: form.nome,
           email: form.email,
@@ -244,7 +248,7 @@ export default function Contact() {
                 </div>
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="contact-tour" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Tour</label>
+                    <label htmlFor="contact-tour" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Esperienza o corso</label>
                     <select
                       id="contact-tour"
                       name="tour"

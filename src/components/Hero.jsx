@@ -204,8 +204,9 @@ export default function Hero() {
             className="mb-6 max-w-2xl font-body text-base leading-relaxed text-[var(--granite-mist)]/90 drop-shadow sm:mb-9 sm:text-lg lg:text-xl"
           >
             Esperienze fuoristrada in Maxienduro, Enduro, Quad, SSV, 4x4 ed
-            e-bike. Dai sentieri del Supramonte alle coste selvagge, con guide
-            sarde che conoscono ogni tratturo dell'isola.
+            e-bike, oltre a corsi di guida off-road. Dai sentieri del
+            Supramonte alle coste selvagge, con guide sarde che conoscono ogni
+            tratturo dell'isola.
           </motion.p>
 
           <motion.div {...child} className="flex flex-col gap-4 sm:flex-row">
@@ -235,7 +236,7 @@ export default function Hero() {
         className="relative z-10 border-t border-[var(--border-on-dark)] bg-[var(--obsidian)]/40 backdrop-blur-sm"
       >
         <ul className="mx-auto grid max-w-7xl grid-cols-4 divide-x divide-y divide-[var(--border-on-dark)] px-2 sm:grid-cols-8 sm:divide-y-0 sm:px-5 lg:px-8">
-          {CATEGORIE.map((c) => (
+          {CATEGORIE.filter((c) => c.kind !== "course").map((c) => (
             <li key={c.id}>
               <Link
                 to={`/esperienze/${c.id}`}

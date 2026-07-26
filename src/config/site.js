@@ -16,7 +16,7 @@ const WHATSAPP_MESSAGE =
 
 export const SITE = {
   nome: "Sardegna Trail Avventura",
-  tagline: "Tour off-road guidati in Sardegna",
+  tagline: "Tour e corsi off-road in Sardegna",
   email: "sardegnatrailavventura@gmail.com",
   telefono: {
     e164: PHONE_E164,

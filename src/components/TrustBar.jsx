@@ -5,7 +5,7 @@ import { CATEGORIE } from "@/data/categorie";
 
 // Solo dati verificabili dai contenuti del sito: nessuna statistica inventata.
 const stats = [
-  { value: CATEGORIE.length, suffix: "", label: "Mezzi tra cui scegliere" },
+  { value: CATEGORIE.length, suffix: "", label: "Esperienze proposte" },
   { value: tours.length, suffix: "", label: "Itinerari disponibili" },
   { value: new Set(tours.map((t) => t.livello)).size, suffix: "", label: "Livelli di difficoltà" },
 ];

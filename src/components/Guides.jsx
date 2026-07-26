@@ -6,8 +6,8 @@ import guideVittorio from "@/assets/guides/guide-vittorio-guaitoli.webp";
 const guides = [
   {
     name: "Gianluca Serra",
-    role: "Guida Esperta",
-    desc: "Da oltre 15 anni esplora i sentieri della Sardegna, esperto di percorsi tecnici e sicurezza in fuoristrada.",
+    role: "Istruttore qualificato · Guida esperta",
+    desc: "Da oltre 15 anni esplora i sentieri della Sardegna. Come istruttore qualificato, affianca chi vuole migliorare tecnica, controllo e sicurezza in fuoristrada.",
     img: guideGianluca,
   },
   {

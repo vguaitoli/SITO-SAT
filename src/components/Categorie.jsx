@@ -10,20 +10,27 @@ import { fotoProps } from "@/data/foto-helpers";
  * "Scegli la tua avventura": una card per ciascuna categoria, in una griglia
  * uniforme che scala con il numero di esperienze.
  */
-function Card({ cat }) {
+function Card({ cat, featuredMobile = false }) {
   const photo = fotoProps(cat.fotoCard);
-  const cta = cat.tourType ? "Scopri i tour" : "Richiedi informazioni";
+  const cta =
+    cat.kind === "course"
+      ? "Scopri i corsi"
+      : cat.tourType
+        ? "Scopri i tour"
+        : "Richiedi informazioni";
   return (
     <Link
       to={`/esperienze/${cat.id}`}
-      className="group relative block aspect-[4/5] h-full overflow-hidden bg-[var(--obsidian)]"
+      className={`group relative block h-full overflow-hidden bg-[var(--obsidian)] ${
+        featuredMobile ? "aspect-[8/5] md:aspect-[4/5]" : "aspect-[4/5]"
+      }`}
       aria-label={`${cat.nome} — ${cta}`}
     >
       {photo ? (
         <img
           src={photo.src}
           srcSet={photo.srcSet}
-          sizes="(min-width: 768px) 33vw, 50vw"
+          sizes={featuredMobile ? "(min-width: 768px) 33vw, 100vw" : "(min-width: 768px) 33vw, 50vw"}
           alt={photo.alt}
           width={1200}
           height={Math.round(1200 / photo.aspect)}
@@ -71,14 +78,18 @@ export default function Categorie() {
           eyebrow="Le esperienze"
           title="Scegli la tua"
           accent="avventura"
-          intro="Otto modi di vivere la Sardegna, dallo sterrato più estremo ai tour su strada. Ogni mezzo ha il suo carattere, il suo ritmo e i suoi percorsi: scegli quello che fa per te."
+          intro="Tour ed esperienze per vivere la Sardegna, più corsi dedicati a chi vuole migliorare la propria tecnica off-road. Scegli il percorso che fa per te."
           className="mb-14"
         />
 
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
           {CATEGORIE.map((cat, i) => (
-            <Reveal key={cat.id} delay={i * 0.06}>
-              <Card cat={cat} />
+            <Reveal
+              key={cat.id}
+              delay={i * 0.06}
+              className={cat.kind === "course" ? "col-span-2 md:col-span-1" : ""}
+            >
+              <Card cat={cat} featuredMobile={cat.kind === "course"} />
             </Reveal>
           ))}
         </div>

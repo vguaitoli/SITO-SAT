@@ -26,6 +26,8 @@ const categoryDescriptions = {
     "Tour stradali in Sardegna tra coste, montagne e borghi, lungo percorsi panoramici pensati per moto e auto.",
   "e-bike":
     "Tour guidati in e-bike in Sardegna tra sentieri, nuraghi e borghi, con pedalata assistita e ritmo accessibile.",
+  "corsi-off-road":
+    "Corsi di guida off-road in Sardegna con Gianluca Serra, istruttore qualificato, per migliorare tecnica, controllo e sicurezza sullo sterrato.",
 };
 
 const categoryTitles = {
@@ -37,13 +39,14 @@ const categoryTitles = {
   "4x4-experience": "Escursioni 4x4 in Sardegna da passeggero",
   "tour-stradali": "Tour stradali in Sardegna",
   "e-bike": "Tour in e-bike in Sardegna",
+  "corsi-off-road": "Corsi di guida off-road in Sardegna",
 };
 
 const staticPages = {
   "/": {
     title: `Tour off-road in Sardegna | ${SITE_NAME}`,
     description:
-      "Tour off-road guidati in Sardegna in Maxienduro, Enduro, Quad, SSV, 4x4 ed e-bike. Scopri l’isola con guide locali esperte.",
+      "Tour e corsi off-road in Sardegna in Maxienduro, Enduro, Quad, SSV, 4x4 ed e-bike, con guide locali e istruttore qualificato.",
     image: HOME_IMAGE,
     preloadImage: HOME_IMAGE,
     preloadImageSrcSet: [
@@ -142,7 +145,7 @@ function homeStructuredData() {
         logo: absoluteUrl("/media/logo-sardegna-trail-avventura.png"),
         image: absoluteUrl(HOME_IMAGE),
         description:
-          "Tour off-road guidati in Sardegna in Maxienduro, Enduro, Quad, SSV, 4x4 ed e-bike.",
+          "Tour e corsi off-road in Sardegna in Maxienduro, Enduro, Quad, SSV, 4x4 ed e-bike.",
         telephone: "+39 348 79 81 591",
         email: "sardegnatrailavventura@gmail.com",
         address: {
@@ -183,7 +186,7 @@ function categoryStructuredData(category, path, description) {
         { name: category.nome, path },
       ]),
       {
-        "@type": "Service",
+        "@type": category.kind === "course" ? "Course" : "Service",
         name: categoryTitles[category.id] || category.nome,
         url: absoluteUrl(path),
         description,

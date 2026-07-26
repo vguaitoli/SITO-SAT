@@ -12,12 +12,13 @@ import { tours, typeColors } from "@/components/TourDetails.jsx";
 import { CATEGORIE, categoria } from "@/data/categorie";
 import { fotoProps } from "@/data/foto-helpers";
 import { SITE, whatsappLink } from "@/config/site";
+import guideGianluca from "@/assets/guides/guide-gianluca-serra.webp";
 
 /**
- * Pagina dedicata a una delle cinque categorie.
+ * Pagina dedicata a una delle esperienze.
  * I tour mostrati sono solo quelli reali del tipo corrispondente: se per una
- * categoria non esistono itinerari a catalogo (es. SSV) la pagina non inventa
- * dati e indirizza alla richiesta di informazioni.
+ * categoria non esistono itinerari a catalogo la pagina non inventa dati e
+ * indirizza alla richiesta di informazioni. I corsi hanno contenuti dedicati.
  */
 export default function CategoriaPage() {
   const { cat } = useParams();
@@ -29,6 +30,22 @@ export default function CategoriaPage() {
   const tourCategoria = c.tourType ? tours.filter((t) => t.type === c.tourType) : [];
   const altre = CATEGORIE.filter((x) => x.id !== c.id);
   const colore = typeColors[c.tourType] || "#A0612A";
+  const isCourse = c.kind === "course";
+  const highlights = isCourse
+    ? [
+        "Istruttore qualificato",
+        "Percorso definito sul livello di partenza",
+        "Lavoro pratico su tecnica e controllo del mezzo",
+        "Attenzione a sicurezza e lettura del terreno",
+      ]
+    : [
+        "Guida locale esperta",
+        "Trasporto bagagli",
+        "Assistenza tecnica",
+        "Tag GPS live",
+        "Agriturismo mezza pensione",
+        "Gadget esclusivi",
+      ];
 
   return (
     <div className="bg-[var(--obsidian)]">
@@ -128,6 +145,71 @@ export default function CategoriaPage() {
                 ))}
               </div>
             </>
+          ) : isCourse ? (
+            <div className="grid items-stretch gap-10 lg:grid-cols-[1.35fr_0.65fr]">
+              <Reveal className="flex flex-col justify-center">
+                <p className="font-button mb-4 text-xs uppercase tracking-[0.3em] text-[var(--accent)]">
+                  Formazione off-road
+                </p>
+                <h2 className="font-heading text-5xl leading-none text-[var(--text-on-light)] lg:text-7xl">
+                  Migliora la tua <span className="text-[var(--accent)]">guida</span>
+                </h2>
+                <p className="mt-6 max-w-2xl font-body text-lg leading-relaxed text-[var(--text-on-light-muted)]">
+                  Il corso viene costruito a partire dalla tua esperienza, dalla moto
+                  che utilizzi e dagli obiettivi che vuoi raggiungere. Contattaci per
+                  definire insieme programma, disponibilità e requisiti prima di
+                  iniziare.
+                </p>
+                <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+                  <Link
+                    to="/#contatti"
+                    className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--cta)] px-8 py-4 text-base text-[var(--cta-text)] hover:bg-[var(--cta-hover)]"
+                  >
+                    Chiedi informazioni sul corso
+                    <ArrowRight size={18} aria-hidden="true" />
+                  </Link>
+                  {SITE.contattiVerificati && (
+                    <a
+                      href={whatsappLink("Ciao! Vorrei informazioni sui corsi di guida off-road con Gianluca.")}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--wild-sage)] px-8 py-4 text-base text-[var(--granite-mist)] hover:bg-[var(--wild-sage-bright)]"
+                    >
+                      <MessageCircle size={18} aria-hidden="true" />
+                      Scrivici su WhatsApp
+                    </a>
+                  )}
+                </div>
+              </Reveal>
+
+              <Reveal
+                delay={0.1}
+                className="relative min-h-[28rem] overflow-hidden bg-[var(--obsidian)]"
+              >
+                <img
+                  src={guideGianluca}
+                  alt="Gianluca Serra, istruttore qualificato di guida off-road"
+                  width={600}
+                  height={800}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--obsidian)] via-transparent to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-7">
+                  <p className="font-button text-xs uppercase tracking-[0.24em] text-[var(--accent-soft)]">
+                    Istruttore qualificato
+                  </p>
+                  <h3 className="mt-2 font-heading text-4xl text-[var(--granite-mist)]">
+                    Gianluca Serra
+                  </h3>
+                  <p className="mt-2 font-body text-sm leading-relaxed text-[var(--granite-mist)]/75">
+                    Esperienza sul territorio e attenzione alla progressione tecnica
+                    e alla sicurezza in fuoristrada.
+                  </p>
+                </div>
+              </Reveal>
+            </div>
           ) : (
             /* Nessun itinerario a catalogo: nessun dato inventato, si passa dal contatto. */
             <Reveal className="mx-auto max-w-2xl text-center">
@@ -167,21 +249,22 @@ export default function CategoriaPage() {
         </div>
       </section>
 
-      {/* Cosa è incluso — informazioni reali già presenti nel sito */}
+      {/* Informazioni reali già presenti nel sito, differenziate per tour e corsi. */}
       <section className="bg-[var(--surface-dark-alt)] py-20">
         <div className="mx-auto max-w-5xl px-5 lg:px-8">
           <h2 className="font-heading mb-8 text-4xl text-[var(--granite-mist)] lg:text-5xl">
-            In ogni tour <span className="text-[var(--accent)]">è incluso</span>
+            {isCourse ? (
+              <>
+                Un percorso <span className="text-[var(--accent)]">su misura</span>
+              </>
+            ) : (
+              <>
+                In ogni tour <span className="text-[var(--accent)]">è incluso</span>
+              </>
+            )}
           </h2>
           <ul className="grid gap-x-10 gap-y-4 sm:grid-cols-2">
-            {[
-              "Guida locale esperta",
-              "Trasporto bagagli",
-              "Assistenza tecnica",
-              "Tag GPS live",
-              "Agriturismo mezza pensione",
-              "Gadget esclusivi",
-            ].map((item) => (
+            {highlights.map((item) => (
               <li key={item} className="flex items-center gap-3 border-b border-[var(--border-on-dark)] py-3">
                 <Check size={16} className="flex-shrink-0 text-[var(--wild-sage-bright)]" aria-hidden="true" />
                 <span className="font-body text-[var(--granite-mist)]/85">{item}</span>
@@ -231,17 +314,26 @@ export default function CategoriaPage() {
       <section className="border-t border-[var(--accent)]/20 bg-[var(--obsidian)] py-20 text-center">
         <div className="mx-auto max-w-3xl px-5">
           <h2 className="font-heading text-4xl leading-tight text-[var(--granite-mist)] lg:text-6xl">
-            Pronto a partire in <span className="text-[var(--accent)]">{c.nome}</span>?
+            {isCourse ? (
+              <>
+                Pronto a migliorare la tua <span className="text-[var(--accent)]">guida</span>?
+              </>
+            ) : (
+              <>
+                Pronto a partire in <span className="text-[var(--accent)]">{c.nome}</span>?
+              </>
+            )}
           </h2>
           <p className="mt-5 font-body text-lg text-[var(--granite-mist)]/70">
-            Dicci quando vorresti venire: verifichiamo la disponibilità e ti diciamo
-            qual è il percorso giusto per te.
+            {isCourse
+              ? "Raccontaci la tua esperienza, la moto che utilizzi e cosa vuoi migliorare: ti daremo le informazioni adatte al tuo livello."
+              : "Dicci quando vorresti venire: verifichiamo la disponibilità e ti diciamo qual è il percorso giusto per te."}
           </p>
           <Link
             to="/#contatti"
             className="btn-mech mt-8 inline-flex items-center gap-2.5 bg-[var(--cta)] px-8 py-4 text-base text-[var(--cta-text)] hover:bg-[var(--cta-hover)]"
           >
-            Verifica disponibilità
+            {isCourse ? "Informazioni sui corsi" : "Verifica disponibilità"}
             <ArrowRight size={18} aria-hidden="true" />
           </Link>
           {SITE.contattiVerificati && (

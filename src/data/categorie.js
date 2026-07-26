@@ -1,5 +1,5 @@
 /**
- * Le cinque categorie di esperienza di Sardegna Trail Avventura.
+ * Le esperienze di Sardegna Trail Avventura.
  *
  * Le descrizioni raccontano il CARATTERE di ciascuna disciplina e del mezzo
  * (informazioni generali sul tipo di veicolo), senza inventare dati operativi
@@ -113,6 +113,22 @@ export const CATEGORIE = [
     intro:
       "Un tour in e-bike in Sardegna, in mountain bike a pedalata assistita, per vivere l'isola in modo lento e immersivo. L'e-bike annulla la fatica delle salite e ti porta dove i mezzi a motore non arrivano: sentieri silenziosi, nuraghi nascosti e borghi dell'entroterra, a contatto totale con la natura.",
     adatto: "Tutti, anche senza allenamento: la pedalata assistita rende ogni salita accessibile.",
+  },
+  {
+    id: "corsi-off-road",
+    nome: "Corsi Off-road",
+    kind: "course",
+    // I corsi non sono itinerari a catalogo: programma, disponibilità e
+    // requisiti vengono definiti direttamente con il partecipante.
+    tourType: null,
+    fotoCard: "enduro-sentiero",
+    fotoHero: "enduro-sentiero",
+    carosello: [],
+    claim: "Più tecnica, più controllo",
+    intro:
+      "Corsi di guida off-road in Sardegna pensati per migliorare tecnica, controllo del mezzo e sicurezza sullo sterrato. Gianluca Serra, istruttore qualificato, definisce il lavoro in base all'esperienza del partecipante, alla moto e agli obiettivi di guida.",
+    adatto:
+      "Chi vuole iniziare con basi solide o perfezionare la propria tecnica in fuoristrada, con un percorso calibrato sul proprio livello.",
   },
 ];
 
