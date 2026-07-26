@@ -3,9 +3,8 @@ import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { MapPin, ArrowRight } from "lucide-react";
 import { CATEGORIE } from "@/data/categorie";
-import { fotoProps } from "@/data/foto-helpers";
 
-const bg = fotoProps("ssv-spiaggia-flotta");
+const HERO_LOGO = "/media/logo-sardegna-trail-avventura.png";
 
 // Due loop video dell'hero che si alternano con una dissolvenza incrociata
 // cinematografica. 1080p desktop, 540p mobile.
@@ -41,7 +40,7 @@ export default function Hero() {
     typeof navigator !== "undefined" &&
     Boolean(Reflect.get(navigator, "connection")?.saveData);
 
-  // La foto è il contenuto LCP. I video partono solo dopo il caricamento della
+  // Il logo è il contenuto LCP. I video partono solo dopo il caricamento della
   // pagina e quando il browser ha un momento libero, evitando di competere con
   // HTML, CSS, font e immagine principale.
   useEffect(() => {
@@ -113,19 +112,17 @@ export default function Hero() {
       id="hero"
       className="relative flex min-h-[100svh] w-full flex-col overflow-hidden bg-[var(--obsidian)]"
     >
-      {/* La fotografia è sempre presente: appare subito, stabilizza il layout e
-          resta come poster/fallback mentre i video vengono caricati in differita. */}
-      <div className="absolute inset-0">
+      {/* Il logo appare subito e resta come fallback mentre i video vengono
+          caricati in differita. */}
+      <div className="absolute inset-0 flex items-center justify-center bg-[var(--obsidian)]">
         <img
-          src={bg.src}
-          srcSet={bg.srcSet}
-          sizes="100vw"
-          alt={bg.alt}
-          width={1800}
-          height={Math.round(1800 / bg.aspect)}
+          src={HERO_LOGO}
+          alt="Sardegna Trail Avventura"
+          width={512}
+          height={512}
           fetchPriority="high"
           decoding="async"
-          className={`h-full w-full object-cover object-center ${reduce ? "" : "animate-[heroPan_22s_ease-out_forwards]"}`}
+          className="h-auto w-[min(76vw,28rem)] object-contain opacity-90 drop-shadow-2xl lg:translate-x-[28vw] lg:w-[min(36vw,32rem)]"
         />
         {showVideo && (
           <>
