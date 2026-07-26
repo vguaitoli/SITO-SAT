@@ -14,7 +14,7 @@ export const CATEGORIE = [
     // Tipo del tour in TourDetails a cui questa categoria è collegata.
     tourType: "Maxienduro",
     // Slug foto (manifest src/data/foto.js).
-    fotoCard: "cat-maxienduro",
+    fotoCard: "hero-maxienduro-crinale",
     fotoHero: "hero-maxienduro-crinale",
     // Carosello nella pagina categoria: foto reali distinte, mai ripetute in altre categorie.
     carosello: ["cat-maxienduro", "carousel-maxienduro-1", "carousel-maxienduro-2", "carousel-maxienduro-3"],
