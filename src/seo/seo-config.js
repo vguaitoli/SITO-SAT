@@ -6,6 +6,7 @@ export const SITE_NAME = "Sardegna Trail Avventura";
 
 const DEFAULT_IMAGE = "/media/og-logo.jpg";
 const HOME_IMAGE = "/media/reali/hero-maxienduro-panorama-1200.webp";
+const HOME_HERO_IMAGE = "/media/reali/ssv-spiaggia-flotta-1200.webp";
 const INDEX_ROBOTS = "index, follow, max-image-preview:large";
 const NOINDEX_ROBOTS = "noindex, nofollow";
 
@@ -48,12 +49,11 @@ const staticPages = {
     description:
       "Tour e corsi off-road in Sardegna in Maxienduro, Enduro, Quad, SSV, 4x4 ed e-bike, con guide locali e istruttore qualificato.",
     image: HOME_IMAGE,
-    preloadImage: HOME_IMAGE,
+    preloadImage: HOME_HERO_IMAGE,
     preloadImageSrcSet: [
-      "/media/reali/hero-maxienduro-panorama-480.webp 480w",
-      "/media/reali/hero-maxienduro-panorama-768.webp 768w",
-      "/media/reali/hero-maxienduro-panorama-1200.webp 1200w",
-      "/media/reali/hero-maxienduro-panorama-1800.webp 1800w",
+      "/media/reali/ssv-spiaggia-flotta-480.webp 480w",
+      "/media/reali/ssv-spiaggia-flotta-768.webp 768w",
+      "/media/reali/ssv-spiaggia-flotta-1200.webp 1200w",
     ].join(", "),
   },
   "/itinerari": {

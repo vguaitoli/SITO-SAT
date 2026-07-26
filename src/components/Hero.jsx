@@ -5,7 +5,7 @@ import { MapPin, ArrowRight } from "lucide-react";
 import { CATEGORIE } from "@/data/categorie";
 import { fotoProps } from "@/data/foto-helpers";
 
-const bg = fotoProps("hero-maxienduro-panorama");
+const bg = fotoProps("ssv-spiaggia-flotta");
 
 // Due loop video dell'hero che si alternano con una dissolvenza incrociata
 // cinematografica. 1080p desktop, 540p mobile.
