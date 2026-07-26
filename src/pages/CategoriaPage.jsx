@@ -61,7 +61,7 @@ export default function CategoriaPage() {
             alt={hero.alt}
             width={1600}
             height={Math.round(1600 / hero.aspect)}
-            fetchPriority="high"
+            {...{ fetchpriority: "high" }}
             decoding="async"
             className="absolute inset-0 h-full w-full object-cover"
           />

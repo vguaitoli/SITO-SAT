@@ -103,9 +103,14 @@ export default function Contact() {
         <div className="text-center mb-16">
           <p className="font-button text-[#E4D4B0] text-xs tracking-[0.3em] uppercase mb-4">Contatti</p>
           <h2 className="font-heading text-5xl lg:text-7xl text-[#F5EBD9] leading-none">
-            PRENOTA LA TUA<br />
-            <span className="text-[#A0612A]">PROSSIMA AVVENTURA</span>
+            INIZIA DA QUI<br />
+            <span className="text-[#A0612A]">LA TUA AVVENTURA</span>
           </h2>
+          <p className="mt-6 max-w-2xl mx-auto font-body text-base sm:text-lg leading-relaxed text-[#F5EBD9]/70">
+            Vuoi esplorare la Sardegna fuori dalle rotte più battute o proporci
+            una collaborazione sul territorio? Raccontaci cosa stai cercando: ti
+            aiuteremo a scegliere o costruire l'esperienza più adatta.
+          </p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
@@ -315,7 +320,7 @@ export default function Contact() {
                   disabled={sending}
                   className="btn-mech w-full bg-[#A0612A] hover:bg-[#b87033] disabled:opacity-50 text-[#F5EBD9] px-8 py-4 text-base flex items-center justify-center gap-3"
                 >
-                  {sending ? "Invio in corso..." : "Invia richiesta"}
+                  {sending ? "Invio in corso..." : "Richiedi informazioni"}
                   {!sending && <Send size={16} />}
                 </button>
               </form>

@@ -20,7 +20,7 @@ const featured = IN_EVIDENZA.map((name) => tours.find((t) => t.name === name)).f
 
 export default function TourInEvidenza() {
   return (
-    <section className="bg-[var(--surface-light)] topo-bg py-24 lg:py-32">
+    <section id="tour-in-evidenza" className="bg-[var(--surface-light)] topo-bg py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
         <div className="mb-14 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <SectionHeading

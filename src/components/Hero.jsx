@@ -120,7 +120,7 @@ export default function Hero() {
           alt="Sardegna Trail Avventura"
           width={512}
           height={512}
-          fetchPriority="high"
+          {...{ fetchpriority: "high" }}
           decoding="async"
           className="h-auto w-[min(76vw,28rem)] object-contain opacity-90 drop-shadow-2xl lg:translate-x-[28vw] lg:w-[min(36vw,32rem)]"
         />
@@ -181,7 +181,7 @@ export default function Hero() {
             className="mb-4 flex items-center gap-2 font-button text-xs uppercase tracking-[0.3em] text-[var(--accent-soft)] sm:mb-6"
           >
             <MapPin size={14} aria-hidden="true" />
-            <span>Sardegna · Tour off-road guidati</span>
+            <span>Sardegna · Turismo d'avventura</span>
           </motion.div>
 
           <h1 className="mb-5 font-heading leading-[0.88] text-[var(--granite-mist)] sm:mb-7">
@@ -200,10 +200,9 @@ export default function Hero() {
             {...child}
             className="mb-6 max-w-2xl font-body text-base leading-relaxed text-[var(--granite-mist)]/90 drop-shadow sm:mb-9 sm:text-lg lg:text-xl"
           >
-            Esperienze fuoristrada in Maxienduro, Enduro, Quad, SSV, 4x4 ed
-            e-bike, oltre a corsi di guida off-road. Dai sentieri del
-            Supramonte alle coste selvagge, con guide sarde che conoscono ogni
-            tratturo dell'isola.
+            Scopri la Sardegna più autentica con tour, spedizioni e corsi
+            off-road guidati. Itinerari selezionati tra natura, cultura e
+            tradizioni locali, lontano dalle rotte del turismo di massa.
           </motion.p>
 
           <motion.div {...child} className="flex flex-col gap-4 sm:flex-row">

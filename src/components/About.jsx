@@ -42,14 +42,21 @@ export default function About() {
             <Reveal delay={0.1}>
               <div className="space-y-5 font-body text-lg leading-relaxed text-[var(--granite-mist)]/80">
                 <p>
-                  Sardegna Trail Avventura nasce dalla passione per il mondo del
-                  fuoristrada e dall'amore per questa terra. Ogni percorso è stato
-                  selezionato per offrire emozioni autentiche, panorami unici e
-                  divertimento in totale sicurezza.
+                  Fondata da Gianluca Serra, Sardegna Trail Avventura nasce dalla
+                  passione per il fuoristrada, l'esplorazione e il territorio.
+                  Accompagniamo viaggiatori italiani ed europei alla scoperta
+                  dell'isola attraverso esperienze in Enduro, Maxienduro, Quad, SSV,
+                  4x4 ed e-bike.
+                </p>
+                <p>
+                  Collaboriamo con agriturismi, strutture ricettive, guide, pastori,
+                  artigiani e produttori locali, contribuendo a un turismo
+                  responsabile che valorizza le comunità e le aree interne anche nei
+                  periodi di bassa stagione.
                 </p>
                 <p className="border-l-2 border-[var(--accent)] pl-6 text-xl font-medium text-[var(--granite-mist)]">
-                  Non proponiamo semplici escursioni. Creiamo esperienze che rimangono
-                  nella memoria.
+                  Non semplici escursioni, ma esperienze autentiche tra natura,
+                  cultura e tradizioni sarde.
                 </p>
               </div>
             </Reveal>

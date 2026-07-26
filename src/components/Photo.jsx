@@ -43,7 +43,7 @@ export default function Photo({
         height={Math.round(1600 / props.aspect)}
         loading={priority ? "eager" : "lazy"}
         decoding={priority ? "auto" : "async"}
-        fetchPriority={priority ? "high" : "auto"}
+        {...{ fetchpriority: priority ? "high" : "auto" }}
         className={cn("h-full w-full object-cover", imgClassName)}
         {...rest}
       />

@@ -61,7 +61,7 @@ export default function BlogDetail() {
             height={675}
             loading="eager"
             decoding="async"
-            fetchPriority="high"
+            {...{ fetchpriority: "high" }}
             className="w-full aspect-[16/9] object-cover mb-10"
           />
         )}

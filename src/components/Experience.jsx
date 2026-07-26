@@ -23,6 +23,12 @@ export default function Experience() {
           <h2 className="font-heading text-5xl lg:text-7xl text-[#F5EBD9] leading-none">
             COSA <span className="text-[#A0612A]">VIVRAI</span>
           </h2>
+          <p className="mt-6 max-w-2xl mx-auto font-body text-base sm:text-lg leading-relaxed text-[#F5EBD9]/70">
+            Dalla Barbagia al Supramonte, dall'Ogliastra alla Costa Verde: percorsi
+            fuoristrada, soste culturali e gastronomiche, ospitalità locale e
+            assistenza professionale per vivere la Sardegna nella sua dimensione
+            più autentica e selvaggia.
+          </p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-[#F5EBD9]/10">
