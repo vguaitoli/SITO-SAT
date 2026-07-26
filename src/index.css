@@ -161,8 +161,10 @@
   .font-body:not(input):not(textarea):not(select):not(button) {
     text-align: justify;
     text-align-last: left;
-    hyphens: auto;
-    overflow-wrap: anywhere;
+    -webkit-hyphens: none;
+    hyphens: none;
+    overflow-wrap: break-word;
+    word-break: normal;
   }
   .font-button {
     font-family: var(--font-button);

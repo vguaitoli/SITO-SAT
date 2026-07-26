@@ -47,15 +47,15 @@ function Card({ cat, featuredMobile = false }) {
       )}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--obsidian)] via-[var(--obsidian)]/45 to-transparent" />
 
-      <div className="absolute inset-x-0 bottom-0 p-6 transition-transform duration-500 ease-out group-hover:-translate-y-1 lg:p-7">
+      <div className="absolute inset-x-0 bottom-0 p-4 transition-transform duration-500 ease-out group-hover:-translate-y-1 sm:p-6 lg:p-7">
         <p className="font-button text-[10px] uppercase tracking-[0.25em] text-[var(--accent-soft)]">
           {cat.claim}
         </p>
         <h3 className="mt-2 font-heading text-3xl tracking-wide text-[var(--granite-mist)]">
           {cat.nome}
         </h3>
-        <p className="mt-2 font-body text-sm leading-relaxed text-[var(--granite-mist)]/75 line-clamp-3">
-          {cat.intro}
+        <p className="mt-2 line-clamp-2 font-body text-[11px] leading-snug text-[var(--granite-mist)]/75 sm:line-clamp-3 sm:text-sm sm:leading-relaxed">
+          {cat.cardIntro || cat.intro}
         </p>
         <span className="mt-4 inline-flex items-center gap-2 font-button text-xs uppercase tracking-[0.2em] text-[var(--accent-soft)]">
           {cta}
