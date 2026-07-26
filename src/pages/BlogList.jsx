@@ -1,21 +1,12 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ list:async()=>[], filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { ChevronLeft, Search } from "lucide-react";
 import { listBlogPosts } from "@/data/blogPosts.js";
 
 export default function BlogList() {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const posts = listBlogPosts();
   const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    listBlogPosts(db)
-      .then(setPosts)
-      .finally(() => setLoading(false));
-  }, []);
 
   const filteredPosts = posts.filter((post) => {
     const q = search.trim().toLowerCase();
@@ -50,9 +41,7 @@ export default function BlogList() {
           />
         </div>
 
-        {loading ? (
-          <div className="text-[#F5EBD9]/60 font-body">Caricamento articoli...</div>
-        ) : filteredPosts.length === 0 ? (
+        {filteredPosts.length === 0 ? (
           <div className="text-[#F5EBD9]/60 font-body border border-[#F5EBD9]/15 px-6 py-8">
             {posts.length === 0 ? "Nuovi racconti in arrivo a breve." : "Nessun racconto trovato per questa ricerca."}
           </div>

@@ -1,6 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ list:async()=>[], filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useParams, Link } from "react-router-dom";
 
 import { ChevronLeft, MapPin } from "lucide-react";
@@ -11,23 +9,7 @@ import { getBlogPost } from "@/data/blogPosts.js";
 
 export default function BlogDetail() {
   const { id } = useParams();
-  const [post, setPost] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-    getBlogPost(db, id)
-      .then(setPost)
-      .finally(() => setLoading(false));
-  }, [id]);
-
-  if (loading) {
-    return (
-      <div className="bg-[#1C1814] min-h-screen flex items-center justify-center text-[#F5EBD9]/60 font-body">
-        Caricamento...
-      </div>
-    );
-  }
+  const post = getBlogPost(id);
 
   if (!post) {
     return (

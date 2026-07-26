@@ -71,33 +71,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <script>
-      window.__B44_DB__ = window.__B44_DB__ || {};
-      window.__B44_DB__.auth = window.__B44_DB__.auth || {
-        isAuthenticated: async () => false,
-        me: async () => null
-      };
-      window.__B44_DB__.entities = window.__B44_DB__.entities || new Proxy({}, {
-        get: () => ({
-          list: async () => [],
-          filter: async () => [],
-          get: async () => null,
-          create: async () => ({}),
-          update: async () => ({}),
-          delete: async () => ({})
-        })
-      });
-      window.__B44_DB__.integrations = window.__B44_DB__.integrations || {};
-      window.__B44_DB__.integrations.Core = window.__B44_DB__.integrations.Core || {};
-      window.__B44_DB__.integrations.Core.UploadFile = window.__B44_DB__.integrations.Core.UploadFile || (async () => ({ file_url: "" }));
-      window.__B44_DB__.integrations.Core.SendEmail = window.__B44_DB__.integrations.Core.SendEmail || (async () => ({}));
-      window.__B44_DB__.integrations.Core.InvokeLLM = window.__B44_DB__.integrations.Core.InvokeLLM || (async (request = {}) => {
-        if (request.response_json_schema?.properties?.days) {
-          return { days: [] };
-        }
-        return { temperature: 22, condition: "sereno" };
-      });
-    </script>
-    <script type="module" src="/src/main.jsx?blogposts=2"></script>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

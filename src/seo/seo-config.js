@@ -82,31 +82,6 @@ const staticPages = {
     description: `Informazioni sui cookie e sui servizi utilizzati dal sito ${SITE_NAME}.`,
     robots: NOINDEX_ROBOTS,
   },
-  "/login": {
-    title: `Accesso riservato | ${SITE_NAME}`,
-    description: "Pagina di accesso riservata.",
-    robots: NOINDEX_ROBOTS,
-  },
-  "/register": {
-    title: `Registrazione | ${SITE_NAME}`,
-    description: "Pagina di registrazione riservata.",
-    robots: NOINDEX_ROBOTS,
-  },
-  "/forgot-password": {
-    title: `Recupera password | ${SITE_NAME}`,
-    description: "Pagina per il recupero delle credenziali.",
-    robots: NOINDEX_ROBOTS,
-  },
-  "/reset-password": {
-    title: `Reimposta password | ${SITE_NAME}`,
-    description: "Pagina per reimpostare le credenziali.",
-    robots: NOINDEX_ROBOTS,
-  },
-  "/blog/admin": {
-    title: `Amministrazione blog | ${SITE_NAME}`,
-    description: "Area amministrativa riservata.",
-    robots: NOINDEX_ROBOTS,
-  },
 };
 
 function normalizePath(pathname) {

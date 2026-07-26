@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Clock, Gauge, TrendingUp, Percent, MapPin, UtensilsCrossed, Calendar, Flame, Navigation } from "lucide-react";
-import WeatherWidget from "@/components/WeatherWidget";
 import TourFullDetailsModal from "@/components/TourFullDetailsModal.jsx";
 
 export default function TourCard({ tour, color }) {
@@ -87,11 +86,6 @@ export default function TourCard({ tour, color }) {
               <span className="font-body text-sm text-[#F5EBD9]/80 leading-tight">{tour.periodo}</span>
             </div>
             <p className="font-body text-sm text-[#F5EBD9]/60 leading-relaxed mt-1">{tour.descrizione}</p>
-            {tour.meteo && (
-              <div onClick={(e) => e.stopPropagation()} className="border-t border-[#F5EBD9]/10 pt-2.5 mt-1">
-                <WeatherWidget lat={tour.meteo.lat} lng={tour.meteo.lng} locationName={tour.meteo.nome} color={color} />
-              </div>
-            )}
             <div className="flex items-center justify-between mt-2">
               <button
                 onClick={(e) => { e.stopPropagation(); setShowFull(true); }}

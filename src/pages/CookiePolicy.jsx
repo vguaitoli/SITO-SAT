@@ -58,31 +58,21 @@ export default function CookiePolicy() {
           </p>
         </Sezione>
 
-        <Sezione n="3" titolo="Strumenti tecnici utilizzati">
+        <Sezione n="3" titolo="Archiviazione tecnica">
           <p>
-            Per il solo funzionamento del sito viene utilizzato un valore tecnico salvato
-            nella memoria locale del browser (localStorage):
-          </p>
-          <ul className="list-disc pl-5 space-y-1">
-            <li>
-              <strong className="text-[#F5EBD9]">base44_from_url</strong> — valore tecnico
-              impostato dalla piattaforma su cui è realizzato il sito, utile al corretto
-              caricamento delle pagine. Non contiene dati personali e non traccia la tua
-              navigazione.
-            </li>
-          </ul>
-          <p>
-            Questi strumenti tecnici non richiedono consenso e possono essere rimossi in ogni
-            momento cancellando i dati di navigazione dalle impostazioni del tuo browser.
+            Il sito non salva cookie di profilazione né identificatori nella memoria locale
+            del browser. Il browser può conservare temporaneamente file statici come immagini,
+            font, fogli di stile e script per velocizzare i caricamenti successivi.
           </p>
         </Sezione>
 
-        <Sezione n="4" titolo="Font e risorse esterne">
+        <Sezione n="4" titolo="Font e mappe">
           <p>
             I caratteri tipografici del sito sono ospitati direttamente sui nostri server
             (self-hosted): il sito <strong className="text-[#F5EBD9]">non effettua chiamate a
-            Google Fonts</strong> né ad altri servizi esterni durante la navigazione, evitando
-            così il trasferimento del tuo indirizzo IP a terze parti.
+            Google Fonts</strong>. Nelle pagine del blog che includono una mappa, le tessere
+            cartografiche sono caricate da OpenStreetMap; la richiesta tecnica può trasmettere
+            al relativo server l'indirizzo IP del dispositivo.
           </p>
         </Sezione>
 

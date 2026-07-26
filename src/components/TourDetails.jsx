@@ -1,5 +1,3 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ list:async()=>[], filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
 import React from "react";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
@@ -25,7 +23,6 @@ export const tours = [
     date: "2026-10-17",
     descrizione: "Tre giorni nel cuore del Supramonte, dai nuraghi d'altura alle gole calcaree.",
     groups: ["weekend"],
-    meteo: { lat: 40.244, lng: 9.383, nome: "Supramonte" },
     tappe: [
       { title: "Verso Tiscali", desc: "Si parte alla volta dell'altopiano di Tiscali, tra doline e villaggi nuragici nascosti nella roccia." },
       { title: "Golgo e i canyon", desc: "Attraversiamo l'altopiano del Golgo fino ai bordi del canyon, con soste panoramiche mozzafiato." },
@@ -45,7 +42,6 @@ export const tours = [
     date: "2026-10-03",
     descrizione: "Due giorni di sentieri tecnici nella Barbagia più selvaggia, tra borghi di pietra e passaggi da enduro puro.",
     groups: ["weekend"],
-    meteo: { lat: 40.05, lng: 9.30, nome: "Barbagia" },
     tappe: [
       { title: "Borghi antichi", desc: "Attraversiamo i borghi di pietra della Barbagia, tra vicoli, murales e antiche tradizioni pastorali." },
       { title: "Canyon di Gorropu e foreste", desc: "Sentieri tecnici tra le foreste secolari fino al bordo del canyon di Gorropu, uno dei più profondi d'Europa." },
@@ -64,7 +60,6 @@ export const tours = [
     date: "2026-07-25",
     descrizione: "Due giorni tra dune dorate e coste incontaminate, con pernottamento e mezzi quad accessibili a tutti.",
     groups: ["weekend"],
-    meteo: { lat: 39.45, lng: 8.53, nome: "Costa Verde" },
     tappe: [
       { title: "Dune di Piscinas", desc: "Prime evoluzioni tra le dune dorate più alte d'Europa, con soste fotografiche e pranzo tipico." },
       { title: "Costa Verde e miniere", desc: "Costeggiamo la Costa Verde tra spiagge selvagge e le suggestive miniere abbandonate del Sulcis." },
@@ -83,7 +78,6 @@ export const tours = [
     date: "2026-08-22",
     descrizione: "Quattro giorni a bordo di mezzi 4x4 tra altipiani, miniere abbandonate e coste remote.",
     groups: ["weekend"],
-    meteo: { lat: 40.0, lng: 9.2, nome: "Gennargentu" },
     tappe: [
       { title: "Altipiani del Gennargentu", desc: "Saliamo verso gli altipiani più alti della Sardegna, tra panorami infiniti e strade sterrate." },
       { title: "Miniere del Sulcis", desc: "Visita ai suggestivi villaggi minerari abbandonati, testimonianza della storia mineraria dell'isola." },
@@ -104,7 +98,6 @@ export const tours = [
     date: "2026-09-19",
     descrizione: "Quattro giorni tra le creste del Gennargentu, sterrati panoramici e discese verso valli incontaminate.",
     groups: ["weekend"],
-    meteo: { lat: 40.0, lng: 9.2, nome: "Gennargentu" },
     tappe: [
       { title: "Nuraghi e primi sentieri", desc: "Partiamo tra antichi nuraghi e i primi sterrati panoramici che introducono al massiccio." },
       { title: "Boschi secolari", desc: "Attraversiamo foreste di lecci secolari lungo sentieri tecnici immersi nella natura." },
@@ -125,7 +118,6 @@ export const tours = [
     date: "2026-08-29",
     descrizione: "Una settimana immersiva tra i sentieri enduro più suggestivi dell'isola.",
     groups: ["week"],
-    meteo: { lat: 40.28, lng: 9.70, nome: "Golfo di Orosei" },
     tappe: [
       { title: "Nuraghi e primi sterrati", desc: "Prime uscite tra antichi nuraghi e sterrati di livello progressivo per prendere confidenza." },
       { title: "Barbagia profonda", desc: "Ci addentriamo nella Barbagia più autentica, tra borghi di pietra e tradizioni pastorali." },
@@ -149,7 +141,6 @@ export const tours = [
     date: "2026-08-08",
     descrizione: "Sette giorni in quad per esplorare l'isola da costa a costa, tra dune e altipiani.",
     groups: ["week"],
-    meteo: { lat: 39.45, lng: 8.53, nome: "Costa Verde" },
     tappe: [
       { title: "Dune di Piscinas", desc: "Si parte tra le dune dorate più alte d'Europa, prendendo confidenza con il mezzo." },
       { title: "Costa Verde", desc: "Percorriamo la costa selvaggia tra spiagge nascoste e falesie a picco sul mare." },
@@ -175,7 +166,6 @@ export const tours = [
     // pensato per e-bike a pedalata assistita, personalizzabile per ogni gruppo.
     descrizione: "Itinerario tipo su e-bike a pedalata assistita: due giorni tra sterrati facili, nuraghi e borghi dell'entroterra. Personalizzabile per ogni gruppo.",
     groups: ["weekend"],
-    meteo: { lat: 40.0, lng: 9.5, nome: "Sardegna centrale" },
     tappe: [
       { title: "Sterrati e nuraghi", desc: "Prima giornata tra sterrati facili e siti nuragici: la pedalata assistita rende ogni salita accessibile, senza fretta e a contatto con la natura." },
       { title: "Borghi e costa", desc: "Seconda giornata verso i borghi dell'entroterra e uno scorcio di costa, tra soste panoramiche, prodotti tipici e sentieri silenziosi." },

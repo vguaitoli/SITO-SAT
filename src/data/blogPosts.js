@@ -51,33 +51,11 @@ const byNewest = (a, b) =>
   new Date(b.published_date || 0).getTime() -
   new Date(a.published_date || 0).getTime();
 
-export async function listBlogPosts(db, limit) {
-  let remotePosts = [];
-
-  try {
-    const loaded = await db.entities.BlogPost.list("-published_date");
-    remotePosts = Array.isArray(loaded) ? loaded : [];
-  } catch {
-    remotePosts = [];
-  }
-
-  const merged = new Map(blogPosts.map((post) => [post.id, post]));
-
-  remotePosts.forEach((post) => {
-    if (post?.id) merged.set(post.id, post);
-  });
-
-  const posts = Array.from(merged.values()).sort(byNewest);
+export function listBlogPosts(limit) {
+  const posts = [...blogPosts].sort(byNewest);
   return typeof limit === "number" ? posts.slice(0, limit) : posts;
 }
 
-export async function getBlogPost(db, id) {
-  try {
-    const remotePost = await db.entities.BlogPost.get(id);
-    if (remotePost) return remotePost;
-  } catch {
-    // Static articles keep the local preview populated when no Base44 DB is connected.
-  }
-
+export function getBlogPost(id) {
   return blogPosts.find((post) => post.id === id) || null;
 }

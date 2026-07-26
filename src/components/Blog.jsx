@@ -1,20 +1,10 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ list:async()=>[], filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
-import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { ArrowRight, BookOpen } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { listBlogPosts } from "@/data/blogPosts.js";
 
 export default function Blog() {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    listBlogPosts(db, 3)
-      .then(setPosts)
-      .finally(() => setLoading(false));
-  }, []);
+  const posts = listBlogPosts(3);
 
   return (
     <section id="blog" className="bg-[#1C1814] topo-dark py-24 lg:py-32">
@@ -35,14 +25,7 @@ export default function Blog() {
           </Link>
         </div>
 
-        {loading ? (
-          <div className="text-[#F5EBD9]/60 font-body">Caricamento articoli...</div>
-        ) : posts.length === 0 ? (
-          <div className="flex items-center gap-3 text-[#F5EBD9]/60 font-body border border-[#F5EBD9]/15 px-6 py-8">
-            <BookOpen size={22} className="text-[#A0612A]" />
-            Nuovi racconti in arrivo a breve.
-          </div>
-        ) : (
+        {posts.length > 0 && (
           <div className="grid md:grid-cols-3 gap-1">
             {posts.map((post) => (
               <Link

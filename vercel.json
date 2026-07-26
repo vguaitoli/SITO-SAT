@@ -1,11 +1,6 @@
 {
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/login", "destination": "/_seo/login.html" },
-    { "source": "/register", "destination": "/_seo/register.html" },
-    { "source": "/forgot-password", "destination": "/_seo/forgot-password.html" },
-    { "source": "/reset-password", "destination": "/_seo/reset-password.html" },
-    { "source": "/blog/admin", "destination": "/_seo/blog/admin.html" },
     { "source": "/privacy", "destination": "/_seo/privacy.html" },
     { "source": "/cookie-policy", "destination": "/_seo/cookie-policy.html" },
     { "source": "/itinerari", "destination": "/_seo/itinerari.html" },
@@ -16,7 +11,7 @@
   ],
   "headers": [
     {
-      "source": "/(login|register|forgot-password|reset-password|blog/admin|privacy|cookie-policy)",
+      "source": "/(privacy|cookie-policy)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
