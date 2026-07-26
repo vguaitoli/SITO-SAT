@@ -6,6 +6,10 @@ import { CATEGORIE } from "@/data/categorie";
 
 const HERO_LOGO = "/media/logo-sardegna-trail-avventura.png";
 
+// Il noleggio è un servizio di supporto ai tour, non un'esperienza a sé:
+// non compare nella striscia esperienze della hero.
+const esperienze = CATEGORIE.filter((c) => c.kind !== "rental");
+
 // Due loop video dell'hero che si alternano con una dissolvenza incrociata
 // cinematografica. 1080p desktop, 540p mobile.
 const VIDEO_A_DESKTOP = "/media/hero-offroad-loop-1080.mp4";
@@ -232,7 +236,7 @@ export default function Hero() {
         className="relative z-10 border-t border-[var(--border-on-dark)] bg-[var(--obsidian)]/40 backdrop-blur-sm"
       >
         <ul className="mx-auto grid max-w-7xl grid-cols-3 divide-x divide-y divide-[var(--border-on-dark)] px-2 sm:grid-cols-9 sm:divide-y-0 sm:px-5 lg:px-8">
-          {CATEGORIE.map((c) => (
+          {esperienze.map((c) => (
             <li key={c.id}>
               <Link
                 to={`/esperienze/${c.id}`}

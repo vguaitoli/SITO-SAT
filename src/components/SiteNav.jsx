@@ -6,6 +6,8 @@ import { CATEGORIE } from "@/data/categorie";
 
 const navLinks = [
   { label: "Esperienze", href: "#esperienze" },
+  { label: "Corsi Off-road", href: "/esperienze/corsi-off-road" },
+  { label: "Noleggio", href: "/esperienze/noleggio" },
   { label: "Tour", href: "/itinerari" },
   { label: "Chi Siamo", href: "#guide" },
   { label: "Gallery", href: "#gallery" },
@@ -13,6 +15,8 @@ const navLinks = [
   { label: "Eventi", href: "/eventi" },
   { label: "FAQ", href: "#faq" },
 ];
+
+const mobileCategories = CATEGORIE.filter(({ id }) => id !== "corsi-off-road" && id !== "noleggio");
 
 const toTarget = (href) => (href.startsWith("#") ? `/${href}` : href);
 
@@ -39,7 +43,7 @@ export default function SiteNav() {
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "border-b border-[var(--accent)]/30 bg-[var(--obsidian)]/95 py-3 backdrop-blur-md"
+          ? "border-b border-[var(--accent)]/30 bg-[var(--obsidian)] py-3 shadow-lg"
           : // Gradiente robusto: garantisce il contrasto del menu anche sopra foto molto chiare.
             "bg-gradient-to-b from-[var(--obsidian)] via-[var(--obsidian)]/75 to-transparent pb-10 pt-5"
       }`}
@@ -60,12 +64,12 @@ export default function SiteNav() {
           </span>
         </Link>
 
-        <nav aria-label="Navigazione principale" className="hidden items-center gap-6 lg:flex xl:gap-8">
+        <nav aria-label="Navigazione principale" className="hidden items-center gap-5 xl:flex 2xl:gap-8">
           {navLinks.map((l) => (
             <Link
               key={l.href}
               to={toTarget(l.href)}
-              className="group relative font-button text-sm uppercase tracking-wider text-[var(--granite-mist)]/85 transition-colors hover:text-[var(--accent)]"
+              className="group relative font-button text-xs uppercase tracking-wider text-[var(--granite-mist)]/85 transition-colors hover:text-[var(--accent)] 2xl:text-sm"
             >
               {l.label}
               <span className="absolute -bottom-1 left-0 h-px w-0 bg-[var(--accent)] transition-all duration-300 group-hover:w-full" />
@@ -79,7 +83,7 @@ export default function SiteNav() {
               href={SITE.whatsapp.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-mech hidden items-center gap-2.5 bg-[var(--wild-sage)] px-5 py-3 text-sm text-[var(--granite-mist)] hover:bg-[var(--wild-sage-bright)] sm:flex"
+              className="btn-mech hidden items-center gap-2.5 bg-[var(--wild-sage)] px-5 py-3 text-sm text-[var(--granite-mist)] hover:bg-[var(--wild-sage-bright)] 2xl:flex"
             >
               <MessageCircle size={16} aria-hidden="true" />
               WhatsApp
@@ -93,7 +97,7 @@ export default function SiteNav() {
           </Link>
           <button
             onClick={() => setOpen((o) => !o)}
-            className="p-2 text-[var(--granite-mist)] lg:hidden"
+            className="p-2 text-[var(--granite-mist)] xl:hidden"
             aria-label={open ? "Chiudi menu" : "Apri menu"}
             aria-expanded={open}
           >
@@ -104,7 +108,7 @@ export default function SiteNav() {
 
       {/* Menu mobile */}
       {open && (
-        <div className="max-h-[calc(100svh-4rem)] overflow-y-auto border-t border-[var(--accent)]/30 bg-[var(--obsidian)] lg:hidden">
+        <div className="max-h-[calc(100svh-4rem)] overflow-y-auto border-t border-[var(--accent)]/30 bg-[var(--obsidian)] xl:hidden">
           <nav aria-label="Navigazione mobile" className="flex flex-col px-5 py-4">
             {navLinks.map((l) => (
               <Link
@@ -122,7 +126,7 @@ export default function SiteNav() {
               Le esperienze
             </p>
             <div className="mt-3 grid grid-cols-2 gap-2">
-              {CATEGORIE.map((c) => (
+              {mobileCategories.map((c) => (
                 <Link
                   key={c.id}
                   to={`/esperienze/${c.id}`}

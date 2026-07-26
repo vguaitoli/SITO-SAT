@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Phone, MessageCircle, Mail, Instagram, Facebook, MapPin, Send, Check } from "lucide-react";
 import { SITE, WEB3FORMS_ACCESS_KEY } from "@/config/site";
 import { tours } from "@/components/TourDetails.jsx";
@@ -25,14 +25,18 @@ const visibleContacts = SITE.contattiVerificati
 const tourOptions = [
   ...tours.map((t) => `${t.name} (${t.type})`),
   ...CATEGORIE.filter((c) => c.kind === "course").map((c) => c.nome),
+  ...CATEGORIE.filter((c) => c.kind === "rental").map((c) => c.nome),
 ];
 
 export default function Contact() {
+  const [searchParams] = useSearchParams();
+  const requestedTour = searchParams.get("interesse");
+  const initialTour = requestedTour && tourOptions.includes(requestedTour) ? requestedTour : "";
   const [form, setForm] = useState({
     nome: "",
     email: "",
     telefono: "",
-    tour: "",
+    tour: initialTour,
     data: "",
     messaggio: "",
     // Dichiarazione di presa visione dell'informativa privacy (obbligatoria).

@@ -31,6 +31,8 @@ export default function CategoriaPage() {
   const altre = CATEGORIE.filter((x) => x.id !== c.id);
   const colore = typeColors[c.tourType] || "#A0612A";
   const isCourse = c.kind === "course";
+  const isRental = c.kind === "rental";
+  const contactTarget = isRental ? "/?interesse=Noleggio#contatti" : "/#contatti";
   const highlights = isCourse
     ? [
         "Istruttore qualificato",
@@ -38,14 +40,21 @@ export default function CategoriaPage() {
         "Lavoro pratico su tecnica e controllo del mezzo",
         "Attenzione a sicurezza e lettura del terreno",
       ]
-    : [
-        "Guida locale esperta",
-        "Trasporto bagagli",
-        "Assistenza tecnica",
-        "Tag GPS live",
-        "Agriturismo mezza pensione",
-        "Gadget esclusivi",
-      ];
+    : isRental
+      ? [
+          "Scegli il tour e indica le date",
+          "Raccontaci la tua esperienza e il mezzo preferito",
+          "Verifichiamo Quad, Enduro o Maxienduro disponibili",
+          "Ricevi condizioni, documenti richiesti e modalità di ritiro",
+        ]
+      : [
+          "Guida locale esperta",
+          "Trasporto bagagli",
+          "Assistenza tecnica",
+          "Tag GPS live",
+          "Agriturismo mezza pensione",
+          "Gadget esclusivi",
+        ];
 
   return (
     <div className="bg-[var(--obsidian)]">
@@ -162,7 +171,7 @@ export default function CategoriaPage() {
                 </p>
                 <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                   <Link
-                    to="/#contatti"
+                    to={contactTarget}
                     className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--cta)] px-8 py-4 text-base text-[var(--cta-text)] hover:bg-[var(--cta-hover)]"
                   >
                     Chiedi informazioni sul corso
@@ -210,6 +219,41 @@ export default function CategoriaPage() {
                 </div>
               </Reveal>
             </div>
+          ) : isRental ? (
+            <Reveal className="mx-auto max-w-2xl text-center">
+              <p className="font-button mb-4 text-xs uppercase tracking-[0.3em] text-[var(--accent)]">
+                Parti senza pensieri
+              </p>
+              <h2 className="font-heading text-5xl leading-none text-[var(--text-on-light)] lg:text-6xl">
+                Il mezzo giusto. La Sardegna <span className="text-[var(--accent)]">davanti</span>.
+              </h2>
+              <p className="mt-6 font-body text-lg leading-relaxed text-[var(--text-on-light-muted)]">
+                Il noleggio viene coordinato con le date e il percorso del tour. Tu
+                scegli l'esperienza e ci racconti come guidi: noi verifichiamo
+                disponibilità e condizioni con i nostri partner locali, così al punto
+                di partenza trovi una soluzione coerente con il tuo livello.
+              </p>
+              <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
+                <Link
+                  to={contactTarget}
+                  className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--cta)] px-8 py-4 text-base text-[var(--cta-text)] hover:bg-[var(--cta-hover)]"
+                >
+                  Verifica mezzo e disponibilità
+                  <ArrowRight size={18} aria-hidden="true" />
+                </Link>
+                {SITE.contattiVerificati && (
+                  <a
+                    href={whatsappLink("Ciao! Vorrei informazioni sul noleggio di quad/moto enduro/maxienduro per partecipare a un tour.")}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--wild-sage)] px-8 py-4 text-base text-[var(--granite-mist)] hover:bg-[var(--wild-sage-bright)]"
+                  >
+                    <MessageCircle size={18} aria-hidden="true" />
+                    Scrivici su WhatsApp
+                  </a>
+                )}
+              </div>
+            </Reveal>
           ) : (
             /* Nessun itinerario a catalogo: nessun dato inventato, si passa dal contatto. */
             <Reveal className="mx-auto max-w-2xl text-center">
@@ -226,7 +270,7 @@ export default function CategoriaPage() {
               </p>
               <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
                 <Link
-                  to="/#contatti"
+                  to={contactTarget}
                   className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--cta)] px-8 py-4 text-base text-[var(--cta-text)] hover:bg-[var(--cta-hover)]"
                 >
                   Richiedi informazioni
@@ -257,6 +301,10 @@ export default function CategoriaPage() {
               <>
                 Un percorso <span className="text-[var(--accent)]">su misura</span>
               </>
+            ) : isRental ? (
+              <>
+                Come funziona il <span className="text-[var(--accent)]">noleggio</span>
+              </>
             ) : (
               <>
                 In ogni tour <span className="text-[var(--accent)]">è incluso</span>
@@ -271,6 +319,13 @@ export default function CategoriaPage() {
               </li>
             ))}
           </ul>
+          {isRental && (
+            <p className="mt-6 font-body text-sm leading-relaxed text-[var(--granite-mist)]/55">
+              Disponibilità, tariffa, deposito, documenti, coperture e condizioni
+              dipendono dal partner e dal mezzo scelto e vengono comunicati prima
+              della conferma.
+            </p>
+          )}
         </div>
       </section>
 
@@ -318,6 +373,10 @@ export default function CategoriaPage() {
               <>
                 Pronto a migliorare la tua <span className="text-[var(--accent)]">guida</span>?
               </>
+            ) : isRental ? (
+              <>
+                La Sardegna è pronta. Ti manca solo il <span className="text-[var(--accent)]">mezzo</span>.
+              </>
             ) : (
               <>
                 Pronto a partire in <span className="text-[var(--accent)]">{c.nome}</span>?
@@ -327,13 +386,15 @@ export default function CategoriaPage() {
           <p className="mt-5 font-body text-lg text-[var(--granite-mist)]/70">
             {isCourse
               ? "Raccontaci la tua esperienza, la moto che utilizzi e cosa vuoi migliorare: ti daremo le informazioni adatte al tuo livello."
-              : "Dicci quando vorresti venire: verifichiamo la disponibilità e ti diciamo qual è il percorso giusto per te."}
+              : isRental
+                ? "Raccontaci quale tour vuoi vivere, quando desideri partire e quale mezzo preferisci. Verificheremo la soluzione più adatta e ti invieremo tutte le condizioni prima della conferma."
+                : "Dicci quando vorresti venire: verifichiamo la disponibilità e ti diciamo qual è il percorso giusto per te."}
           </p>
           <Link
-            to="/#contatti"
+            to={contactTarget}
             className="btn-mech mt-8 inline-flex items-center gap-2.5 bg-[var(--cta)] px-8 py-4 text-base text-[var(--cta-text)] hover:bg-[var(--cta-hover)]"
           >
-            {isCourse ? "Informazioni sui corsi" : "Verifica disponibilità"}
+            {isCourse ? "Informazioni sui corsi" : isRental ? "Richiedi disponibilità" : "Verifica disponibilità"}
             <ArrowRight size={18} aria-hidden="true" />
           </Link>
           {SITE.contattiVerificati && (

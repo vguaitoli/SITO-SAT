@@ -29,6 +29,8 @@ const categoryDescriptions = {
     "Tour guidati in e-bike in Sardegna tra sentieri, nuraghi e borghi, con pedalata assistita e ritmo accessibile.",
   "corsi-off-road":
     "Corsi di guida off-road in Sardegna con Gianluca Serra, istruttore qualificato, per migliorare tecnica, controllo e sicurezza sullo sterrato.",
+  noleggio:
+    "Partecipa ai tour Sardegna Trail Avventura anche senza mezzo proprio. Noleggio di Quad, Enduro e Maxienduro tramite partner locali selezionati.",
 };
 
 const categoryTitles = {
@@ -41,6 +43,7 @@ const categoryTitles = {
   "tour-stradali": "Tour stradali in Sardegna",
   "e-bike": "Tour in e-bike in Sardegna",
   "corsi-off-road": "Corsi di guida off-road in Sardegna",
+  noleggio: "Noleggio quad, enduro e maxienduro in Sardegna",
 };
 
 const staticPages = {

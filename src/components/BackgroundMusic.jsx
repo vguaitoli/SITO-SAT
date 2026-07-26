@@ -2,18 +2,15 @@ import React, { useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 
 const TRACK_SRC = "/media/homepage-sito.mp3";
-// Volume contenuto: la musica accompagna l'apertura senza coprire il contenuto.
+// Volume contenuto: la musica accompagna la navigazione senza coprire il contenuto.
 const TARGET_VOLUME = 0.24;
 const FADE_IN_MS = 1800;
-const FADE_TARGET_ID = "tour-in-evidenza";
-// La dissolvenza inizia nell'ultima parte del percorso verso la sezione.
-const FADE_START_RATIO = 0.6;
 
 /**
- * Musica di sottofondo per l'apertura della home.
+ * Musica di sottofondo persistente per l'intera esperienza di navigazione.
  *
- * Parte in dissolvenza dopo il caricamento della pagina e sfuma durante
- * l'avvicinamento a "Tour in evidenza", dove si ferma definitivamente.
+ * Parte in dissolvenza dopo il caricamento, continua in loop tra le diverse
+ * pagine del sito e resta sempre attivabile o disattivabile dall'utente.
  *
  * I browser che bloccano l'autoplay mostrano subito un controllo accessibile:
  * la riproduzione parte alla prima interazione dell'utente. Con Risparmio dati
@@ -22,12 +19,13 @@ const FADE_START_RATIO = 0.6;
 export default function BackgroundMusic() {
   const audioRef = useRef(null);
   const playRef = useRef(null);
-  const scrollRafRef = useRef(null);
   const fadeInRafRef = useRef(null);
-  const stoppedRef = useRef(false);
   const startedRef = useRef(false);
+  // Diventa true al primo gesto reale dell'utente (click, tocco o tasto): da
+  // quel momento i click sull'icona tornano a essere un normale toggle
+  // muto/attivo invece di un nuovo tentativo di sblocco dell'audio.
+  const unlockedRef = useRef(false);
   const fadeInProgressRef = useRef(0);
-  const scrollVolumeRef = useRef(1);
   const [muted, setMuted] = useState(false);
   const [status, setStatus] = useState("pending");
 
@@ -42,46 +40,11 @@ export default function BackgroundMusic() {
 
     const saveData = Boolean(Reflect.get(navigator, "connection")?.saveData);
 
-    const applyVolume = () => {
-      audio.volume =
-        TARGET_VOLUME * fadeInProgressRef.current * scrollVolumeRef.current;
-    };
-
-    const stopAtTarget = () => {
-      stoppedRef.current = true;
-      audio.pause();
-      audio.removeAttribute("src");
-      audio.load();
-      if (fadeInRafRef.current) cancelAnimationFrame(fadeInRafRef.current);
-      if (mounted) setStatus("stopped");
-    };
-
-    const updateScrollVolume = () => {
-      const target = document.getElementById(FADE_TARGET_ID);
-      if (!target) return;
-
-      const targetTop = target.getBoundingClientRect().top + window.scrollY;
-      if (targetTop <= 0) return;
-
-      const fadeStart = targetTop * FADE_START_RATIO;
-      const fadeDistance = Math.max(1, targetTop - fadeStart);
-      const fadeProgress = Math.min(
-        1,
-        Math.max(0, (window.scrollY - fadeStart) / fadeDistance),
-      );
-
-      scrollVolumeRef.current = 1 - fadeProgress;
-      applyVolume();
-
-      if (fadeProgress >= 1) stopAtTarget();
-    };
-
     const fadeInVolume = () => {
       const start = performance.now();
       const step = (now) => {
-        if (stoppedRef.current) return;
         fadeInProgressRef.current = Math.min(1, (now - start) / FADE_IN_MS);
-        applyVolume();
+        audio.volume = TARGET_VOLUME * fadeInProgressRef.current;
         if (fadeInProgressRef.current < 1) {
           fadeInRafRef.current = requestAnimationFrame(step);
         }
@@ -89,23 +52,32 @@ export default function BackgroundMusic() {
       fadeInRafRef.current = requestAnimationFrame(step);
     };
 
+    // Safari (WebKit) consente l'autoplay silenzioso ma non autorizza mai
+    // l'audio realmente udibile finché non arriva un gesto utente sincrono:
+    // senza forzare di nuovo muted/play dentro il gesto stesso, il suono può
+    // restare bloccato in silenzio per minuti, finché un'interazione a caso
+    // (uno scroll, un click altrove) non lo sblocca per puro caso.
     const tryPlay = () => {
-      if (startedRef.current || stoppedRef.current) return Promise.resolve();
       if (!audio.getAttribute("src")) {
         audio.src = TRACK_SRC;
       }
-      audio.volume = 0;
+      audio.muted = false;
+      if (!startedRef.current) {
+        audio.volume = 0;
+      }
       return audio
         .play()
         .then(() => {
-          if (!mounted || stoppedRef.current) return;
-          startedRef.current = true;
+          if (!mounted) return;
+          setMuted(false);
           setStatus("playing");
-          updateScrollVolume();
-          fadeInVolume();
+          if (!startedRef.current) {
+            startedRef.current = true;
+            fadeInVolume();
+          }
         })
         .catch(() => {
-          if (mounted && !stoppedRef.current) setStatus("blocked");
+          if (mounted && !startedRef.current) setStatus("blocked");
         });
     };
 
@@ -117,19 +89,22 @@ export default function BackgroundMusic() {
     };
 
     const onFirstGesture = (event) => {
+      if (unlockedRef.current) {
+        if (startedRef.current && !audio.paused) {
+          removeGestureListeners();
+        } else {
+          tryPlay().then(() => {
+            if (startedRef.current) removeGestureListeners();
+          });
+        }
+        return;
+      }
       if (event.target instanceof Element && event.target.closest("[data-audio-control]")) {
         return;
       }
+      unlockedRef.current = true;
       tryPlay().then(() => {
         if (startedRef.current) removeGestureListeners();
-      });
-    };
-
-    const onScroll = () => {
-      if (scrollRafRef.current || stoppedRef.current) return;
-      scrollRafRef.current = requestAnimationFrame(() => {
-        scrollRafRef.current = null;
-        updateScrollVolume();
       });
     };
 
@@ -137,7 +112,7 @@ export default function BackgroundMusic() {
       if (document.hidden && startedRef.current && !audio.paused) {
         pausedWhenHidden = true;
         audio.pause();
-      } else if (!document.hidden && pausedWhenHidden && !stoppedRef.current) {
+      } else if (!document.hidden && pausedWhenHidden) {
         pausedWhenHidden = false;
         audio.play().catch(() => {
           if (mounted) setStatus("blocked");
@@ -162,7 +137,6 @@ export default function BackgroundMusic() {
       document.addEventListener("pointerdown", onFirstGesture, { passive: true });
       document.addEventListener("keydown", onFirstGesture);
     }
-    window.addEventListener("scroll", onScroll, { passive: true });
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     if (document.readyState === "complete") {
@@ -175,7 +149,6 @@ export default function BackgroundMusic() {
       mounted = false;
       playRef.current = null;
       removeGestureListeners();
-      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("load", startAfterPageLoad);
       document.removeEventListener("visibilitychange", onVisibilityChange);
       window.clearTimeout(startTimer);
@@ -183,7 +156,6 @@ export default function BackgroundMusic() {
       if (idleId && typeof cancelIdle === "function") {
         cancelIdle.call(window, idleId);
       }
-      if (scrollRafRef.current) cancelAnimationFrame(scrollRafRef.current);
       if (fadeInRafRef.current) cancelAnimationFrame(fadeInRafRef.current);
       audio.pause();
     };
@@ -193,25 +165,26 @@ export default function BackgroundMusic() {
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (!startedRef.current) {
+    const shouldEnable =
+      status === "blocked" || !startedRef.current || audio.paused || audio.muted;
+
+    unlockedRef.current = true;
+
+    if (shouldEnable) {
       playRef.current?.();
       return;
     }
 
-    audio.muted = !audio.muted;
-    setMuted(audio.muted);
+    audio.muted = true;
+    setMuted(true);
   };
 
   const showControl = status === "playing" || status === "blocked";
   const audioOff = muted || status === "blocked";
-  const handleEnded = () => {
-    stoppedRef.current = true;
-    setStatus("stopped");
-  };
 
   return (
     <>
-      <audio ref={audioRef} preload="none" onEnded={handleEnded} />
+      <audio ref={audioRef} preload="none" loop />
       {showControl && (
         <button
           type="button"

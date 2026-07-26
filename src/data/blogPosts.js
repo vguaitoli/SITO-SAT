@@ -47,7 +47,9 @@ Un tour accessibile, ma non banale. Panoramico, ma pieno di carattere. La Sardeg
   },
 ];
 
-const byNewest = (a, b) => new Date(b.published_date || 0) - new Date(a.published_date || 0);
+const byNewest = (a, b) =>
+  new Date(b.published_date || 0).getTime() -
+  new Date(a.published_date || 0).getTime();
 
 export async function listBlogPosts(db, limit) {
   let remotePosts = [];

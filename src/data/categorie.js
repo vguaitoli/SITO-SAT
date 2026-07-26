@@ -130,6 +130,21 @@ export const CATEGORIE = [
     adatto:
       "Chi vuole iniziare con basi solide o perfezionare la propria tecnica in fuoristrada, con un percorso calibrato sul proprio livello.",
   },
+  {
+    id: "noleggio",
+    nome: "Noleggio",
+    kind: "rental",
+    // Servizio di noleggio, non un itinerario a catalogo: nessun tour associato.
+    tourType: null,
+    fotoCard: "hero-maxienduro-panorama",
+    fotoHero: "hero-maxienduro-panorama",
+    carosello: ["maxienduro-tenere", "enduro-vetta", "quad-pietraia"],
+    claim: "Non hai il mezzo. Hai già l'avventura.",
+    intro:
+      "Vuoi partecipare a uno dei nostri tour ma non puoi raggiungere la Sardegna con il tuo mezzo? Ti aiutiamo a organizzare il noleggio di Quad, Enduro o Maxienduro attraverso partner locali selezionati, scegliendo la soluzione più adatta all'itinerario e alla tua esperienza.",
+    adatto:
+      "A chi vuole vivere un tour Sardegna Trail Avventura senza possedere o trasportare il proprio mezzo.",
+  },
 ];
 
 const byId = new Map(CATEGORIE.map((c) => [c.id, c]));

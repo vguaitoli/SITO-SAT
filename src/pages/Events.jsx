@@ -10,7 +10,7 @@ const sortedTours = [...tours].sort((a, b) => {
   if (!a.date && !b.date) return 0;
   if (!a.date) return 1;
   if (!b.date) return -1;
-  return new Date(a.date) - new Date(b.date);
+  return new Date(a.date).getTime() - new Date(b.date).getTime();
 });
 
 export default function Events() {

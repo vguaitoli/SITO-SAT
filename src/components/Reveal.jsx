@@ -2,8 +2,19 @@ import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
 
 /**
+ * @typedef {React.HTMLAttributes<HTMLElement> & {
+ *   as?: keyof React.JSX.IntrinsicElements,
+ *   delay?: number,
+ *   y?: number,
+ *   amount?: number,
+ * }} RevealProps
+ */
+
+/**
  * Rivelazione morbida allo scroll. Se l'utente preferisce meno movimento
  * (prefers-reduced-motion) il contenuto appare senza traslazioni né fade.
+ *
+ * @param {RevealProps} props
  */
 export default function Reveal({
   as = "div",
@@ -15,10 +26,10 @@ export default function Reveal({
   ...rest
 }) {
   const reduce = useReducedMotion();
-  const MotionTag = motion[as] || motion.div;
+  const MotionTag = /** @type {React.ElementType} */ (motion[as] || motion.div);
 
   if (reduce) {
-    const Tag = as;
+    const Tag = /** @type {React.ElementType} */ (as);
     return (
       <Tag className={className} {...rest}>
         {children}

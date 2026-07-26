@@ -70,6 +70,10 @@ function Card({ cat, featuredMobile = false }) {
   );
 }
 
+// Il noleggio è un servizio di supporto ai tour, non un'esperienza a sé:
+// resta raggiungibile da navbar e pagina dedicata, ma non compare qui.
+const esperienze = CATEGORIE.filter((cat) => cat.kind !== "rental");
+
 export default function Categorie() {
   return (
     <section id="esperienze" className="bg-[var(--obsidian)] topo-dark py-24 lg:py-32">
@@ -83,7 +87,7 @@ export default function Categorie() {
         />
 
         <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
-          {CATEGORIE.map((cat, i) => (
+          {esperienze.map((cat, i) => (
             <Reveal
               key={cat.id}
               delay={i * 0.06}

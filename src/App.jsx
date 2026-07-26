@@ -8,6 +8,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import SeoHead from '@/components/SeoHead';
+import BackgroundMusic from '@/components/BackgroundMusic';
 
 const PageNotFound = lazy(() => import('./lib/PageNotFound'));
 const Login = lazy(() => import('./pages/Login'));
@@ -92,6 +93,7 @@ function App() {
         <Router>
           <ScrollToTop />
           <SeoHead />
+          <BackgroundMusic />
           <AuthenticatedApp />
         </Router>
         <Toaster />

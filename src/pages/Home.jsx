@@ -1,7 +1,6 @@
 import React, { Suspense, lazy } from "react";
 import SiteNav from "@/components/SiteNav";
 import Hero from "@/components/Hero";
-import BackgroundMusic from "@/components/BackgroundMusic";
 
 /**
  * Home narrativa e snella. Un'unica spina dorsale di navigazione — le cinque
@@ -36,9 +35,6 @@ export default function Home() {
     <div className="bg-[var(--obsidian)]">
       <SiteNav />
       <Hero />
-      {/* Musica di sottofondo per l'apertura: fuori da Hero per restare
-          "fixed" a schermo indipendentemente dalle animazioni della sezione. */}
-      <BackgroundMusic />
       <Suspense fallback={<SectionFallback />}>
         {/* Promessa di valore in numeri reali */}
         <TrustBar />

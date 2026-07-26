@@ -3,8 +3,22 @@ import Reveal from "@/components/Reveal";
 import { cn } from "@/lib/utils";
 
 /**
+ * @typedef {Object} SectionHeadingProps
+ * @property {React.ReactNode} [eyebrow]
+ * @property {React.ReactNode} title
+ * @property {React.ReactNode} [accent]
+ * @property {React.ReactNode} [intro]
+ * @property {"dark" | "light"} [tone]
+ * @property {"left" | "center"} [align]
+ * @property {string} [className]
+ * @property {keyof React.JSX.IntrinsicElements} [as]
+ */
+
+/**
  * Intestazione di sezione riutilizzabile: occhiello + titolo su due righe con
  * la seconda in accento. `tone` adatta i colori a fondo scuro o chiaro.
+ *
+ * @param {SectionHeadingProps} props
  */
 export default function SectionHeading({
   eyebrow,
