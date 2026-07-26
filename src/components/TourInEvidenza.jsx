@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
-import TourCard from "@/components/TourCard.jsx?modalfix=1";
-import { tours, typeColors } from "@/components/TourDetails.jsx?modalfix=1";
+import TourCard from "@/components/TourCard.jsx";
+import { tours, typeColors } from "@/components/TourDetails.jsx";
 
 /**
  * "Tour in evidenza": un assaggio di itinerari reali direttamente in home.

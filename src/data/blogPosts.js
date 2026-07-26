@@ -3,7 +3,7 @@ export const blogPosts = [
     id: "supramonte-extreme-maxienduro",
     title: "Supramonte Extreme: tre giorni di Maxienduro nella Sardegna più selvaggia",
     excerpt:
-      "Un tour di 3 giorni, 260 km e 88% sterrato tra Tiscali, Golgo, Cala Luna e Baunei: il Supramonte come pochi lo vivono davvero.",
+      "Un tour in maxienduro di 3 giorni, 260 km e 88% sterrato tra Tiscali, Golgo, Cala Luna e Baunei: il Supramonte come pochi lo vivono davvero.",
     cover_image: "/media/reali/hero-maxienduro-panorama-1200.webp",
     published_date: "2026-07-11",
     route_lat: 40.244,
@@ -25,7 +25,7 @@ La parte finale porta verso **Cala Luna e Baunei**, dove il paesaggio cambia anc
     id: "costa-dune-expedition-quad",
     title: "Costa & Dune Expedition: quad, dune e miniere nella Sardegna occidentale",
     excerpt:
-      "Due giorni in quad tra le dune di Piscinas, la Costa Verde e le vecchie miniere del Sulcis: un tour accessibile, panoramico e spettacolare.",
+      "Due giorni in quad in Sardegna tra le dune di Piscinas, la Costa Verde e le vecchie miniere del Sulcis: un tour accessibile, panoramico e spettacolare.",
     cover_image: "/media/reali/hero-quad-convoglio-1200.webp",
     published_date: "2026-07-11",
     route_lat: 39.45,

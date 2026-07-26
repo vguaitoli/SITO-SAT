@@ -19,6 +19,8 @@ export default function GuideCard({ guide }) {
           <img
             src={guide.img}
             alt={guide.name}
+            width={900}
+            height={1200}
             loading="lazy"
             decoding="async"
             className="h-full w-full object-cover opacity-85 transition-all duration-500 hover:scale-105 hover:opacity-100"

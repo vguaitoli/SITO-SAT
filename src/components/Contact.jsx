@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Phone, MessageCircle, Mail, Instagram, Facebook, MapPin, Send, Check } from "lucide-react";
 import { SITE, WEB3FORMS_ACCESS_KEY } from "@/config/site";
-import { tours } from "@/components/TourDetails.jsx?modalfix=1";
+import { tours } from "@/components/TourDetails.jsx";
 
 const contacts = [
   { label: "Telefono", value: SITE.telefono.display, href: SITE.telefono.href, icon: Phone },

@@ -45,9 +45,9 @@ export default function Footer() {
               <img
                 src="/media/logo-sardegna-trail-avventura.png"
                 alt=""
-                width={48}
-                height={48}
-                className="h-12 w-12 shrink-0 object-contain"
+                width={53}
+                height={53}
+                className="h-[53px] w-[53px] shrink-0 object-contain"
               />
               <span className="border-l border-[var(--accent)] pl-3 font-button text-xs uppercase leading-tight tracking-[0.2em] text-[var(--accent-soft)]">
                 Sardegna

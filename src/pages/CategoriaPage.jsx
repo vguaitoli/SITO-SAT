@@ -7,8 +7,8 @@ import MobileCta from "@/components/MobileCta";
 import Reveal from "@/components/Reveal";
 import Photo from "@/components/Photo";
 import PhotoRibbon from "@/components/PhotoRibbon";
-import TourCard from "@/components/TourCard.jsx?modalfix=1";
-import { tours, typeColors } from "@/components/TourDetails.jsx?modalfix=1";
+import TourCard from "@/components/TourCard.jsx";
+import { tours, typeColors } from "@/components/TourDetails.jsx";
 import { CATEGORIE, categoria } from "@/data/categorie";
 import { fotoProps } from "@/data/foto-helpers";
 import { SITE, whatsappLink } from "@/config/site";
@@ -44,7 +44,7 @@ export default function CategoriaPage() {
             alt={hero.alt}
             width={1600}
             height={Math.round(1600 / hero.aspect)}
-            fetchpriority="high"
+            fetchPriority="high"
             decoding="async"
             className="absolute inset-0 h-full w-full object-cover"
           />

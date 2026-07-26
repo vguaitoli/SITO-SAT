@@ -7,7 +7,7 @@ import { ChevronLeft, MapPin } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { getBlogPost } from "@/data/blogPosts.js?blogposts=2";
+import { getBlogPost } from "@/data/blogPosts.js";
 
 export default function BlogDetail() {
   const { id } = useParams();
@@ -54,7 +54,16 @@ export default function BlogDetail() {
         <h1 className="font-heading text-4xl lg:text-6xl text-[#F5EBD9] leading-none mb-8">{post.title}</h1>
 
         {post.cover_image && (
-          <img src={post.cover_image} alt={post.title} loading="lazy" decoding="async" className="w-full aspect-[16/9] object-cover mb-10" />
+          <img
+            src={post.cover_image}
+            alt={post.title}
+            width={1200}
+            height={675}
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+            className="w-full aspect-[16/9] object-cover mb-10"
+          />
         )}
 
         <div className="prose prose-invert max-w-none font-body text-[#F5EBD9]/85 leading-relaxed">

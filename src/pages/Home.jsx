@@ -14,7 +14,7 @@ const Categorie = lazy(() => import("@/components/Categorie"));
 const TourInEvidenza = lazy(() => import("@/components/TourInEvidenza"));
 const Experience = lazy(() => import("@/components/Experience"));
 const About = lazy(() => import("@/components/About"));
-const Guides = lazy(() => import("@/components/Guides.jsx?guideportraits=3"));
+const Guides = lazy(() => import("@/components/Guides.jsx"));
 const Gallery = lazy(() => import("@/components/Gallery"));
 const Included = lazy(() => import("@/components/Included"));
 const FAQ = lazy(() => import("@/components/FAQ"));

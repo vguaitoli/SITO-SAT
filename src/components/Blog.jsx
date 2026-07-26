@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { ArrowRight, BookOpen } from "lucide-react";
-import { listBlogPosts } from "@/data/blogPosts.js?blogposts=2";
+import { listBlogPosts } from "@/data/blogPosts.js";
 
 export default function Blog() {
   const [posts, setPosts] = useState([]);
@@ -54,6 +54,8 @@ export default function Blog() {
                   <img
                     src={post.cover_image || "/media/reali/gruppo-altopiano-1200.webp"}
                     alt={post.title}
+                    width={1200}
+                    height={900}
                     loading="lazy"
                     decoding="async"
                     className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"

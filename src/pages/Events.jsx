@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { CalendarDays } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
-import TourCard from "@/components/TourCard.jsx?modalfix=1";
-import { tours, typeColors } from "@/components/TourDetails.jsx?modalfix=1";
+import TourCard from "@/components/TourCard.jsx";
+import { tours, typeColors } from "@/components/TourDetails.jsx";
 
 const sortedTours = [...tours].sort((a, b) => {
   if (!a.date && !b.date) return 0;

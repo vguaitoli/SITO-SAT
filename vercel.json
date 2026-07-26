@@ -1,10 +1,22 @@
 {
+  "trailingSlash": false,
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/login", "destination": "/_seo/login.html" },
+    { "source": "/register", "destination": "/_seo/register.html" },
+    { "source": "/forgot-password", "destination": "/_seo/forgot-password.html" },
+    { "source": "/reset-password", "destination": "/_seo/reset-password.html" },
+    { "source": "/blog/admin", "destination": "/_seo/blog/admin.html" },
+    { "source": "/privacy", "destination": "/_seo/privacy.html" },
+    { "source": "/cookie-policy", "destination": "/_seo/cookie-policy.html" },
+    { "source": "/itinerari", "destination": "/_seo/itinerari.html" },
+    { "source": "/eventi", "destination": "/_seo/eventi.html" },
+    { "source": "/blog", "destination": "/_seo/blog.html" },
+    { "source": "/blog/:id", "destination": "/_seo/blog/:id.html" },
+    { "source": "/esperienze/:cat", "destination": "/_seo/esperienze/:cat.html" }
   ],
   "headers": [
     {
-      "source": "/(login|register|forgot-password|reset-password|blog/admin)",
+      "source": "/(login|register|forgot-password|reset-password|blog/admin|privacy|cookie-policy)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]

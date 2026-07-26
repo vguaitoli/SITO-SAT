@@ -21,6 +21,8 @@ export default function PhotoRibbon({ slugs, className = "h-40 w-60 sm:h-52 sm:w
             sizes="320px"
             alt={i < photos.length ? photo.alt : ""}
             aria-hidden={i >= photos.length ? true : undefined}
+            width={640}
+            height={Math.round(640 / photo.aspect)}
             loading="lazy"
             decoding="async"
             className={`flex-shrink-0 object-cover grayscale transition-all hover:grayscale-0 ${className}`}

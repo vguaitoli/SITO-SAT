@@ -1,15 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://www.sardegnatrailavventura.it/</loc></url>
   <url><loc>https://www.sardegnatrailavventura.it/esperienze/maxienduro</loc></url>
   <url><loc>https://www.sardegnatrailavventura.it/esperienze/enduro</loc></url>
   <url><loc>https://www.sardegnatrailavventura.it/esperienze/quad</loc></url>
   <url><loc>https://www.sardegnatrailavventura.it/esperienze/ssv</loc></url>
   <url><loc>https://www.sardegnatrailavventura.it/esperienze/4x4</loc></url>
+  <url><loc>https://www.sardegnatrailavventura.it/esperienze/4x4-experience</loc></url>
+  <url><loc>https://www.sardegnatrailavventura.it/esperienze/tour-stradali</loc></url>
   <url><loc>https://www.sardegnatrailavventura.it/esperienze/e-bike</loc></url>
   <url><loc>https://www.sardegnatrailavventura.it/itinerari</loc></url>
   <url><loc>https://www.sardegnatrailavventura.it/eventi</loc></url>
   <url><loc>https://www.sardegnatrailavventura.it/blog</loc></url>
-  <url><loc>https://www.sardegnatrailavventura.it/privacy</loc></url>
-  <url><loc>https://www.sardegnatrailavventura.it/cookie-policy</loc></url>
+  <url>
+    <loc>https://www.sardegnatrailavventura.it/blog/supramonte-extreme-maxienduro</loc>
+    <lastmod>2026-07-11</lastmod>
+  </url>
+  <url>
+    <loc>https://www.sardegnatrailavventura.it/blog/costa-dune-expedition-quad</loc>
+    <lastmod>2026-07-11</lastmod>
+  </url>
 </urlset>

@@ -49,9 +49,9 @@ export default function SiteNav() {
           <img
             src="/media/logo-sardegna-trail-avventura.png"
             alt=""
-            width={56}
-            height={56}
-            className="h-9 w-9 shrink-0 object-contain sm:h-12 sm:w-12 lg:h-14 lg:w-14"
+            width={62}
+            height={62}
+            className="h-[40px] w-[40px] shrink-0 object-contain sm:h-[53px] sm:w-[53px] lg:h-[62px] lg:w-[62px]"
           />
           <span className="block border-l border-[var(--accent)] pl-2 font-button text-[10px] uppercase leading-tight tracking-[0.15em] text-[var(--accent-soft)] sm:pl-3 sm:text-xs sm:tracking-[0.2em]">
             Sardegna

@@ -20,7 +20,7 @@ export const CATEGORIE = [
     carosello: ["cat-maxienduro", "carousel-maxienduro-1", "carousel-maxienduro-2", "carousel-maxienduro-3"],
     claim: "Grandi distanze, nessun limite",
     intro:
-      "Le grandi maxienduro da viaggio: moto alte e potenti, pensate per macinare chilometri su asfalto e affrontare lo sterrato senza fermarsi. La scelta di chi vuole attraversare l'isola da costa a costa con il comfort di una moto da turismo e l'anima del fuoristrada.",
+      "Un tour in maxienduro in Sardegna è la scelta di chi vuole macinare chilometri veri: moto da viaggio alte e potenti, pensate per affrontare asfalto e sterrato senza fermarsi mai. La soluzione ideale per attraversare l'isola da costa a costa, con il comfort di una moto da turismo e l'anima del fuoristrada.",
     adatto: "Piloti con esperienza su moto pesanti, a proprio agio nella guida in piedi sullo sterrato.",
   },
   {
@@ -32,7 +32,7 @@ export const CATEGORIE = [
     carosello: ["cat-enduro", "carousel-enduro-1", "carousel-enduro-2", "carousel-enduro-3"],
     claim: "Leggera, agile, tecnica",
     intro:
-      "Moto da enduro leggere e maneggevoli, nate per i sentieri stretti e i passaggi tecnici. Dove la maxienduro non arriva, l'enduro danza: mulattiere, tratturi e single track nel cuore più selvaggio della Barbagia e del Supramonte.",
+      "Un tour enduro in Sardegna su moto leggere e maneggevoli, nate per i sentieri stretti e i passaggi tecnici. Dove la maxienduro non arriva, l'enduro danza: mulattiere, tratturi e single track nel cuore più selvaggio della Barbagia e del Supramonte.",
     adatto: "Chi ama la guida tecnica e i percorsi impegnativi, dal livello avanzato in su.",
   },
   {
@@ -44,7 +44,7 @@ export const CATEGORIE = [
     carosello: ["cat-quad", "carousel-quad-1", "carousel-quad-2", "carousel-quad-3"],
     claim: "Il fuoristrada per tutti",
     intro:
-      "Quattro ruote, tanta stabilità e nessuna esperienza richiesta. Il quad è il modo più immediato per vivere lo sterrato sardo: divertente, sicuro e accessibile anche a chi non ha mai guidato fuoristrada.",
+      "Quattro ruote, tanta stabilità e nessuna esperienza richiesta. Un tour in quad in Sardegna è il modo più immediato per vivere lo sterrato dell'isola: divertente, sicuro e accessibile anche a chi non ha mai guidato fuoristrada.",
     adatto: "Tutti, anche i principianti assoluti: si guida con la stessa logica di un mezzo a manubrio.",
   },
   {
@@ -57,7 +57,7 @@ export const CATEGORIE = [
     carosello: ["cat-ssv", "carousel-ssv-1", "carousel-ssv-2", "carousel-ssv-3"],
     claim: "Guida affiancata, adrenalina condivisa",
     intro:
-      "Side-by-Side: veicoli a due posti affiancati, con volante, cinture e roll-bar. Tutta l'adrenalina del fuoristrada estremo in totale sicurezza, da condividere con chi ti siede accanto. Guado dei torrenti, guadi e pietraie diventano puro divertimento.",
+      "Side-by-Side: veicoli a due posti affiancati, con volante, cinture e roll-bar. Un'esperienza in SSV in Sardegna regala tutta l'adrenalina del fuoristrada, da condividere con chi ti siede accanto. Torrenti, guadi e pietraie diventano puro divertimento.",
     adatto: "Chi cerca emozioni forti volendo guidare — o vivere l'esperienza da passeggero.",
   },
   {
@@ -69,7 +69,7 @@ export const CATEGORIE = [
     carosello: ["cat-4x4", "carousel-4x4-1", "carousel-4x4-2", "carousel-4x4-3"],
     claim: "L'avventura senza compromessi",
     intro:
-      "Fuoristrada veri, attrezzati per l'off-road più impegnativo. Altipiani, guadi, coste remote e borghi minerari raggiungibili solo su quattro ruote motrici: il 4x4 è la spedizione per esplorare la Sardegna più nascosta con tutto il gruppo a bordo.",
+      "Fuoristrada veri, attrezzati per l'off-road più impegnativo. Altipiani, guadi, coste remote e borghi minerari raggiungibili solo su quattro ruote motrici: un tour in 4x4 è la spedizione per esplorare la Sardegna più nascosta con tutto il gruppo a bordo.",
     adatto: "Appassionati di off-road e famiglie o gruppi che vogliono esplorare insieme.",
   },
   {
@@ -111,7 +111,7 @@ export const CATEGORIE = [
     carosello: ["ebike-pineta", "carousel-ebike-1", "carousel-ebike-2", "carousel-ebike-3"],
     claim: "Natura, silenzio, zero fatica",
     intro:
-      "Mountain bike a pedalata assistita per vivere la Sardegna in modo lento e immersivo. L'e-bike annulla la fatica delle salite e ti porta dove i mezzi a motore non arrivano: sentieri silenziosi, nuraghi nascosti e borghi dell'entroterra, a contatto totale con la natura.",
+      "Un tour in e-bike in Sardegna, in mountain bike a pedalata assistita, per vivere l'isola in modo lento e immersivo. L'e-bike annulla la fatica delle salite e ti porta dove i mezzi a motore non arrivano: sentieri silenziosi, nuraghi nascosti e borghi dell'entroterra, a contatto totale con la natura.",
     adatto: "Tutti, anche senza allenamento: la pedalata assistita rende ogni salita accessibile.",
   },
 ];

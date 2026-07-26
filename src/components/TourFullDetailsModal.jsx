@@ -60,6 +60,8 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
                       srcSet={foto.srcSet}
                       sizes="(min-width: 640px) 160px, 100vw"
                       alt={foto.alt}
+                      width={640}
+                      height={Math.round(640 / foto.aspect)}
                       loading="lazy"
                       decoding="async"
                       className="w-full sm:w-40 h-32 object-cover flex-shrink-0"

@@ -25,6 +25,8 @@ function Card({ cat }) {
           srcSet={photo.srcSet}
           sizes="(min-width: 768px) 33vw, 50vw"
           alt={photo.alt}
+          width={1200}
+          height={Math.round(1200 / photo.aspect)}
           loading="lazy"
           decoding="async"
           className="absolute inset-0 h-full w-full object-cover opacity-75 transition-all duration-700 ease-out group-hover:scale-105 group-hover:opacity-95"

@@ -56,6 +56,8 @@ export default function Gallery() {
                   srcSet={img.srcSet}
                   sizes="(min-width: 1024px) 25vw, 50vw"
                   alt={img.alt}
+                  width={1200}
+                  height={Math.round(1200 / img.aspect)}
                   loading="lazy"
                   decoding="async"
                   className="h-full w-full object-cover grayscale-[30%] transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0"

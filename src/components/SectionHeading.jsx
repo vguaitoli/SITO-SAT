@@ -10,7 +10,7 @@ export default function SectionHeading({
   eyebrow,
   title,
   accent,
-  intro,
+  intro = "",
   tone = "dark",
   align = "left",
   className = "",

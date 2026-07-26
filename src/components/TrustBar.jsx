@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion, useInView, animate } from "framer-motion";
-import { tours } from "@/components/TourDetails.jsx?modalfix=1";
+import { tours } from "@/components/TourDetails.jsx";
 import { CATEGORIE } from "@/data/categorie";
 
 // Solo dati verificabili dai contenuti del sito: nessuna statistica inventata.

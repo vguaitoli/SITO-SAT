@@ -31,8 +31,54 @@ const item = {
 export default function Hero() {
   const reduce = useReducedMotion();
   const [videoError, setVideoError] = useState(false);
+  const [videoEnabled, setVideoEnabled] = useState(false);
+  const [videoAReady, setVideoAReady] = useState(false);
+  const [secondVideoEnabled, setSecondVideoEnabled] = useState(false);
   const videoARef = useRef(null);
   const videoBRef = useRef(null);
+
+  const saveData =
+    typeof navigator !== "undefined" &&
+    Boolean(Reflect.get(navigator, "connection")?.saveData);
+
+  // La foto è il contenuto LCP. I video partono solo dopo il caricamento della
+  // pagina e quando il browser ha un momento libero, evitando di competere con
+  // HTML, CSS, font e immagine principale.
+  useEffect(() => {
+    if (reduce || saveData) return undefined;
+
+    let idleId;
+    let fallbackTimer;
+    const enableVideo = () => {
+      const requestIdle = Reflect.get(window, "requestIdleCallback");
+      if (typeof requestIdle === "function") {
+        idleId = requestIdle.call(window, () => setVideoEnabled(true), { timeout: 2500 });
+      } else {
+        fallbackTimer = window.setTimeout(() => setVideoEnabled(true), 1200);
+      }
+    };
+
+    if (document.readyState === "complete") {
+      enableVideo();
+    } else {
+      window.addEventListener("load", enableVideo, { once: true });
+    }
+
+    return () => {
+      window.removeEventListener("load", enableVideo);
+      window.clearTimeout(fallbackTimer);
+      const cancelIdle = Reflect.get(window, "cancelIdleCallback");
+      if (idleId && typeof cancelIdle === "function") cancelIdle.call(window, idleId);
+    };
+  }, [reduce, saveData]);
+
+  // Il secondo loop viene richiesto più tardi: l'apertura della pagina scarica
+  // un solo video, non due file pesanti nello stesso momento.
+  useEffect(() => {
+    if (!videoAReady) return undefined;
+    const timer = window.setTimeout(() => setSecondVideoEnabled(true), 8000);
+    return () => window.clearTimeout(timer);
+  }, [videoAReady]);
 
   // Alcuni browser mettono in pausa i video quando la pagina va in
   // background e non sempre li riavviano: riprendiamo noi al ritorno.
@@ -52,9 +98,7 @@ export default function Hero() {
   const child = reduce ? {} : { variants: item };
 
   // Niente video se l'utente preferisce meno animazioni o ha il risparmio dati.
-  const saveData =
-    typeof navigator !== "undefined" && navigator.connection?.saveData;
-  const showVideo = !reduce && !saveData && !videoError;
+  const showVideo = videoEnabled && !reduce && !saveData && !videoError;
   // Sorgente in base alla larghezza reale; se non determinabile, desktop.
   const vw =
     typeof window !== "undefined"
@@ -69,26 +113,23 @@ export default function Hero() {
       id="hero"
       className="relative flex min-h-[100svh] w-full flex-col overflow-hidden bg-[var(--obsidian)]"
     >
-      {/* Sfondo scuro pieno: il video entra in dissolvenza dal buio, senza far
-          intravedere prima una foto. La fotografia resta solo come fallback
-          quando il video non parte (reduced-motion, risparmio dati o errore). */}
+      {/* La fotografia è sempre presente: appare subito, stabilizza il layout e
+          resta come poster/fallback mentre i video vengono caricati in differita. */}
       <div className="absolute inset-0">
-        {!showVideo && (
-          <img
-            src={bg.src}
-            srcSet={bg.srcSet}
-            sizes="100vw"
-            alt={bg.alt}
-            width={1800}
-            height={Math.round(1800 / bg.aspect)}
-            fetchpriority="high"
-            decoding="async"
-            className={`h-full w-full object-cover object-center ${reduce ? "" : "animate-[heroPan_22s_ease-out_forwards]"}`}
-          />
-        )}
+        <img
+          src={bg.src}
+          srcSet={bg.srcSet}
+          sizes="100vw"
+          alt={bg.alt}
+          width={1800}
+          height={Math.round(1800 / bg.aspect)}
+          fetchPriority="high"
+          decoding="async"
+          className={`h-full w-full object-cover object-center ${reduce ? "" : "animate-[heroPan_22s_ease-out_forwards]"}`}
+        />
         {showVideo && (
           <>
-            {/* Video A: strato di base, sempre visibile una volta pronto. */}
+            {/* Video A: entra solo quando è pronto, senza lasciare uno sfondo vuoto. */}
             <video
               ref={videoARef}
               src={videoASrc}
@@ -96,32 +137,35 @@ export default function Hero() {
               muted
               loop
               playsInline
-              preload="auto"
+              preload="metadata"
               aria-hidden="true"
               tabIndex={-1}
               onCanPlay={(e) => {
+                setVideoAReady(true);
                 e.currentTarget.play().catch(() => {});
               }}
               onError={() => setVideoError(true)}
-              className="absolute inset-0 h-full w-full object-cover object-center"
+              className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-1000 ${
+                videoAReady ? "opacity-100" : "opacity-0"
+              }`}
             />
-            {/* Video B: sfuma sopra A e poi si ritira. L'opacità segue il ciclo
-                dell'animazione CSS heroCrossfade (parte da 0). */}
-            <video
-              ref={videoBRef}
-              src={videoBSrc}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              aria-hidden="true"
-              tabIndex={-1}
-              onCanPlay={(e) => {
-                e.currentTarget.play().catch(() => {});
-              }}
-              className="absolute inset-0 h-full w-full object-cover object-center opacity-0 animate-[heroCrossfade_14s_ease-in-out_infinite]"
-            />
+            {secondVideoEnabled && (
+              <video
+                ref={videoBRef}
+                src={videoBSrc}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                aria-hidden="true"
+                tabIndex={-1}
+                onCanPlay={(e) => {
+                  e.currentTarget.play().catch(() => {});
+                }}
+                className="absolute inset-0 h-full w-full object-cover object-center opacity-0 animate-[heroCrossfade_14s_ease-in-out_infinite]"
+              />
+            )}
           </>
         )}
         {/* Gradienti per la leggibilità del testo. */}

@@ -3,7 +3,7 @@ const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me
 import React from "react";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
-import TourCard from "@/components/TourCard.jsx?modalfix=1";
+import TourCard from "@/components/TourCard.jsx";
 
 const filterLabels = {
   weekend: "Weekend Adventure",

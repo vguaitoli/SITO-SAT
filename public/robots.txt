@@ -1,9 +1,4 @@
 User-agent: *
-Disallow: /login
-Disallow: /register
-Disallow: /forgot-password
-Disallow: /reset-password
-Disallow: /blog/admin
 Allow: /
 
 Sitemap: https://www.sardegnatrailavventura.it/sitemap.xml

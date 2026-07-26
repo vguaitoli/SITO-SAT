@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import MobileCta from "@/components/MobileCta";
-import TourDetails, { tours } from "@/components/TourDetails.jsx?modalfix=1";
+import TourDetails, { tours } from "@/components/TourDetails.jsx";
 
 /**
  * Catalogo completo dei tour. Il formato (weekend / settimana / su misura),

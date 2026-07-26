@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Clock, Gauge, TrendingUp, Percent, MapPin, UtensilsCrossed, Calendar, Flame, Navigation } from "lucide-react";
 import WeatherWidget from "@/components/WeatherWidget";
-import TourFullDetailsModal from "@/components/TourFullDetailsModal.jsx?modalfix=1";
+import TourFullDetailsModal from "@/components/TourFullDetailsModal.jsx";
 
 export default function TourCard({ tour, color }) {
   const [flipped, setFlipped] = useState(false);
