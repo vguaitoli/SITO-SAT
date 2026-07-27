@@ -1,6 +1,6 @@
 import React from "react";
 import { createPortal } from "react-dom";
-import { X, Clock, Gauge, TrendingUp, ShieldCheck, Send, MessageCircle, Users } from "lucide-react";
+import { X, BadgeEuro, CalendarDays, CheckCircle2, Clock, Gauge, TrendingUp, ShieldCheck, Send, MessageCircle, Users } from "lucide-react";
 import { fotoProps } from "@/data/foto-helpers";
 import { CTA_LABELS, SITE, TOUR_GROUP } from "@/config/site";
 
@@ -15,6 +15,10 @@ const EQUIPAGGIAMENTO = [
 
 export default function TourFullDetailsModal({ tour, color, onClose }) {
   if (typeof document === "undefined") return null;
+
+  const equipaggiamento = Array.isArray(tour.equipaggiamento)
+    ? tour.equipaggiamento
+    : EQUIPAGGIAMENTO;
 
   return createPortal(
     <div
@@ -46,6 +50,12 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
             <span className="flex items-center gap-1.5"><Gauge size={14} style={{ color }} /> {tour.km}</span>
             <span className="flex items-center gap-1.5"><TrendingUp size={14} style={{ color }} /> {tour.livello}</span>
             <span className="flex items-center gap-1.5"><Users size={14} style={{ color }} /> {TOUR_GROUP.label}</span>
+            {tour.periodo && (
+              <span className="flex items-center gap-1.5"><CalendarDays size={14} style={{ color }} /> {tour.periodo}</span>
+            )}
+            {tour.price && (
+              <span className="flex items-center gap-1.5"><BadgeEuro size={14} style={{ color }} /> {tour.price}</span>
+            )}
           </div>
 
           <p className="font-body text-sm text-[#F5EBD9]/70 leading-relaxed mb-8">{tour.descrizione}</p>
@@ -81,25 +91,48 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
               })}
             </div>
           ) : (
-            <p className="font-body text-sm text-[#F5EBD9]/50 italic">
-              Itinerario giornaliero personalizzato, da definire insieme a te.
+            <p
+              className={`font-body text-sm leading-relaxed ${
+                tour.programmaNote ? "text-[#F5EBD9]/70" : "text-[#F5EBD9]/50 italic"
+              }`}
+            >
+              {tour.programmaNote || "Itinerario giornaliero personalizzato, da definire insieme a te."}
             </p>
           )}
 
-          <div className="border-t border-[#F5EBD9]/10 mt-8 pt-6">
-            <h4 className="font-heading text-xl text-[#F5EBD9] tracking-wide flex items-center gap-2 mb-4">
-              <ShieldCheck size={18} style={{ color }} />
-              Come equipaggiarsi
-            </h4>
-            <ul className="space-y-2">
-              {EQUIPAGGIAMENTO.map((item, i) => (
-                <li key={i} className="font-body text-sm text-[#F5EBD9]/70 leading-relaxed flex gap-2">
-                  <span style={{ color }}>•</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
+          {tour.incluso && tour.incluso.length > 0 && (
+            <div className="border-t border-[#F5EBD9]/10 mt-8 pt-6">
+              <h4 className="font-heading text-xl text-[#F5EBD9] tracking-wide flex items-center gap-2 mb-4">
+                <CheckCircle2 size={18} style={{ color }} />
+                Cosa comprende
+              </h4>
+              <ul className="space-y-2">
+                {tour.incluso.map((item) => (
+                  <li key={item} className="font-body text-sm text-[#F5EBD9]/70 leading-relaxed flex gap-2">
+                    <span style={{ color }}>•</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {equipaggiamento.length > 0 && (
+            <div className="border-t border-[#F5EBD9]/10 mt-8 pt-6">
+              <h4 className="font-heading text-xl text-[#F5EBD9] tracking-wide flex items-center gap-2 mb-4">
+                <ShieldCheck size={18} style={{ color }} />
+                Come equipaggiarsi
+              </h4>
+              <ul className="space-y-2">
+                {equipaggiamento.map((item) => (
+                  <li key={item} className="font-body text-sm text-[#F5EBD9]/70 leading-relaxed flex gap-2">
+                    <span style={{ color }}>•</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
             <a

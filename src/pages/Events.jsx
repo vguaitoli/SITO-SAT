@@ -4,10 +4,11 @@ import { CalendarDays, MessageCircle } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import TourCard from "@/components/TourCard.jsx";
-import { tours, typeColors } from "@/components/TourDetails.jsx";
+import { typeColors } from "@/components/TourDetails.jsx";
 import { CTA_LABELS, SITE, TOUR_GROUP } from "@/config/site";
+import { events } from "@/data/events";
 
-const sortedTours = [...tours].sort((a, b) => {
+const sortedTours = [...events].sort((a, b) => {
   if (!a.date && !b.date) return 0;
   if (!a.date) return 1;
   if (!b.date) return -1;
@@ -18,17 +19,43 @@ function getLocalTourDate(date) {
   return date ? new Date(`${date}T00:00:00`) : null;
 }
 
+function formatTourDate(tour) {
+  const startDate = getLocalTourDate(tour.date);
+  if (!startDate) return "Su richiesta";
+
+  if (!tour.endDate) {
+    return startDate.toLocaleDateString("it-IT", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  }
+
+  const endDate = getLocalTourDate(tour.endDate);
+  const startLabel = startDate.toLocaleDateString("it-IT", {
+    day: "numeric",
+    month: "long",
+  });
+  const endLabel = endDate.toLocaleDateString("it-IT", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  return `${startLabel} – ${endLabel}`;
+}
+
 export default function Events() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const upcomingTours = sortedTours.filter((tour) => {
-    const tourDate = getLocalTourDate(tour.date);
+    const tourDate = getLocalTourDate(tour.endDate || tour.date);
     return !tourDate || tourDate >= today;
   });
   const concludedTours = sortedTours
     .filter((tour) => {
-      const tourDate = getLocalTourDate(tour.date);
+      const tourDate = getLocalTourDate(tour.endDate || tour.date);
       return tourDate && tourDate < today;
     })
     .reverse();
@@ -87,13 +114,7 @@ export default function Events() {
                             className={section.concluded ? "text-[#F5EBD9]/45" : "text-[#A0612A]"}
                             aria-hidden="true"
                           />
-                          {tour.date
-                            ? getLocalTourDate(tour.date).toLocaleDateString("it-IT", {
-                                day: "numeric",
-                                month: "long",
-                                year: "numeric",
-                              })
-                            : "Su richiesta"}
+                          {formatTourDate(tour)}
                         </span>
                         {section.concluded && (
                           <span className="border border-[#F5EBD9]/20 px-2.5 py-1 text-[10px] text-[#F5EBD9]/55">
