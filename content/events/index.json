@@ -24,6 +24,13 @@
         "Gestione permessi per bivacco e pernottanmento",
         "Gestione autorizzazioni di transito, ove previsto"
       ],
+      "exclusions": [
+        "Prima colazione e Pranzo",
+        "Cena (ad esclusione della cena con il Pastore)",
+        "Carburante",
+        "Pedaggi e spese personali",
+        "Tutto quanto non espressamente indicato nella voce \"Cosa Comprende\""
+      ],
       "equipment": [
         "Veicoli fuoristrada 4x4 dotati di riduttore e in perfette condizioni meccaniche",
         "è richiesta una minima esperienza in guida fuoristrada"
