@@ -3,9 +3,8 @@ import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { MapPin, ArrowRight, MessageCircle } from "lucide-react";
 import { CATEGORIE } from "@/data/categorie";
-import { CTA_LABELS, SITE, TOUR_GROUP } from "@/config/site";
-
-const HERO_LOGO = "/media/logo-sardegna-trail-avventura.png";
+import { tinaField } from "tinacms/dist/react";
+import { useSiteContent } from "@/content/TinaContentProvider";
 
 // Il noleggio è un servizio di supporto ai tour, non un'esperienza a sé:
 // non compare nella striscia esperienze della hero.
@@ -33,6 +32,8 @@ const item = {
 };
 
 export default function Hero() {
+  const { homepage, CTA_LABELS, SITE, TOUR_GROUP } = useSiteContent();
+  const hero = homepage.hero;
   const reduce = useReducedMotion();
   const [videoError, setVideoError] = useState(false);
   const [videoEnabled, setVideoEnabled] = useState(false);
@@ -121,12 +122,13 @@ export default function Hero() {
           caricati in differita. */}
       <div className="absolute inset-0 flex items-center justify-center bg-[var(--obsidian)]">
         <img
-          src={HERO_LOGO}
-          alt="Sardegna Trail Avventura"
+          src={hero.logo}
+          alt={hero.logoAlt}
           width={512}
           height={512}
           {...{ fetchpriority: "high" }}
           decoding="async"
+          data-tina-field={tinaField(hero, "logo")}
           className="h-auto w-[min(76vw,28rem)] object-contain opacity-90 drop-shadow-2xl lg:translate-x-[28vw] lg:w-[min(36vw,32rem)]"
         />
         {showVideo && (
@@ -186,28 +188,27 @@ export default function Hero() {
             className="mb-4 flex items-center gap-2 font-button text-xs uppercase tracking-[0.3em] text-[var(--accent-soft)] sm:mb-6"
           >
             <MapPin size={14} aria-hidden="true" />
-            <span>Sardegna · Turismo d'avventura</span>
+            <span data-tina-field={tinaField(hero, "location")}>{hero.location}</span>
           </motion.div>
 
           <h1 className="mb-5 font-heading leading-[0.88] text-[var(--granite-mist)] sm:mb-7">
             <motion.span {...child} className="block text-5xl sm:text-7xl lg:text-8xl">
-              Non visitare la Sardegna.
+              <span data-tina-field={tinaField(hero, "title")}>{hero.title}</span>
             </motion.span>
             <motion.span
               {...child}
               className="block text-6xl text-[var(--accent)] sm:text-8xl lg:text-9xl"
             >
-              Vivila.
+              <span data-tina-field={tinaField(hero, "accent")}>{hero.accent}</span>
             </motion.span>
           </h1>
 
           <motion.p
             {...child}
+            data-tina-field={tinaField(hero, "description")}
             className="mb-6 max-w-2xl font-body text-base leading-relaxed text-[var(--granite-mist)]/90 drop-shadow sm:mb-9 sm:text-lg lg:text-xl"
           >
-            Scopri la Sardegna più autentica con tour, spedizioni e corsi
-            off-road guidati. Itinerari selezionati tra natura, cultura e
-            tradizioni locali, lontano dalle rotte del turismo di massa.
+            {hero.description}
           </motion.p>
 
           <motion.div {...child} className="flex flex-col gap-4 sm:flex-row">

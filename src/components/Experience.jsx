@@ -1,43 +1,57 @@
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Route, Bike, Castle, Trees, Mountain, Waves, Building2, UtensilsCrossed } from "lucide-react";
+import { tinaField } from "tinacms/dist/react";
+import { useSiteContent } from "@/content/TinaContentProvider";
 
-const items = [
-{ label: "Strade panoramiche", icon: Route, desc: "Curve e crinali con vista infinita, tra asfalto dimenticato e orizzonti aperti." },
-{ label: "Sterrati mozzafiato", icon: Bike, desc: "Piste e mulattiere tra roccia e macchia mediterranea, il vero cuore dell'enduro." },
-{ label: "Architettura storica", icon: Castle, desc: "Nuraghi, torri e villaggi di pietra che raccontano millenni di storia sarda." },
-{ label: "Boschi rigogliosi e tagliafuoco", icon: Trees, desc: "Foreste secolari di lecci e sentieri ombrosi tra silenzio e natura selvaggia." },
-{ label: "Montagne incontaminate", icon: Mountain, desc: "Altipiani e vette del Gennargentu e del Supramonte, lontani da ogni folla." },
-{ label: "Spiagge selvagge", icon: Waves, desc: "Calette isolate raggiungibili solo fuoristrada, con acque cristalline." },
-{ label: "Borghi autentici", icon: Building2, desc: "Paesi dell'entroterra dove tradizioni e ospitalità sarda sono ancora vive." },
-{ label: "Sapori della tradizione", icon: UtensilsCrossed, desc: "Soste tra prodotti tipici, pane carasau, porceddu e vino locale." }];
+const icons = {
+  route: Route,
+  bike: Bike,
+  castle: Castle,
+  trees: Trees,
+  mountain: Mountain,
+  waves: Waves,
+  building: Building2,
+  food: UtensilsCrossed,
+};
 
 export default function Experience() {
+  const { homepage } = useSiteContent();
+  const content = homepage.journey;
   const [openIndex, setOpenIndex] = useState(null);
 
   return (
     <section className="bg-[#252019] topo-dark py-24 lg:py-32">
       <div className="max-w-7xl mx-auto px-5 lg:px-8">
         <div className="text-center mb-16">
-          <p className="font-button text-[#E4D4B0] text-xs tracking-[0.3em] uppercase mb-4">Il Percorso</p>
+          <p
+            className="font-button text-[#E4D4B0] text-xs tracking-[0.3em] uppercase mb-4"
+            data-tina-field={tinaField(content, "eyebrow")}
+          >
+            {content.eyebrow}
+          </p>
           <h2 className="font-heading text-5xl lg:text-7xl text-[#F5EBD9] leading-none">
-            COSA <span className="text-[#A0612A]">VIVRAI</span>
+            <span data-tina-field={tinaField(content, "title")}>{content.title}</span>{" "}
+            <span className="text-[#A0612A]" data-tina-field={tinaField(content, "accent")}>
+              {content.accent}
+            </span>
           </h2>
-          <p className="mt-6 max-w-2xl mx-auto font-body text-base sm:text-lg leading-relaxed text-[#F5EBD9]/70">
-            Dalla Barbagia al Supramonte, dall'Ogliastra alla Costa Verde: percorsi
-            fuoristrada, soste culturali e gastronomiche, ospitalità locale e
-            assistenza professionale per vivere la Sardegna nella sua dimensione
-            più autentica e selvaggia.
+          <p
+            className="mt-6 max-w-2xl mx-auto font-body text-base sm:text-lg leading-relaxed text-[#F5EBD9]/70"
+            data-tina-field={tinaField(content, "intro")}
+          >
+            {content.intro}
           </p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-[#F5EBD9]/10">
-          {items.map((item, i) => {
-            const Icon = item.icon;
+          {content.items.map((item, i) => {
+            const Icon = icons[item.icon] || Route;
             const isOpen = openIndex === i;
             return (
               <button
                 key={item.label}
+                data-tina-field={tinaField(item)}
                 onClick={() => setOpenIndex(isOpen ? null : i)}
                 className="group bg-[#252019] hover:bg-[#1C1814] p-8 lg:p-10 flex flex-col items-center text-center transition-colors duration-300"
               >
@@ -59,7 +73,7 @@ export default function Experience() {
                       transition={{ duration: 0.3, ease: "easeOut" }}
                       className="font-body text-xs text-[#F5EBD9]/60 leading-relaxed overflow-hidden"
                     >
-                      {item.desc}
+                      {item.description}
                     </motion.p>
                   )}
                 </AnimatePresence>

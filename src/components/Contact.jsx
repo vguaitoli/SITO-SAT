@@ -1,34 +1,29 @@
 import React, { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Phone, MessageCircle, Mail, Instagram, Facebook, MapPin, Send, Check } from "lucide-react";
-import { CTA_LABELS, SITE, WEB3FORMS_ACCESS_KEY } from "@/config/site";
-import { tours } from "@/components/TourDetails.jsx";
+import { WEB3FORMS_ACCESS_KEY } from "@/config/site";
 import { CATEGORIE } from "@/data/categorie";
-
-const contacts = [
-  { label: "Telefono", value: SITE.telefono.display, href: SITE.telefono.href, icon: Phone },
-  { label: "WhatsApp", value: "Chat immediata", href: SITE.whatsapp.href, icon: MessageCircle },
-  { label: "Email", value: SITE.email, href: `mailto:${SITE.email}`, icon: Mail },
-  // Facebook e Instagram accorpati sotto un unico canale "Social".
-  { label: "Social", value: SITE.social.handle, social: true },
-  { label: "Dove siamo", value: SITE.luogo.regione, href: SITE.luogo.mapsHref, icon: MapPin },
-];
-
-// Finché i recapiti non sono verificati mostriamo solo i canali reali (la
-// posizione): telefono/WhatsApp/email/social restano nascosti ed è il modulo
-// a raccogliere le richieste.
-const visibleContacts = SITE.contattiVerificati
-  ? contacts
-  : contacts.filter((c) => c.label === "Dove siamo");
-
-// Elenco delle proposte reali, con i corsi separati dagli itinerari.
-const tourOptions = [
-  ...tours.map((t) => `${t.name} (${t.type})`),
-  ...CATEGORIE.filter((c) => c.kind === "course").map((c) => c.nome),
-  ...CATEGORIE.filter((c) => c.kind === "rental").map((c) => c.nome),
-];
+import { tinaField } from "tinacms/dist/react";
+import { useSiteContent } from "@/content/TinaContentProvider";
 
 export default function Contact() {
+  const { homepage, tours, siteSettings, SITE, CTA_LABELS } = useSiteContent();
+  const content = homepage.contact;
+  const contacts = [
+    { label: "Telefono", value: SITE.telefono.display, href: SITE.telefono.href, icon: Phone },
+    { label: "WhatsApp", value: "Chat immediata", href: SITE.whatsapp.href, icon: MessageCircle },
+    { label: "Email", value: SITE.email, href: `mailto:${SITE.email}`, icon: Mail },
+    { label: "Social", value: SITE.social.handle, social: true },
+    { label: "Dove siamo", value: SITE.luogo.regione, href: SITE.luogo.mapsHref, icon: MapPin },
+  ];
+  const visibleContacts = SITE.contattiVerificati
+    ? contacts
+    : contacts.filter((contact) => contact.label === "Dove siamo");
+  const tourOptions = [
+    ...tours.map((tour) => `${tour.name} (${tour.type})`),
+    ...CATEGORIE.filter((category) => category.kind === "course").map((category) => category.nome),
+    ...CATEGORIE.filter((category) => category.kind === "rental").map((category) => category.nome),
+  ];
   const [searchParams] = useSearchParams();
   const requestedTour = searchParams.get("interesse");
   const initialTour = requestedTour && tourOptions.includes(requestedTour) ? requestedTour : "";
@@ -105,21 +100,30 @@ export default function Contact() {
     <section id="contatti" className="bg-[#1C1814] topo-dark py-24 lg:py-32">
       <div className="max-w-7xl mx-auto px-5 lg:px-8">
         <div className="text-center mb-16">
-          <p className="font-button text-[#E4D4B0] text-xs tracking-[0.3em] uppercase mb-4">Contatti</p>
+          <p
+            className="font-button text-[#E4D4B0] text-xs tracking-[0.3em] uppercase mb-4"
+            data-tina-field={tinaField(content, "eyebrow")}
+          >
+            {content.eyebrow}
+          </p>
           <h2 className="font-heading text-5xl lg:text-7xl text-[#F5EBD9] leading-none">
-            INIZIA DA QUI<br />
-            <span className="text-[#A0612A]">LA TUA AVVENTURA</span>
+            <span data-tina-field={tinaField(content, "title")}>{content.title}</span>
+            <br />
+            <span className="text-[#A0612A]" data-tina-field={tinaField(content, "accent")}>
+              {content.accent}
+            </span>
           </h2>
-          <p className="mt-6 max-w-2xl mx-auto font-body text-base sm:text-lg leading-relaxed text-[#F5EBD9]/70">
-            Vuoi esplorare la Sardegna fuori dalle rotte più battute o proporci
-            una collaborazione sul territorio? Raccontaci cosa stai cercando: ti
-            aiuteremo a scegliere o costruire l'esperienza più adatta.
+          <p
+            className="mt-6 max-w-2xl mx-auto font-body text-base sm:text-lg leading-relaxed text-[#F5EBD9]/70"
+            data-tina-field={tinaField(content, "intro")}
+          >
+            {content.intro}
           </p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
           {/* Contact info */}
-          <div>
+          <div data-tina-field={tinaField(siteSettings)}>
             <h3 className="font-heading text-3xl text-[#F5EBD9] mb-8 tracking-wide">Raggiungici</h3>
             {!SITE.contattiVerificati && (
               <p className="mb-6 font-body text-sm leading-relaxed text-[#F5EBD9]/60">

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, MessageCircle, ArrowRight } from "lucide-react";
-import { CTA_LABELS, SITE } from "@/config/site";
 import { CATEGORIE } from "@/data/categorie";
+import { useSiteContent } from "@/content/TinaContentProvider";
 
 const navLinks = [
   { label: "Esperienze", href: "#esperienze" },
@@ -21,6 +21,7 @@ const mobileCategories = CATEGORIE.filter(({ id }) => id !== "corsi-off-road" &&
 const toTarget = (href) => (href.startsWith("#") ? `/${href}` : href);
 
 export default function SiteNav() {
+  const { CTA_LABELS, SITE } = useSiteContent();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 

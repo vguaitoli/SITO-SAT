@@ -18,7 +18,7 @@ export default function GuideCard({ guide }) {
         <div className="flip-card-face flip-card-front h-full overflow-hidden bg-[#252019]">
           <img
             src={guide.img}
-            alt={guide.name}
+            alt={guide.imageAlt || guide.name}
             width={900}
             height={1200}
             loading="lazy"

@@ -1,63 +1,14 @@
 /**
- * Configurazione unica del sito: contatti, canali e dati dell'attività.
- *
- * ⚠️  I VALORI QUI SOTTO SONO SEGNAPOSTO — DA SOSTITUIRE con quelli reali.
- * Tutto il sito (navigazione, hero, form, footer, CTA mobile, dati strutturati)
- * legge da questo file: aggiornare qui una sola volta aggiorna ovunque.
+ * Compatibilità per i moduli che leggono i dati fuori da React (SEO e policy).
+ * La fonte è il documento JSON gestito da TinaCMS; i componenti visuali usano
+ * invece useSiteContent per aggiornarsi in tempo reale dentro /admin.
  */
+import settingsContent from "../../content/settings/index.json";
+import { normalizeSettings } from "@/content/normalize";
 
-// Numero di telefono in formato internazionale, solo cifre, per i link tel:/wa.me.
-const PHONE_E164 = "393487981591";
-// Come mostrarlo a schermo.
-const PHONE_DISPLAY = "+39 348 79 81 591";
+const normalized = normalizeSettings(settingsContent);
 
-const WHATSAPP_MESSAGE =
-  "Ciao! Vorrei verificare la disponibilità per un tour off-road in Sardegna.";
-
-export const CTA_LABELS = {
-  primary: "Verifica disponibilità",
-  whatsapp: "Scrivici su WhatsApp",
-};
-
-export const TOUR_GROUP = {
-  label: "Da 5 a 10 partecipanti",
-  sentence: "I tour sono organizzati per gruppi da 5 a 10 partecipanti.",
-};
-
-export const SITE = {
-  nome: "Sardegna Trail Avventura",
-  tagline: "Tour e corsi off-road in Sardegna",
-  email: "sardegnatrailavventura@gmail.com",
-  telefono: {
-    e164: PHONE_E164,
-    display: PHONE_DISPLAY,
-    href: `tel:+${PHONE_E164}`,
-  },
-  whatsapp: {
-    numero: PHONE_E164,
-    href: `https://wa.me/${PHONE_E164}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`,
-  },
-  social: {
-    // Stesso handle su entrambe le piattaforme.
-    handle: "@sardegnatrailavventura",
-    instagram: "https://instagram.com/sardegnatrailavventura",
-    facebook: "https://facebook.com/sardegnatrailavventura",
-  },
-  luogo: {
-    regione: "Sardegna, Italia",
-    mapsHref: "https://maps.google.com/?q=Sardegna",
-  },
-  // Dati fiscali del Titolare del trattamento (ditta individuale).
-  // Usati nel footer, nell'informativa privacy e nella cookie policy.
-  legale: {
-    ragioneSociale: "Sardegna Trail Avventura",
-    formaGiuridica: "Ditta individuale",
-    partitaIva: "03063400901",
-    sede: "Strada Vicinale Zinziodda Li Buttagari, 111 — 07100 Sassari (SS)",
-  },
-  // true quando i contatti reali sono stati inseriti: nasconde l'avviso di redazione.
-  contattiVerificati: true,
-};
+export const { CTA_LABELS, TOUR_GROUP, SITE } = normalized;
 
 /** Costruisce un link WhatsApp con un messaggio precompilato specifico. */
 export function whatsappLink(message) {

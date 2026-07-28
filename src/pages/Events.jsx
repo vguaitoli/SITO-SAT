@@ -5,18 +5,11 @@ import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import TourCard from "@/components/TourCard.jsx";
 import { typeColors } from "@/components/TourDetails.jsx";
-import { CTA_LABELS, SITE, TOUR_GROUP } from "@/config/site";
-import { events } from "@/data/events";
-
-const sortedTours = [...events].sort((a, b) => {
-  if (!a.date && !b.date) return 0;
-  if (!a.date) return 1;
-  if (!b.date) return -1;
-  return new Date(a.date).getTime() - new Date(b.date).getTime();
-});
+import { useSiteContent } from "@/content/TinaContentProvider";
 
 function getLocalTourDate(date) {
-  return date ? new Date(`${date}T00:00:00`) : null;
+  if (!date) return null;
+  return new Date(date.includes("T") ? date : `${date}T00:00:00`);
 }
 
 function formatTourDate(tour) {
@@ -46,6 +39,13 @@ function formatTourDate(tour) {
 }
 
 export default function Events() {
+  const { events, CTA_LABELS, SITE, TOUR_GROUP } = useSiteContent();
+  const sortedTours = [...events].sort((a, b) => {
+    if (!a.date && !b.date) return 0;
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return new Date(a.date).getTime() - new Date(b.date).getTime();
+  });
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 

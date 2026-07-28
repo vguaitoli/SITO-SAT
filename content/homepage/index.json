@@ -1,0 +1,246 @@
+{
+  "hero": {
+    "location": "Sardegna · Turismo d'avventura",
+    "title": "Non visitare la Sardegna.",
+    "accent": "Vivila.",
+    "description": "Scopri la Sardegna più autentica con tour, spedizioni e corsi off-road guidati. Itinerari selezionati tra natura, cultura e tradizioni locali, lontano dalle rotte del turismo di massa.",
+    "logo": "/media/logo-sardegna-trail-avventura.png",
+    "logoAlt": "Sardegna Trail Avventura"
+  },
+  "experiences": {
+    "eyebrow": "Le esperienze",
+    "title": "Scegli la tua",
+    "accent": "avventura",
+    "intro": "Tour ed esperienze per vivere la Sardegna, più corsi dedicati a chi vuole migliorare la propria tecnica off-road. Scegli il percorso che fa per te."
+  },
+  "featuredTours": {
+    "eyebrow": "Gli itinerari",
+    "title": "Tour in",
+    "accent": "evidenza",
+    "intro": "Una selezione dei nostri percorsi, per mezzo e durata diversi. Ogni tour è personalizzabile e ha una scheda tecnica completa.",
+    "tourNames": [
+      "Supramonte Extreme",
+      "Sardegna Enduro Week",
+      "Sardegna 4x4 Explorer"
+    ]
+  },
+  "journey": {
+    "eyebrow": "Il Percorso",
+    "title": "COSA",
+    "accent": "VIVRAI",
+    "intro": "Dalla Barbagia al Supramonte, dall'Ogliastra alla Costa Verde: percorsi fuoristrada, soste culturali e gastronomiche, ospitalità locale e assistenza professionale per vivere la Sardegna nella sua dimensione più autentica e selvaggia.",
+    "items": [
+      {
+        "icon": "route",
+        "label": "Strade panoramiche",
+        "description": "Curve e crinali con vista infinita, tra asfalto dimenticato e orizzonti aperti."
+      },
+      {
+        "icon": "bike",
+        "label": "Sterrati mozzafiato",
+        "description": "Piste e mulattiere tra roccia e macchia mediterranea, il vero cuore dell'enduro."
+      },
+      {
+        "icon": "castle",
+        "label": "Architettura storica",
+        "description": "Nuraghi, torri e villaggi di pietra che raccontano millenni di storia sarda."
+      },
+      {
+        "icon": "trees",
+        "label": "Boschi rigogliosi e tagliafuoco",
+        "description": "Foreste secolari di lecci e sentieri ombrosi tra silenzio e natura selvaggia."
+      },
+      {
+        "icon": "mountain",
+        "label": "Montagne incontaminate",
+        "description": "Altipiani e vette del Gennargentu e del Supramonte, lontani da ogni folla."
+      },
+      {
+        "icon": "waves",
+        "label": "Spiagge selvagge",
+        "description": "Calette isolate raggiungibili solo fuoristrada, con acque cristalline."
+      },
+      {
+        "icon": "building",
+        "label": "Borghi autentici",
+        "description": "Paesi dell'entroterra dove tradizioni e ospitalità sarda sono ancora vive."
+      },
+      {
+        "icon": "food",
+        "label": "Sapori della tradizione",
+        "description": "Soste tra prodotti tipici, pane carasau, porceddu e vino locale."
+      }
+    ]
+  },
+  "guides": {
+    "eyebrow": "Le Nostre Guide",
+    "title": "CHI TI",
+    "accent": "ACCOMPAGNA",
+    "items": [
+      {
+        "name": "Gianluca Serra",
+        "role": "Istruttore qualificato · Guida esperta",
+        "description": "Da oltre 15 anni esplora i sentieri della Sardegna. Come istruttore qualificato, affianca chi vuole migliorare tecnica, controllo e sicurezza in fuoristrada.",
+        "image": "/media/cms/guide-gianluca-serra.webp",
+        "imageAlt": "Gianluca Serra, istruttore e guida di Sardegna Trail Avventura"
+      },
+      {
+        "name": "Vittorio Guaitoli",
+        "role": "Guida Esperta",
+        "description": "Specialista in assistenza tecnica e gestione del gruppo, garantisce un'avventura sicura ad ogni tappa del tour.",
+        "image": "/media/cms/guide-vittorio-guaitoli.webp",
+        "imageAlt": "Vittorio Guaitoli, guida di Sardegna Trail Avventura"
+      }
+    ]
+  },
+  "about": {
+    "eyebrow": "Chi Siamo",
+    "titleLine1": "Passione.",
+    "titleLine2": "Esperienza.",
+    "titleAccent": "Sardegna.",
+    "paragraphs": [
+      "Fondata da Gianluca Serra, Sardegna Trail Avventura nasce dalla passione per il fuoristrada, l'esplorazione e il territorio. Accompagniamo viaggiatori italiani ed europei alla scoperta dell'isola attraverso esperienze in Enduro, Maxienduro, Quad, SSV, 4x4 ed e-bike.",
+      "Collaboriamo con agriturismi, strutture ricettive, guide, pastori, artigiani e produttori locali, contribuendo a un turismo responsabile che valorizza le comunità e le aree interne anche nei periodi di bassa stagione."
+    ],
+    "quote": "Non semplici escursioni, ma esperienze autentiche tra natura, cultura e tradizioni sarde.",
+    "image": "/media/reali/chi-siamo-gruppo-1200.webp",
+    "imageAlt": "Gruppo di rider enduro schierati con le moto lungo la costa sarda",
+    "badgeValue": "100%",
+    "badgeText": "Sardegna autentica, fuori dai sentieri turistici"
+  },
+  "gallery": {
+    "eyebrow": "Gallery",
+    "title": "L'avventura",
+    "accent": "in immagini",
+    "intro": "Momenti scattati durante i nostri tour. Nessuna posa, nessuno stock: solo la Sardegna come la trovi tu.",
+    "images": [
+      {
+        "image": "/media/reali/hero-maxienduro-panorama-1800.webp",
+        "alt": "Due maxienduro su uno sterrato panoramico tra le montagne sarde",
+        "layout": "featured"
+      },
+      {
+        "image": "/media/reali/hero-ssv-guado-1200.webp",
+        "alt": "SSV durante il guado di un torrente",
+        "layout": "normal"
+      },
+      {
+        "image": "/media/reali/4x4-guado-1200.webp",
+        "alt": "Fuoristrada 4x4 durante il guado di un fiume",
+        "layout": "normal"
+      },
+      {
+        "image": "/media/reali/hero-quad-convoglio-1200.webp",
+        "alt": "Convoglio di quad su una pista sterrata",
+        "layout": "normal"
+      },
+      {
+        "image": "/media/reali/enduro-vetta-768.webp",
+        "alt": "Rider enduro in cima a un percorso panoramico",
+        "layout": "normal"
+      },
+      {
+        "image": "/media/reali/pranzo-tavolata-1200.webp",
+        "alt": "Tavolata con prodotti tipici sardi durante il tour",
+        "layout": "wide"
+      },
+      {
+        "image": "/media/reali/pinnetta-sosta-1200.webp",
+        "alt": "Sosta del gruppo accanto alle pinnette tradizionali",
+        "layout": "normal"
+      },
+      {
+        "image": "/media/reali/guida-sentiero-1200.webp",
+        "alt": "Guida lungo un sentiero roccioso",
+        "layout": "normal"
+      },
+      {
+        "image": "/media/reali/ssv-spiaggia-flotta-1200.webp",
+        "alt": "Flotta di SSV schierata su una spiaggia sarda",
+        "layout": "wide"
+      },
+      {
+        "image": "/media/reali/grotta-mineraria-1200.webp",
+        "alt": "Ingresso di una vecchia cava lungo il percorso",
+        "layout": "normal"
+      },
+      {
+        "image": "/media/reali/4x4-crinale-1200.webp",
+        "alt": "Fuoristrada 4x4 su una pista di crinale",
+        "layout": "normal"
+      }
+    ]
+  },
+  "included": {
+    "title": "COSA",
+    "accent": "COMPRENDE",
+    "intro": "In base alla tipologia di tour, la proposta può comprendere i seguenti servizi. Tutti i dettagli vengono confermati prima della prenotazione.",
+    "items": [
+      {
+        "icon": "navigation",
+        "label": "Guida locale esperta"
+      },
+      {
+        "icon": "luggage",
+        "label": "Trasporto bagagli"
+      },
+      {
+        "icon": "wrench",
+        "label": "Assistenza tecnica"
+      },
+      {
+        "icon": "satellite",
+        "label": "Dispositivo GPS Live Tracking"
+      },
+      {
+        "icon": "home",
+        "label": "Agriturismo mezza pensione"
+      },
+      {
+        "icon": "gift",
+        "label": "Gadget esclusivi"
+      }
+    ],
+    "note": "Quando previsto, il dispositivo GPS Live Tracking viene fornito dall'organizzazione, che può così verificare in ogni momento che il gruppo rimanga compatto e che nessun partecipante resti isolato o si disperda lungo il percorso. Non viene utilizzato come navigatore e non fornisce indicazioni di percorso ai partecipanti."
+  },
+  "faq": {
+    "eyebrow": "Domande Frequenti",
+    "title": "FAQ",
+    "items": [
+      {
+        "question": "Che differenza c'è tra Maxienduro ed Enduro?",
+        "answer": "Sono due mondi diversi. La Maxienduro è la grande moto da viaggio: alta, potente, pensata per macinare chilometri e affrontare lo sterrato senza rinunciare al comfort. L'Enduro è leggera e maneggevole, nata per i sentieri stretti e i passaggi tecnici dove la maxienduro non passa. In più proponiamo Quad, SSV e 4x4. Se non sai quale fa per te, scrivici: ti consigliamo in base alla tua esperienza."
+      },
+      {
+        "question": "Che differenza c'è tra Weekend Adventure e Sardegna Trail Week?",
+        "answer": "I Weekend Adventure comprendono itinerari brevi da 2 a 4 giorni, pensati per chi vuole vivere un'esperienza intensa senza affrontare un'intera settimana. Durata e difficoltà sono indicate nella scheda di ogni tour. La Sardegna Trail Week è invece un'immersione di 7 giorni tra i percorsi più suggestivi dell'isola. Offriamo anche tour personalizzati su misura per gruppi e moto club."
+      },
+      {
+        "question": "Che livello è richiesto?",
+        "answer": "Offriamo tour per tutti i livelli: da principiante fino a esperto. Ogni scheda tecnica indica il livello richiesto. Se non sei sicuro, contattaci e ti consiglieremo l'itinerario giusto per te."
+      },
+      {
+        "question": "Quante persone partecipano a ogni tour?",
+        "answer": "I tour sono organizzati per gruppi da 5 a 10 partecipanti. Questo ci permette di seguire il gruppo con attenzione e mantenere l'esperienza coinvolgente, sicura e ben organizzata."
+      },
+      {
+        "question": "Cosa è incluso nel prezzo del tour?",
+        "answer": "In base alla tipologia di tour, la proposta può comprendere guida locale esperta, trasporto bagagli, assistenza tecnica, mezza pensione in agriturismo, gadget esclusivi e un dispositivo GPS Live Tracking fornito dall'organizzazione. Tutti i servizi inclusi vengono confermati prima della prenotazione."
+      },
+      {
+        "question": "È possibile noleggiare la moto?",
+        "answer": "Sì, collaboriamo con partner locali per il noleggio di moto Maxienduro, Enduro e Quad. Possiamo organizzare il noleggio insieme al tour. Contattaci in anticipo per verificare la disponibilità e prenotare il mezzo più adatto."
+      },
+      {
+        "question": "Cosa succede in caso di pioggia?",
+        "answer": "La sicurezza viene prima di tutto. In caso di condizioni meteo avverse valutiamo insieme se posticipare il tour o modificare l'itinerario con percorsi alternativi più sicuri. Il tour può essere riprogrammato senza costi aggiuntivi entro la stagione."
+      }
+    ]
+  },
+  "contact": {
+    "eyebrow": "Contatti",
+    "title": "INIZIA DA QUI",
+    "accent": "LA TUA AVVENTURA",
+    "intro": "Vuoi esplorare la Sardegna fuori dalle rotte più battute o proporci un'esperienza su misura? Raccontaci cosa cerchi e ti aiutiamo a scegliere il tour più adatto."
+  }
+}

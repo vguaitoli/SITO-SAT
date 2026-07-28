@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { MessageCircle, CalendarCheck } from "lucide-react";
-import { CTA_LABELS, SITE } from "@/config/site";
+import { useSiteContent } from "@/content/TinaContentProvider";
 
 /**
  * Barra CTA persistente ma discreta, solo su mobile. Compare dopo la hero e
  * offre i due canali reali: WhatsApp e verifica disponibilità.
  */
 export default function MobileCta() {
+  const { CTA_LABELS, SITE } = useSiteContent();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {

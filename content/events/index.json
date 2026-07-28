@@ -1,0 +1,82 @@
+{
+  "events": [
+    {
+      "name": "Wild Camp di Ferragosto",
+      "type": "4x4",
+      "duration": "5 Giorni",
+      "distance": "Da confermare",
+      "level": "Da verificare",
+      "offroad": "Off-road",
+      "interest": "Mare, montagne e natura incontaminata",
+      "lunchIncluded": false,
+      "accommodation": "Pernottamenti in tenda",
+      "period": "12–16 agosto 2026",
+      "startDate": "2026-08-12T00:00:00.000Z",
+      "endDate": "2026-08-16T00:00:00.000Z",
+      "price": "€350 a persona",
+      "description": "Cinque giorni di avventura in 4x4 nella Sardegna più selvaggia, lontano dai luoghi affollati, tra piste off-road e notti sotto le stelle.",
+      "programNote": "Il Wild Camp attraversa ambienti di mare e montagna con pernottamenti in tenda. Il programma dettagliato e il livello richiesto vengono confermati prima della partenza.",
+      "included": [
+        "Guida locale esperta",
+        "Pernottamenti in tenda",
+        "Percorsi off-road tra mare e montagna",
+        "Esperienza in gruppo a posti limitati"
+      ],
+      "equipment": [],
+      "stages": [],
+      "sourceUrl": "https://www.instagram.com/p/DbAsuekIjk3/"
+    },
+    {
+      "name": "Maxienduro Sardegna",
+      "type": "Maxienduro",
+      "duration": "4 Giorni",
+      "distance": "Da confermare",
+      "level": "Da verificare",
+      "offroad": "Off-road",
+      "interest": "Olbia, Dorgali e sterrati della Sardegna",
+      "lunchIncluded": false,
+      "accommodation": "3 pernottamenti con mezza pensione",
+      "period": "22–25 ottobre 2026",
+      "startDate": "2026-10-22T00:00:00.000Z",
+      "endDate": "2026-10-25T00:00:00.000Z",
+      "price": "",
+      "description": "Quattro giorni dedicati alle Maxienduro, tra strade bianche, montagne e itinerari off-road con partenza da Olbia e base a Dorgali.",
+      "programNote": "",
+      "included": [
+        "Guida locale esperta",
+        "Assistenza durante il tour",
+        "Trasporto bagagli con 4x4",
+        "3 pernottamenti con mezza pensione",
+        "Gruppo a numero chiuso"
+      ],
+      "equipment": [],
+      "stages": [
+        {
+          "title": "Olbia → Dorgali",
+          "description": "Partenza da Olbia e prima tappa off-road verso Dorgali.",
+          "image": "/media/reali/maxienduro-tenere-1200.webp",
+          "imageAlt": "Maxienduro da viaggio parcheggiata su uno sterrato sotto il cielo sardo"
+        },
+        {
+          "title": "Tour nei dintorni di Dorgali",
+          "description": "Giornata dedicata agli sterrati e ai paesaggi intorno a Dorgali.",
+          "image": "/media/reali/hero-maxienduro-panorama-1800.webp",
+          "imageAlt": "Due maxienduro parcheggiate su uno sterrato panoramico con le montagne sarde sullo sfondo"
+        },
+        {
+          "title": "Nuovo itinerario off-road",
+          "description": "Partenza e rientro a Dorgali lungo un nuovo itinerario fuoristrada.",
+          "image": "/media/reali/maxienduro-sosta-bosco-1200.webp",
+          "imageAlt": "Rider in sosta con le maxienduro lungo un sentiero nel bosco"
+        },
+        {
+          "title": "Dorgali → Olbia",
+          "description": "Ultima tappa da Dorgali a Olbia e conclusione del tour.",
+          "image": "/media/reali/gruppo-altopiano-1800.webp",
+          "imageAlt": "Gruppo di rider in sosta con le moto su un altopiano verde della Sardegna"
+        }
+      ],
+      "sourceUrl": "https://www.instagram.com/p/DahyVLriP0q/"
+    }
+  ]
+}

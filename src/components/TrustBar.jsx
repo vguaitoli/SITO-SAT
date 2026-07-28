@@ -1,14 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion, useInView, animate } from "framer-motion";
-import { tours } from "@/components/TourDetails.jsx";
 import { CATEGORIE } from "@/data/categorie";
-
-// Solo dati verificabili dai contenuti del sito: nessuna statistica inventata.
-const stats = [
-  { value: CATEGORIE.length, suffix: "", label: "Esperienze proposte" },
-  { value: tours.length, suffix: "", label: "Itinerari disponibili" },
-  { value: new Set(tours.map((t) => t.livello)).size, suffix: "", label: "Livelli di difficoltà" },
-];
+import { useSiteContent } from "@/content/TinaContentProvider";
 
 function Counter({ value, suffix }) {
   const ref = useRef(null);
@@ -33,6 +26,14 @@ function Counter({ value, suffix }) {
 }
 
 export default function TrustBar() {
+  const { tours } = useSiteContent();
+  // Solo dati verificabili dai contenuti del sito: nessuna statistica inventata.
+  const stats = [
+    { value: CATEGORIE.length, suffix: "", label: "Esperienze proposte" },
+    { value: tours.length, suffix: "", label: "Itinerari disponibili" },
+    { value: new Set(tours.map((tour) => tour.livello)).size, suffix: "", label: "Livelli di difficoltà" },
+  ];
+
   return (
     <section className="bg-[#1C1814] py-12 lg:py-16">
       <div className="max-w-4xl mx-auto px-5 lg:px-8 grid grid-cols-3 gap-6 text-center">

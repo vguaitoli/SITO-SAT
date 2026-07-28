@@ -2,7 +2,8 @@ import React from "react";
 import { createPortal } from "react-dom";
 import { X, BadgeEuro, CalendarDays, CheckCircle2, Clock, Gauge, TrendingUp, ShieldCheck, Send, MessageCircle, Users } from "lucide-react";
 import { fotoProps } from "@/data/foto-helpers";
-import { CTA_LABELS, SITE, TOUR_GROUP } from "@/config/site";
+import { tinaField } from "tinacms/dist/react";
+import { useSiteContent } from "@/content/TinaContentProvider";
 
 const EQUIPAGGIAMENTO = [
   "Mezzo con gomme tassellate o miste in buono stato, tagliando recente e paramotore/paracolpi montati",
@@ -14,6 +15,7 @@ const EQUIPAGGIAMENTO = [
 ];
 
 export default function TourFullDetailsModal({ tour, color, onClose }) {
+  const { CTA_LABELS, SITE, TOUR_GROUP } = useSiteContent();
   if (typeof document === "undefined") return null;
 
   const equipaggiamento = Array.isArray(tour.equipaggiamento)
@@ -51,21 +53,36 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
             <span className="flex items-center gap-1.5"><TrendingUp size={14} style={{ color }} /> {tour.livello}</span>
             <span className="flex items-center gap-1.5"><Users size={14} style={{ color }} /> {TOUR_GROUP.label}</span>
             {tour.periodo && (
-              <span className="flex items-center gap-1.5"><CalendarDays size={14} style={{ color }} /> {tour.periodo}</span>
+              <span className="flex items-center gap-1.5" data-tina-field={tinaField(tour, "period")}>
+                <CalendarDays size={14} style={{ color }} /> {tour.periodo}
+              </span>
             )}
             {tour.price && (
-              <span className="flex items-center gap-1.5"><BadgeEuro size={14} style={{ color }} /> {tour.price}</span>
+              <span className="flex items-center gap-1.5" data-tina-field={tinaField(tour, "price")}>
+                <BadgeEuro size={14} style={{ color }} /> {tour.price}
+              </span>
             )}
           </div>
 
-          <p className="font-body text-sm text-[#F5EBD9]/70 leading-relaxed mb-8">{tour.descrizione}</p>
+          <p
+            className="font-body text-sm text-[#F5EBD9]/70 leading-relaxed mb-8"
+            data-tina-field={tinaField(tour, "description")}
+          >
+            {tour.descrizione}
+          </p>
 
           {tour.tappe && tour.tappe.length > 0 ? (
             <div className="space-y-6">
               {tour.tappe.map((tappa, i) => {
-                const foto = fotoProps(tappa.foto);
+                const foto = tappa.foto?.startsWith("/")
+                  ? { src: tappa.foto, alt: tappa.fotoAlt || tappa.title, aspect: 4 / 3 }
+                  : fotoProps(tappa.foto);
                 return (
-                <div key={i} className="flex flex-col sm:flex-row gap-4 border-t border-[#F5EBD9]/10 pt-6 first:border-0 first:pt-0">
+                <div
+                  key={tappa.title}
+                  className="flex flex-col sm:flex-row gap-4 border-t border-[#F5EBD9]/10 pt-6 first:border-0 first:pt-0"
+                  data-tina-field={tinaField(tappa)}
+                >
                   {foto && (
                     <img
                       src={foto.src}
@@ -83,8 +100,18 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
                     <span className="font-button text-[10px] tracking-[0.15em] uppercase" style={{ color }}>
                       Giorno {i + 1}
                     </span>
-                    <h4 className="font-heading text-xl text-[#F5EBD9] tracking-wide mb-1">{tappa.title}</h4>
-                    <p className="font-body text-sm text-[#F5EBD9]/70 leading-relaxed">{tappa.desc}</p>
+                    <h4
+                      className="font-heading text-xl text-[#F5EBD9] tracking-wide mb-1"
+                      data-tina-field={tinaField(tappa, "title")}
+                    >
+                      {tappa.title}
+                    </h4>
+                    <p
+                      className="font-body text-sm text-[#F5EBD9]/70 leading-relaxed"
+                      data-tina-field={tinaField(tappa, "description")}
+                    >
+                      {tappa.desc}
+                    </p>
                   </div>
                 </div>
                 );

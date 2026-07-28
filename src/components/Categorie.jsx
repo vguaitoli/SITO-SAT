@@ -5,6 +5,8 @@ import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 import { CATEGORIE } from "@/data/categorie";
 import { fotoProps } from "@/data/foto-helpers";
+import { tinaField } from "tinacms/dist/react";
+import { useSiteContent } from "@/content/TinaContentProvider";
 
 /**
  * "Scegli la tua avventura": una card per ciascuna categoria, in una griglia
@@ -75,16 +77,21 @@ function Card({ cat, featuredMobile = false }) {
 const esperienze = CATEGORIE.filter((cat) => cat.kind !== "rental");
 
 export default function Categorie() {
+  const { homepage } = useSiteContent();
+  const content = homepage.experiences;
+
   return (
     <section id="esperienze" className="bg-[var(--obsidian)] topo-dark py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
-        <SectionHeading
-          eyebrow="Le esperienze"
-          title="Scegli la tua"
-          accent="avventura"
-          intro="Tour ed esperienze per vivere la Sardegna, più corsi dedicati a chi vuole migliorare la propria tecnica off-road. Scegli il percorso che fa per te."
-          className="mb-14"
-        />
+        <div data-tina-field={tinaField(content)}>
+          <SectionHeading
+            eyebrow={content.eyebrow}
+            title={content.title}
+            accent={content.accent}
+            intro={content.intro}
+            className="mb-14"
+          />
+        </div>
 
         <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
           {esperienze.map((cat, i) => (

@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import MobileCta from "@/components/MobileCta";
-import TourDetails, { tours } from "@/components/TourDetails.jsx";
-import { TOUR_GROUP } from "@/config/site";
+import TourDetails from "@/components/TourDetails.jsx";
+import { useSiteContent } from "@/content/TinaContentProvider";
 
 /**
  * Catalogo completo dei tour. Il formato (weekend / settimana / su misura),
@@ -17,10 +17,10 @@ const FILTRI = [
   { id: "custom", label: "Su misura" },
 ];
 
-const conteggio = (group) =>
-  group === null ? tours.length : tours.filter((t) => t.groups.includes(group)).length;
-
 export default function TourItinerari() {
+  const { tours, TOUR_GROUP } = useSiteContent();
+  const conteggio = (group) =>
+    group === null ? tours.length : tours.filter((tour) => tour.groups.includes(group)).length;
   const urlParams = new URLSearchParams(window.location.search);
   const [filtro, setFiltro] = useState(urlParams.get("filter") || null);
 

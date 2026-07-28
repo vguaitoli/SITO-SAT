@@ -4,8 +4,9 @@ import { ArrowRight } from "lucide-react";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 import TourCard from "@/components/TourCard.jsx";
-import { tours, typeColors } from "@/components/TourDetails.jsx";
-import { TOUR_GROUP } from "@/config/site";
+import { typeColors } from "@/components/TourDetails.jsx";
+import { tinaField } from "tinacms/dist/react";
+import { useSiteContent } from "@/content/TinaContentProvider";
 
 /**
  * "Tour in evidenza": un assaggio di itinerari reali direttamente in home.
@@ -15,23 +16,27 @@ import { TOUR_GROUP } from "@/config/site";
  * Non è un secondo sistema di navigazione: le categorie restano l'unica
  * porta d'ingresso, questa sezione è solo una vetrina.
  */
-const IN_EVIDENZA = ["Supramonte Extreme", "Sardegna Enduro Week", "Sardegna 4x4 Explorer"];
-
-const featured = IN_EVIDENZA.map((name) => tours.find((t) => t.name === name)).filter(Boolean);
-
 export default function TourInEvidenza() {
+  const { homepage, tours, TOUR_GROUP } = useSiteContent();
+  const content = homepage.featuredTours;
+  const featured = content.tourNames
+    .map((name) => tours.find((tour) => tour.name === name))
+    .filter(Boolean);
+
   return (
     <section id="tour-in-evidenza" className="bg-[var(--surface-light)] topo-bg py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
         <div className="mb-14 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-          <SectionHeading
-            eyebrow="Gli itinerari"
-            title="Tour in"
-            accent="evidenza"
-            intro={`Una selezione dei nostri percorsi, per mezzo e durata diversi. Ogni tour è personalizzabile e ha una scheda tecnica completa. ${TOUR_GROUP.sentence}`}
-            tone="light"
-            className="mb-0"
-          />
+          <div data-tina-field={tinaField(content)}>
+            <SectionHeading
+              eyebrow={content.eyebrow}
+              title={content.title}
+              accent={content.accent}
+              intro={`${content.intro} ${TOUR_GROUP.sentence}`}
+              tone="light"
+              className="mb-0"
+            />
+          </div>
           <Link
             to="/itinerari"
             className="btn-mech hidden shrink-0 items-center gap-2.5 bg-[var(--cta)] px-6 py-3.5 text-sm text-[var(--cta-text)] hover:bg-[var(--cta-hover)] lg:inline-flex"

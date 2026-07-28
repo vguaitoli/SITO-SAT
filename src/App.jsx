@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
 import SeoHead from '@/components/SeoHead';
 import BackgroundMusic from '@/components/BackgroundMusic';
+import { TinaContentProvider } from '@/content/TinaContentProvider';
 
 const PageNotFound = lazy(() => import('./lib/PageNotFound'));
 const Home = lazy(() => import('./pages/Home'));
@@ -48,11 +49,13 @@ const SiteRoutes = () => {
 function App() {
   return (
     <Router>
-      <ScrollToTop />
-      <SeoHead />
-      <BackgroundMusic />
-      <SiteRoutes />
-      <Toaster />
+      <TinaContentProvider>
+        <ScrollToTop />
+        <SeoHead />
+        <BackgroundMusic />
+        <SiteRoutes />
+        <Toaster />
+      </TinaContentProvider>
     </Router>
   )
 }

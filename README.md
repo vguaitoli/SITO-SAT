@@ -6,15 +6,34 @@ Sito pubblico di Sardegna Trail Avventura, realizzato con React e Vite e distrib
 
 Requisiti:
 
-- Node.js 20 o successivo
-- pnpm 10
+- Node.js 22
+- pnpm 11
 
 Installazione e avvio:
 
 ```bash
+cp .env.example .env
 pnpm install
 pnpm run dev
 ```
+
+Il sito è disponibile su `http://localhost:5173/`; l'editor TinaCMS su
+`http://localhost:5173/admin`.
+
+## Contenuti con TinaCMS
+
+TinaCMS gestisce i contenuti senza spostare layout e grafica fuori dal codice:
+
+- homepage, FAQ, servizi, guide e galleria: `content/homepage/index.json`;
+- tour, descrizioni, prezzi e programmi: `content/tours/index.json`;
+- eventi, partenze, date, prezzi e servizi specifici: `content/events/index.json`;
+- contatti e impostazioni comuni: `content/settings/index.json`.
+
+Lo schema dell'editor è in `tina/config.ts`. In locale, il pulsante **Save**
+scrive direttamente nei file JSON. In produzione, dopo il collegamento a
+Tina Cloud, il salvataggio crea una modifica nel repository GitHub.
+
+La procedura completa è in [`docs/tinacms-operativa.md`](docs/tinacms-operativa.md).
 
 ## Controlli
 
@@ -37,8 +56,16 @@ Il modulo contatti usa Web3Forms:
 VITE_WEB3FORMS_ACCESS_KEY=your_access_key
 ```
 
-Impostare la variabile nei tre ambienti Vercel necessari: Production, Preview e Development.
-Non inserire chiavi o altri segreti nel repository.
+Tina Cloud richiede inoltre:
+
+```bash
+NEXT_PUBLIC_TINA_CLIENT_ID=your_client_id
+TINA_TOKEN=your_read_only_token
+NEXT_PUBLIC_TINA_BRANCH=main
+```
+
+Impostare le variabili nei tre ambienti Vercel necessari: Production, Preview e
+Development. Non inserire chiavi o altri segreti nel repository.
 
 ## Pubblicazione
 

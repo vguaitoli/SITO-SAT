@@ -2,6 +2,9 @@ import React from "react";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
 import TourCard from "@/components/TourCard.jsx";
+import tourCatalogContent from "../../content/tours/index.json";
+import { normalizeTours } from "@/content/normalize";
+import { useSiteContent } from "@/content/TinaContentProvider";
 
 const filterLabels = {
   weekend: "Weekend Adventure",
@@ -9,240 +12,7 @@ const filterLabels = {
   custom: "Tour Personalizzati",
 };
 
-export const tours = [
-  {
-    name: "Supramonte Extreme",
-    type: "Maxienduro",
-    durata: "3 Giorni",
-    km: "260 km",
-    livello: "Esperto",
-    sterrato: "88%",
-    interesse: "Tiscali, Golgo, Cala Luna, Baunei",
-    pranzo: true,
-    periodo: "Ottobre - Aprile",
-    date: "2026-10-17",
-    descrizione: "Tre giorni nel cuore del Supramonte, dai nuraghi d'altura alle gole calcaree.",
-    groups: ["weekend"],
-    tappe: [
-      { title: "Verso Tiscali", desc: "Si parte alla volta dell'altopiano di Tiscali, tra doline e villaggi nuragici nascosti nella roccia." },
-      { title: "Golgo e i canyon", desc: "Attraversiamo l'altopiano del Golgo fino ai bordi del canyon, con soste panoramiche mozzafiato." },
-      { title: "Cala Luna e Baunei", desc: "Discesa verso la costa, tra sentieri stretti e la vista finale sulla splendida Cala Luna." },
-    ],
-  },
-  {
-    name: "Barbagia Trail",
-    type: "Enduro",
-    durata: "2 Giorni",
-    km: "180 km",
-    livello: "Avanzato",
-    sterrato: "85%",
-    interesse: "Borghi antichi, Canyon di Gorropu, Foreste",
-    pranzo: true,
-    periodo: "Ottobre - Maggio",
-    date: "2026-10-03",
-    descrizione: "Due giorni di sentieri tecnici nella Barbagia più selvaggia, tra borghi di pietra e passaggi da enduro puro.",
-    groups: ["weekend"],
-    tappe: [
-      { title: "Borghi antichi", desc: "Attraversiamo i borghi di pietra della Barbagia, tra vicoli, murales e antiche tradizioni pastorali." },
-      { title: "Canyon di Gorropu e foreste", desc: "Sentieri tecnici tra le foreste secolari fino al bordo del canyon di Gorropu, uno dei più profondi d'Europa." },
-    ],
-  },
-  {
-    name: "Costa & Dune Expedition",
-    type: "Quad",
-    durata: "2 Giorni",
-    km: "220 km",
-    livello: "Principiante",
-    sterrato: "60%",
-    interesse: "Dune di Piscinas, Costa verde, Miniere abbandonate",
-    pranzo: true,
-    periodo: "Tutto l'anno",
-    date: "2026-07-25",
-    descrizione: "Due giorni tra dune dorate e coste incontaminate, con pernottamento e mezzi quad accessibili a tutti.",
-    groups: ["weekend"],
-    tappe: [
-      { title: "Dune di Piscinas", desc: "Prime evoluzioni tra le dune dorate più alte d'Europa, con soste fotografiche e pranzo tipico." },
-      { title: "Costa Verde e miniere", desc: "Costeggiamo la Costa Verde tra spiagge selvagge e le suggestive miniere abbandonate del Sulcis." },
-    ],
-  },
-  {
-    name: "Sardegna 4x4 Explorer",
-    type: "4x4",
-    durata: "4 Giorni",
-    km: "350 km",
-    livello: "Intermedio",
-    sterrato: "70%",
-    interesse: "Altipiani del Gennargentu, Miniere del Sulcis, Coste selvagge",
-    pranzo: true,
-    periodo: "Marzo - Novembre",
-    date: "2026-08-22",
-    descrizione: "Quattro giorni a bordo di mezzi 4x4 tra altipiani, miniere abbandonate e coste remote.",
-    groups: ["weekend"],
-    tappe: [
-      { title: "Altipiani del Gennargentu", desc: "Saliamo verso gli altipiani più alti della Sardegna, tra panorami infiniti e strade sterrate." },
-      { title: "Miniere del Sulcis", desc: "Visita ai suggestivi villaggi minerari abbandonati, testimonianza della storia mineraria dell'isola." },
-      { title: "Coste selvagge", desc: "Discesa verso coste remote e incontaminate, lontane dai percorsi turistici classici." },
-      { title: "Rientro panoramico", desc: "Ultimo giorno tra borghi dell'entroterra e soste panoramiche prima del rientro." },
-    ],
-  },
-  {
-    name: "Gennargentu Wild",
-    type: "Maxienduro",
-    durata: "4 Giorni",
-    km: "380 km",
-    livello: "Esperto",
-    sterrato: "80%",
-    interesse: "Nuraghi, Boschi secolari, Panorami Supramonte",
-    pranzo: true,
-    periodo: "Marzo - Giugno · Settembre - Novembre",
-    date: "2026-09-19",
-    descrizione: "Quattro giorni tra le creste del Gennargentu, sterrati panoramici e discese verso valli incontaminate.",
-    groups: ["weekend"],
-    tappe: [
-      { title: "Nuraghi e primi sentieri", desc: "Partiamo tra antichi nuraghi e i primi sterrati panoramici che introducono al massiccio." },
-      { title: "Boschi secolari", desc: "Attraversiamo foreste di lecci secolari lungo sentieri tecnici immersi nella natura." },
-      { title: "Panorami sul Supramonte", desc: "Saliamo verso i crinali più alti con vista sul Supramonte e le valli circostanti." },
-      { title: "Discesa finale", desc: "Ultima tappa tra valli incontaminate e borghi dell'entroterra prima del rientro." },
-    ],
-  },
-  {
-    name: "Sardegna Enduro Week",
-    type: "Enduro",
-    durata: "7 Giorni",
-    km: "620 km",
-    livello: "Avanzato",
-    sterrato: "82%",
-    interesse: "Nuraghi, Barbagia, Supramonte, Golfo di Orosei",
-    pranzo: true,
-    periodo: "Aprile - Ottobre",
-    date: "2026-08-29",
-    descrizione: "Una settimana immersiva tra i sentieri enduro più suggestivi dell'isola.",
-    groups: ["week"],
-    tappe: [
-      { title: "Nuraghi e primi sterrati", desc: "Prime uscite tra antichi nuraghi e sterrati di livello progressivo per prendere confidenza." },
-      { title: "Barbagia profonda", desc: "Ci addentriamo nella Barbagia più autentica, tra borghi di pietra e tradizioni pastorali." },
-      { title: "Supramonte tecnico", desc: "Giornata impegnativa tra i sentieri più tecnici del Supramonte, con vista su Tiscali." },
-      { title: "Golfo di Orosei", desc: "Discesa verso il Golfo di Orosei, tra calette e sterrati a picco sul mare." },
-      { title: "Canyon e altipiani", desc: "Esplorazione dei canyon interni e degli altipiani che dividono le due coste dell'isola." },
-      { title: "Tramonto in sella", desc: "Tappa panoramica pensata per godersi il tramonto sardo dai punti più suggestivi del percorso." },
-      { title: "Rientro e saluti", desc: "Ultima giornata leggera tra i borghi vicino alla base, per chiudere la settimana in bellezza." },
-    ],
-  },
-  {
-    name: "Isola in Quad Week",
-    type: "Quad",
-    durata: "7 Giorni",
-    km: "580 km",
-    livello: "Intermedio",
-    sterrato: "65%",
-    interesse: "Dune di Piscinas, Coste, Altipiani, Borghi storici",
-    pranzo: true,
-    periodo: "Tutto l'anno",
-    date: "2026-08-08",
-    descrizione: "Sette giorni in quad per esplorare l'isola da costa a costa, tra dune e altipiani.",
-    groups: ["week"],
-    tappe: [
-      { title: "Dune di Piscinas", desc: "Si parte tra le dune dorate più alte d'Europa, prendendo confidenza con il mezzo." },
-      { title: "Costa Verde", desc: "Percorriamo la costa selvaggia tra spiagge nascoste e falesie a picco sul mare." },
-      { title: "Miniere abbandonate", desc: "Visita ai villaggi minerari del Sulcis, tra archeologia industriale e paesaggi lunari." },
-      { title: "Altipiani centrali", desc: "Saliamo verso gli altipiani interni, con lunghi tratti panoramici in quota." },
-      { title: "Borghi storici", desc: "Tappa culturale tra borghi dell'entroterra, tradizioni locali e prodotti tipici." },
-      { title: "Coste opposte", desc: "Attraversata da costa a costa, per scoprire i contrasti paesaggistici dell'isola." },
-      { title: "Rientro finale", desc: "Ultima tappa rilassata verso la base, tra soste fotografiche e saluti finali." },
-    ],
-  },
-  {
-    name: "Sardegna E-Bike Experience",
-    type: "E-Bike",
-    durata: "2 Giorni",
-    km: "70 km",
-    livello: "Facile",
-    sterrato: "65%",
-    interesse: "Nuraghi, Pinnette, Borghi, Costa",
-    pranzo: true,
-    periodo: "Tutto l'anno",
-    date: null,
-    // Itinerario TIPO (di esempio), non un tour a catalogo con date confermate:
-    // pensato per e-bike a pedalata assistita, personalizzabile per ogni gruppo.
-    descrizione: "Itinerario tipo su e-bike a pedalata assistita: due giorni tra sterrati facili, nuraghi e borghi dell'entroterra. Personalizzabile per ogni gruppo.",
-    groups: ["weekend"],
-    tappe: [
-      { title: "Sterrati e nuraghi", desc: "Prima giornata tra sterrati facili e siti nuragici: la pedalata assistita rende ogni salita accessibile, senza fretta e a contatto con la natura." },
-      { title: "Borghi e costa", desc: "Seconda giornata verso i borghi dell'entroterra e uno scorcio di costa, tra soste panoramiche, prodotti tipici e sentieri silenziosi." },
-    ],
-  },
-  {
-    name: "Custom Moto Club",
-    type: "Su Misura",
-    durata: "Variabile",
-    km: "Su richiesta",
-    livello: "Personalizzato",
-    sterrato: "Su richiesta",
-    interesse: "Definito insieme al gruppo",
-    pranzo: true,
-    periodo: "Tutto l'anno",
-    date: null,
-    descrizione: "Itinerario cucito su misura per il tuo gruppo o moto club: territorio, difficoltà e durata scelti da voi.",
-    groups: ["custom"],
-  },
-];
-
-/**
- * Fotografie reali associate alle tappe, per tipo di mezzo.
- * Ogni pool mescola scatti della categoria e scatti di territorio/gruppo, così
- * le tappe di uno stesso tour non ripetono mai la stessa immagine.
- */
-const tappaPools = {
-  Maxienduro: [
-    "maxienduro-tenere",
-    "hero-maxienduro-panorama",
-    "maxienduro-sosta-bosco",
-    "gruppo-altopiano",
-    "pinnetta-sosta",
-    "guida-sentiero",
-  ],
-  Enduro: [
-    "enduro-sentiero",
-    "hero-enduro-gruppo",
-    "enduro-vetta",
-    "cat-enduro",
-    "grotta-mineraria",
-    "gruppo-altopiano",
-    "moto-costa",
-    "pinnetta-sosta",
-  ],
-  Quad: [
-    "hero-quad-convoglio",
-    "quad-pietraia",
-    "cat-quad",
-    "moto-costa",
-    "gruppo-altopiano",
-    "grotta-mineraria",
-    "pinnetta-sosta",
-  ],
-  "4x4": [
-    "4x4-crinale",
-    "4x4-guado",
-    "4x4-borgo-pietra",
-    "hero-4x4-costa",
-    "cat-4x4",
-    "gruppo-altopiano",
-  ],
-  "E-Bike": [
-    "ebike-costa",
-    "ebike-pineta",
-    "pinnetta-sosta",
-    "grotta-mineraria",
-  ],
-};
-
-for (const tour of tours) {
-  const pool = tappaPools[tour.type];
-  if (!tour.tappe || !pool) continue;
-  tour.tappe.forEach((tappa, i) => {
-    tappa.foto = pool[i % pool.length];
-  });
-}
+export const tours = normalizeTours(tourCatalogContent);
 
 export const typeColors = {
   Maxienduro: "#A0612A",
@@ -254,9 +24,12 @@ export const typeColors = {
 };
 
 export default function TourDetails({ activeFilter, onClearFilter, id = "tour-details", className = "", showAllByDefault = false, hideHeader = false }) {
+  const { tours: editableTours } = useSiteContent();
   if (!activeFilter && !showAllByDefault) return null;
 
-  const filteredTours = activeFilter ? tours.filter((t) => t.groups.includes(activeFilter)) : tours;
+  const filteredTours = activeFilter
+    ? editableTours.filter((t) => t.groups.includes(activeFilter))
+    : editableTours;
 
   return (
     <motion.section

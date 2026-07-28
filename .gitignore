@@ -1,6 +1,7 @@
 #env
 .env
 .env.*
+!.env.example
 
 # Logs
 /logs
@@ -27,11 +28,14 @@ dist-ssr
 *.sln
 *.sw?
 
-.env
 .vite
 .vercel
 .claude
 graphify-out
+
+# Generati da TinaCMS durante dev/build
+public/admin/
+tina/__generated__/
 
 # Config MCP locale (tooling, non parte del sito)
 .mcp.json

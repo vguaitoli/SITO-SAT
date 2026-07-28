@@ -8,11 +8,11 @@ import Reveal from "@/components/Reveal";
 import Photo from "@/components/Photo";
 import PhotoRibbon from "@/components/PhotoRibbon";
 import TourCard from "@/components/TourCard.jsx";
-import { tours, typeColors } from "@/components/TourDetails.jsx";
+import { typeColors } from "@/components/TourDetails.jsx";
 import { CATEGORIE, categoria } from "@/data/categorie";
 import { fotoProps } from "@/data/foto-helpers";
-import { CTA_LABELS, SITE, TOUR_GROUP, whatsappLink } from "@/config/site";
 import guideGianluca from "@/assets/guides/guide-gianluca-serra.webp";
+import { useSiteContent } from "@/content/TinaContentProvider";
 
 /**
  * Pagina dedicata a una delle esperienze.
@@ -23,6 +23,9 @@ import guideGianluca from "@/assets/guides/guide-gianluca-serra.webp";
 export default function CategoriaPage() {
   const { cat } = useParams();
   const c = categoria(cat);
+  const { tours, CTA_LABELS, SITE, TOUR_GROUP } = useSiteContent();
+  const whatsappLink = (message) =>
+    `https://wa.me/${SITE.whatsapp.numero}?text=${encodeURIComponent(message)}`;
 
   if (!c) return <Navigate to="/#esperienze" replace />;
 

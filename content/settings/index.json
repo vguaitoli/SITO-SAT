@@ -1,0 +1,28 @@
+{
+  "name": "Sardegna Trail Avventura",
+  "tagline": "Tour e corsi off-road in Sardegna",
+  "email": "sardegnatrailavventura@gmail.com",
+  "phoneE164": "393487981591",
+  "phoneDisplay": "+39 348 79 81 591",
+  "whatsappMessage": "Ciao! Vorrei verificare la disponibilità per un tour off-road in Sardegna.",
+  "contactsVerified": true,
+  "instagram": "https://instagram.com/sardegnatrailavventura",
+  "facebook": "https://facebook.com/sardegnatrailavventura",
+  "socialHandle": "@sardegnatrailavventura",
+  "region": "Sardegna, Italia",
+  "mapsUrl": "https://maps.google.com/?q=Sardegna",
+  "cta": {
+    "primary": "Verifica disponibilità",
+    "whatsapp": "Scrivici su WhatsApp"
+  },
+  "tourGroup": {
+    "label": "Da 5 a 10 partecipanti",
+    "sentence": "I tour sono organizzati per gruppi da 5 a 10 partecipanti."
+  },
+  "legal": {
+    "businessName": "Sardegna Trail Avventura",
+    "legalForm": "Ditta individuale",
+    "vatNumber": "03063400901",
+    "address": "Strada Vicinale Zinziodda Li Buttagari, 111 — 07100 Sassari (SS)"
+  }
+}

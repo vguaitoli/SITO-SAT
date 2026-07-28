@@ -1,6 +1,7 @@
 {
   "trailingSlash": false,
   "rewrites": [
+    { "source": "/admin", "destination": "/admin/index.html" },
     { "source": "/privacy", "destination": "/_seo/privacy.html" },
     { "source": "/cookie-policy", "destination": "/_seo/cookie-policy.html" },
     { "source": "/itinerari", "destination": "/_seo/itinerari.html" },

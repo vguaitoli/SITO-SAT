@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, BadgeEuro, BedDouble, Clock, Gauge, TrendingUp, Percent, MapPin, UtensilsCrossed, Calendar, Navigation, Users } from "lucide-react";
 import TourFullDetailsModal from "@/components/TourFullDetailsModal.jsx";
-import { TOUR_GROUP } from "@/config/site";
+import { tinaField } from "tinacms/dist/react";
+import { useSiteContent } from "@/content/TinaContentProvider";
 
 export default function TourCard({ tour, color }) {
+  const { TOUR_GROUP } = useSiteContent();
   const [flipped, setFlipped] = useState(false);
   const [showFull, setShowFull] = useState(false);
 
@@ -29,7 +31,7 @@ export default function TourCard({ tour, color }) {
               {tour.type}
             </span>
             <h3 className="font-heading text-3xl text-[#F5EBD9] leading-none tracking-wide">
-              {tour.name}
+              <span data-tina-field={tinaField(tour, "name")}>{tour.name}</span>
             </h3>
           </div>
 
@@ -100,14 +102,29 @@ export default function TourCard({ tour, color }) {
             {tour.price && (
               <div className="flex items-center gap-2">
                 <BadgeEuro size={15} className="text-[#6B7A3E]" aria-hidden="true" />
-                <span className="font-body text-sm text-[#F5EBD9]/80">{tour.price}</span>
+                <span
+                  className="font-body text-sm text-[#F5EBD9]/80"
+                  data-tina-field={tinaField(tour, "price")}
+                >
+                  {tour.price}
+                </span>
               </div>
             )}
             <div className="flex items-start gap-2">
               <Calendar size={15} className="text-[#6B7A3E] flex-shrink-0 mt-0.5" />
-              <span className="font-body text-sm text-[#F5EBD9]/80 leading-tight">{tour.periodo}</span>
+              <span
+                className="font-body text-sm text-[#F5EBD9]/80 leading-tight"
+                data-tina-field={tinaField(tour, "period")}
+              >
+                {tour.periodo}
+              </span>
             </div>
-            <p className="font-body text-sm text-[#F5EBD9]/60 leading-relaxed mt-1">{tour.descrizione}</p>
+            <p
+              className="font-body text-sm text-[#F5EBD9]/60 leading-relaxed mt-1"
+              data-tina-field={tinaField(tour, "description")}
+            >
+              {tour.descrizione}
+            </p>
             <div className="flex items-center mt-2">
               <button
                 onClick={(e) => { e.stopPropagation(); setShowFull(true); }}

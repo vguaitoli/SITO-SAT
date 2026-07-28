@@ -1,0 +1,360 @@
+{
+  "tours": [
+    {
+      "name": "Supramonte Extreme",
+      "type": "Maxienduro",
+      "duration": "3 Giorni",
+      "distance": "260 km",
+      "level": "Esperto",
+      "offroad": "88%",
+      "interest": "Tiscali, Golgo, Cala Luna, Baunei",
+      "lunchIncluded": true,
+      "period": "Ottobre - Aprile",
+      "date": "2026-10-17T00:00:00.000Z",
+      "price": "Su richiesta",
+      "description": "Tre giorni nel cuore del Supramonte, dai nuraghi d'altura alle gole calcaree.",
+      "groups": [
+        "weekend"
+      ],
+      "stages": [
+        {
+          "title": "Verso Tiscali",
+          "description": "Si parte alla volta dell'altopiano di Tiscali, tra doline e villaggi nuragici nascosti nella roccia.",
+          "image": "/media/reali/maxienduro-tenere-1200.webp",
+          "imageAlt": "Maxienduro da viaggio parcheggiata su uno sterrato sotto il cielo sardo"
+        },
+        {
+          "title": "Golgo e i canyon",
+          "description": "Attraversiamo l'altopiano del Golgo fino ai bordi del canyon, con soste panoramiche mozzafiato.",
+          "image": "/media/reali/hero-maxienduro-panorama-1800.webp",
+          "imageAlt": "Due maxienduro parcheggiate su uno sterrato panoramico con le montagne sarde sullo sfondo"
+        },
+        {
+          "title": "Cala Luna e Baunei",
+          "description": "Discesa verso la costa, tra sentieri stretti e la vista finale sulla splendida Cala Luna.",
+          "image": "/media/reali/maxienduro-sosta-bosco-1200.webp",
+          "imageAlt": "Rider in sosta con le maxienduro lungo un sentiero nel bosco"
+        }
+      ]
+    },
+    {
+      "name": "Barbagia Trail",
+      "type": "Enduro",
+      "duration": "2 Giorni",
+      "distance": "180 km",
+      "level": "Avanzato",
+      "offroad": "85%",
+      "interest": "Borghi antichi, Canyon di Gorropu, Foreste",
+      "lunchIncluded": true,
+      "period": "Ottobre - Maggio",
+      "date": "2026-10-03T00:00:00.000Z",
+      "price": "Su richiesta",
+      "description": "Due giorni di sentieri tecnici nella Barbagia più selvaggia, tra borghi di pietra e passaggi da enduro puro.",
+      "groups": [
+        "weekend"
+      ],
+      "stages": [
+        {
+          "title": "Borghi antichi",
+          "description": "Attraversiamo i borghi di pietra della Barbagia, tra vicoli, murales e antiche tradizioni pastorali.",
+          "image": "/media/reali/enduro-sentiero-1200.webp",
+          "imageAlt": "Rider su moto da enduro lungo un sentiero sterrato tra le montagne"
+        },
+        {
+          "title": "Canyon di Gorropu e foreste",
+          "description": "Sentieri tecnici tra le foreste secolari fino al bordo del canyon di Gorropu, uno dei più profondi d'Europa.",
+          "image": "/media/reali/hero-enduro-gruppo-1200.webp",
+          "imageAlt": "Moto da enduro e rider su un sentiero fiorito tra le montagne della Sardegna"
+        }
+      ]
+    },
+    {
+      "name": "Costa & Dune Expedition",
+      "type": "Quad",
+      "duration": "2 Giorni",
+      "distance": "220 km",
+      "level": "Principiante",
+      "offroad": "60%",
+      "interest": "Dune di Piscinas, Costa verde, Miniere abbandonate",
+      "lunchIncluded": true,
+      "period": "Tutto l'anno",
+      "date": "2026-07-25T00:00:00.000Z",
+      "price": "Su richiesta",
+      "description": "Due giorni tra dune dorate e coste incontaminate, con pernottamento e mezzi quad accessibili a tutti.",
+      "groups": [
+        "weekend"
+      ],
+      "stages": [
+        {
+          "title": "Dune di Piscinas",
+          "description": "Prime evoluzioni tra le dune dorate più alte d'Europa, con soste fotografiche e pranzo tipico.",
+          "image": "/media/reali/hero-quad-convoglio-1200.webp",
+          "imageAlt": "Convoglio di quad su una pista sterrata immersa nella macchia mediterranea"
+        },
+        {
+          "title": "Costa Verde e miniere",
+          "description": "Costeggiamo la Costa Verde tra spiagge selvagge e le suggestive miniere abbandonate del Sulcis.",
+          "image": "/media/reali/quad-pietraia-1200.webp",
+          "imageAlt": "Quad affronta un tratto roccioso in salita in un bosco"
+        }
+      ]
+    },
+    {
+      "name": "Sardegna 4x4 Explorer",
+      "type": "4x4",
+      "duration": "4 Giorni",
+      "distance": "350 km",
+      "level": "Intermedio",
+      "offroad": "70%",
+      "interest": "Altipiani del Gennargentu, Miniere del Sulcis, Coste selvagge",
+      "lunchIncluded": true,
+      "period": "Marzo - Novembre",
+      "date": "2026-08-22T00:00:00.000Z",
+      "price": "Su richiesta",
+      "description": "Quattro giorni a bordo di mezzi 4x4 tra altipiani, miniere abbandonate e coste remote.",
+      "groups": [
+        "weekend"
+      ],
+      "stages": [
+        {
+          "title": "Altipiani del Gennargentu",
+          "description": "Saliamo verso gli altipiani più alti della Sardegna, tra panorami infiniti e strade sterrate.",
+          "image": "/media/reali/4x4-crinale-1200.webp",
+          "imageAlt": "Fuoristrada 4x4 attrezzato su una pista di crinale tra le montagne sarde"
+        },
+        {
+          "title": "Miniere del Sulcis",
+          "description": "Visita ai suggestivi villaggi minerari abbandonati, testimonianza della storia mineraria dell'isola.",
+          "image": "/media/reali/4x4-guado-1800.webp",
+          "imageAlt": "Fuoristrada 4x4 durante il guado di un fiume in Sardegna"
+        },
+        {
+          "title": "Coste selvagge",
+          "description": "Discesa verso coste remote e incontaminate, lontane dai percorsi turistici classici.",
+          "image": "/media/reali/4x4-borgo-pietra-1800.webp",
+          "imageAlt": "Fuoristrada 4x4 in sosta accanto a una costruzione in pietra dell'entroterra"
+        },
+        {
+          "title": "Rientro panoramico",
+          "description": "Ultimo giorno tra borghi dell'entroterra e soste panoramiche prima del rientro.",
+          "image": "/media/reali/hero-4x4-costa-1200.webp",
+          "imageAlt": "Fuoristrada 4x4 su una pista in quota con il mare della Sardegna sullo sfondo"
+        }
+      ]
+    },
+    {
+      "name": "Gennargentu Wild",
+      "type": "Maxienduro",
+      "duration": "4 Giorni",
+      "distance": "380 km",
+      "level": "Esperto",
+      "offroad": "80%",
+      "interest": "Nuraghi, Boschi secolari, Panorami Supramonte",
+      "lunchIncluded": true,
+      "period": "Marzo - Giugno · Settembre - Novembre",
+      "date": "2026-09-19T00:00:00.000Z",
+      "price": "Su richiesta",
+      "description": "Quattro giorni tra le creste del Gennargentu, sterrati panoramici e discese verso valli incontaminate.",
+      "groups": [
+        "weekend"
+      ],
+      "stages": [
+        {
+          "title": "Nuraghi e primi sentieri",
+          "description": "Partiamo tra antichi nuraghi e i primi sterrati panoramici che introducono al massiccio.",
+          "image": "/media/reali/maxienduro-tenere-1200.webp",
+          "imageAlt": "Maxienduro da viaggio parcheggiata su uno sterrato sotto il cielo sardo"
+        },
+        {
+          "title": "Boschi secolari",
+          "description": "Attraversiamo foreste di lecci secolari lungo sentieri tecnici immersi nella natura.",
+          "image": "/media/reali/hero-maxienduro-panorama-1800.webp",
+          "imageAlt": "Due maxienduro parcheggiate su uno sterrato panoramico con le montagne sarde sullo sfondo"
+        },
+        {
+          "title": "Panorami sul Supramonte",
+          "description": "Saliamo verso i crinali più alti con vista sul Supramonte e le valli circostanti.",
+          "image": "/media/reali/maxienduro-sosta-bosco-1200.webp",
+          "imageAlt": "Rider in sosta con le maxienduro lungo un sentiero nel bosco"
+        },
+        {
+          "title": "Discesa finale",
+          "description": "Ultima tappa tra valli incontaminate e borghi dell'entroterra prima del rientro.",
+          "image": "/media/reali/gruppo-altopiano-1800.webp",
+          "imageAlt": "Gruppo di rider in sosta con le moto su un altopiano verde della Sardegna"
+        }
+      ]
+    },
+    {
+      "name": "Sardegna Enduro Week",
+      "type": "Enduro",
+      "duration": "7 Giorni",
+      "distance": "620 km",
+      "level": "Avanzato",
+      "offroad": "82%",
+      "interest": "Nuraghi, Barbagia, Supramonte, Golfo di Orosei",
+      "lunchIncluded": true,
+      "period": "Aprile - Ottobre",
+      "date": "2026-08-29T00:00:00.000Z",
+      "price": "Su richiesta",
+      "description": "Una settimana immersiva tra i sentieri enduro più suggestivi dell'isola.",
+      "groups": [
+        "week"
+      ],
+      "stages": [
+        {
+          "title": "Nuraghi e primi sterrati",
+          "description": "Prime uscite tra antichi nuraghi e sterrati di livello progressivo per prendere confidenza.",
+          "image": "/media/reali/enduro-sentiero-1200.webp",
+          "imageAlt": "Rider su moto da enduro lungo un sentiero sterrato tra le montagne"
+        },
+        {
+          "title": "Barbagia profonda",
+          "description": "Ci addentriamo nella Barbagia più autentica, tra borghi di pietra e tradizioni pastorali.",
+          "image": "/media/reali/hero-enduro-gruppo-1200.webp",
+          "imageAlt": "Moto da enduro e rider su un sentiero fiorito tra le montagne della Sardegna"
+        },
+        {
+          "title": "Supramonte tecnico",
+          "description": "Giornata impegnativa tra i sentieri più tecnici del Supramonte, con vista su Tiscali.",
+          "image": "/media/reali/enduro-vetta-768.webp",
+          "imageAlt": "Rider esulta accanto alla moto da enduro in cima a un percorso panoramico"
+        },
+        {
+          "title": "Golfo di Orosei",
+          "description": "Discesa verso il Golfo di Orosei, tra calette e sterrati a picco sul mare.",
+          "image": "/media/reali/cat-enduro-1800.webp",
+          "imageAlt": "Rider in sosta con le moto da enduro su un crinale panoramico"
+        },
+        {
+          "title": "Canyon e altipiani",
+          "description": "Esplorazione dei canyon interni e degli altipiani che dividono le due coste dell'isola.",
+          "image": "/media/reali/grotta-mineraria-1200.webp",
+          "imageAlt": "Ingresso di una vecchia cava scavata nella roccia lungo il percorso"
+        },
+        {
+          "title": "Tramonto in sella",
+          "description": "Tappa panoramica pensata per godersi il tramonto sardo dai punti più suggestivi del percorso.",
+          "image": "/media/reali/gruppo-altopiano-1800.webp",
+          "imageAlt": "Gruppo di rider in sosta con le moto su un altopiano verde della Sardegna"
+        },
+        {
+          "title": "Rientro e saluti",
+          "description": "Ultima giornata leggera tra i borghi vicino alla base, per chiudere la settimana in bellezza.",
+          "image": "/media/reali/moto-costa-1200.webp",
+          "imageAlt": "Rider in sosta con la moto lungo un tratto costiero sterrato"
+        }
+      ]
+    },
+    {
+      "name": "Isola in Quad Week",
+      "type": "Quad",
+      "duration": "7 Giorni",
+      "distance": "580 km",
+      "level": "Intermedio",
+      "offroad": "65%",
+      "interest": "Dune di Piscinas, Coste, Altipiani, Borghi storici",
+      "lunchIncluded": true,
+      "period": "Tutto l'anno",
+      "date": "2026-08-08T00:00:00.000Z",
+      "price": "Su richiesta",
+      "description": "Sette giorni in quad per esplorare l'isola da costa a costa, tra dune e altipiani.",
+      "groups": [
+        "week"
+      ],
+      "stages": [
+        {
+          "title": "Dune di Piscinas",
+          "description": "Si parte tra le dune dorate più alte d'Europa, prendendo confidenza con il mezzo.",
+          "image": "/media/reali/hero-quad-convoglio-1200.webp",
+          "imageAlt": "Convoglio di quad su una pista sterrata immersa nella macchia mediterranea"
+        },
+        {
+          "title": "Costa Verde",
+          "description": "Percorriamo la costa selvaggia tra spiagge nascoste e falesie a picco sul mare.",
+          "image": "/media/reali/quad-pietraia-1200.webp",
+          "imageAlt": "Quad affronta un tratto roccioso in salita in un bosco"
+        },
+        {
+          "title": "Miniere abbandonate",
+          "description": "Visita ai villaggi minerari del Sulcis, tra archeologia industriale e paesaggi lunari.",
+          "image": "/media/reali/cat-quad-1200.webp",
+          "imageAlt": "Quad in marcia su una pista sterrata accanto a pale eoliche"
+        },
+        {
+          "title": "Altipiani centrali",
+          "description": "Saliamo verso gli altipiani interni, con lunghi tratti panoramici in quota.",
+          "image": "/media/reali/moto-costa-1200.webp",
+          "imageAlt": "Rider in sosta con la moto lungo un tratto costiero sterrato"
+        },
+        {
+          "title": "Borghi storici",
+          "description": "Tappa culturale tra borghi dell'entroterra, tradizioni locali e prodotti tipici.",
+          "image": "/media/reali/gruppo-altopiano-1800.webp",
+          "imageAlt": "Gruppo di rider in sosta con le moto su un altopiano verde della Sardegna"
+        },
+        {
+          "title": "Coste opposte",
+          "description": "Attraversata da costa a costa, per scoprire i contrasti paesaggistici dell'isola.",
+          "image": "/media/reali/grotta-mineraria-1200.webp",
+          "imageAlt": "Ingresso di una vecchia cava scavata nella roccia lungo il percorso"
+        },
+        {
+          "title": "Rientro finale",
+          "description": "Ultima tappa rilassata verso la base, tra soste fotografiche e saluti finali.",
+          "image": "/media/reali/pinnetta-sosta-1200.webp",
+          "imageAlt": "Sosta del gruppo accanto alle pinnette, le capanne tradizionali dei pastori sardi"
+        }
+      ]
+    },
+    {
+      "name": "Sardegna E-Bike Experience",
+      "type": "E-Bike",
+      "duration": "2 Giorni",
+      "distance": "70 km",
+      "level": "Facile",
+      "offroad": "65%",
+      "interest": "Nuraghi, Pinnette, Borghi, Costa",
+      "lunchIncluded": true,
+      "period": "Tutto l'anno",
+      "date": null,
+      "price": "Su richiesta",
+      "description": "Itinerario tipo su e-bike a pedalata assistita: due giorni tra sterrati facili, nuraghi e borghi dell'entroterra. Personalizzabile per ogni gruppo.",
+      "groups": [
+        "weekend"
+      ],
+      "stages": [
+        {
+          "title": "Sterrati e nuraghi",
+          "description": "Prima giornata tra sterrati facili e siti nuragici: la pedalata assistita rende ogni salita accessibile, senza fretta e a contatto con la natura.",
+          "image": "/media/reali/ebike-costa-1200.webp",
+          "imageAlt": "Ciclista in mountain bike su una spiaggia sarda, con il mare cristallino sullo sfondo"
+        },
+        {
+          "title": "Borghi e costa",
+          "description": "Seconda giornata verso i borghi dell'entroterra e uno scorcio di costa, tra soste panoramiche, prodotti tipici e sentieri silenziosi.",
+          "image": "/media/reali/ebike-pineta-1200.webp",
+          "imageAlt": "Mountain bike appoggiata a un pino su una caletta turchese della Sardegna"
+        }
+      ]
+    },
+    {
+      "name": "Custom Moto Club",
+      "type": "Su Misura",
+      "duration": "Variabile",
+      "distance": "Su richiesta",
+      "level": "Personalizzato",
+      "offroad": "Su richiesta",
+      "interest": "Definito insieme al gruppo",
+      "lunchIncluded": true,
+      "period": "Tutto l'anno",
+      "date": null,
+      "price": "Su richiesta",
+      "description": "Itinerario cucito su misura per il tuo gruppo o moto club: territorio, difficoltà e durata scelti da voi.",
+      "groups": [
+        "custom"
+      ],
+      "stages": []
+    }
+  ]
+}

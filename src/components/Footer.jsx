@@ -1,9 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Phone, Mail, Instagram, Facebook, MessageCircle } from "lucide-react";
-import { CTA_LABELS, SITE } from "@/config/site";
 import { CATEGORIE } from "@/data/categorie";
 import PhotoRibbon from "@/components/PhotoRibbon";
+import { useSiteContent } from "@/content/TinaContentProvider";
 
 // Nastro fotografico dal materiale reale, senza ripetizioni ravvicinate.
 const ribbonSlugs = [
@@ -30,6 +30,7 @@ const navItems = [
 const toTarget = (href) => (href.startsWith("#") ? `/${href}` : href);
 
 export default function Footer() {
+  const { CTA_LABELS, SITE } = useSiteContent();
   return (
     <footer className="border-t border-[var(--accent)]/30 bg-[var(--obsidian)]">
       {/* Nastro fotografico scorrevole */}

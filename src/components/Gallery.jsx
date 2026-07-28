@@ -1,50 +1,49 @@
 import React, { useState } from "react";
 import GalleryLightbox from "@/components/GalleryLightbox";
 import SectionHeading from "@/components/SectionHeading";
-import { fotoProps } from "@/data/foto-helpers";
+import { tinaField } from "tinacms/dist/react";
+import { useSiteContent } from "@/content/TinaContentProvider";
 
-/**
- * Galleria editoriale: alterna mezzi, persone, percorsi, paesaggi e momenti
- * dell'esperienza. Tutte le foto sono reali (manifest src/data/foto.js).
- */
-const items = [
-  { slug: "hero-maxienduro-panorama", span: "col-span-2 row-span-2" },
-  { slug: "hero-ssv-guado" },
-  { slug: "4x4-guado" },
-  { slug: "hero-quad-convoglio" },
-  { slug: "enduro-vetta" },
-  { slug: "pranzo-tavolata", span: "col-span-2" },
-  { slug: "pinnetta-sosta" },
-  { slug: "guida-sentiero" },
-  { slug: "ssv-spiaggia-flotta", span: "col-span-2" },
-  { slug: "grotta-mineraria" },
-  { slug: "4x4-crinale" },
-];
-
-const images = items
-  .map((it) => {
-    const f = fotoProps(it.slug);
-    return f ? { ...f, span: it.span || "" } : null;
-  })
-  .filter(Boolean);
+const layoutClasses = {
+  normal: "",
+  wide: "col-span-2",
+  featured: "col-span-2 row-span-2",
+};
 
 export default function Gallery() {
+  const { homepage } = useSiteContent();
+  const content = homepage.gallery;
+  const images = content.images.map((item) => ({
+    ...item,
+    src: item.image,
+    aspect: 4 / 3,
+    span: layoutClasses[item.layout] || "",
+  }));
   const [selectedIndex, setSelectedIndex] = useState(null);
 
   return (
     <section id="gallery" className="bg-[var(--obsidian)] topo-dark py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
         <div className="mb-14 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-          <SectionHeading eyebrow="Gallery" title="L'avventura" accent="in immagini" className="mb-0" />
-          <p className="max-w-md font-body text-base leading-relaxed text-[var(--granite-mist)]/60">
-            Fotografie scattate durante i nostri tour. Nessuna posa, nessuno stock:
-            solo la Sardegna come la trovi tu.
+          <div data-tina-field={tinaField(content)}>
+            <SectionHeading
+              eyebrow={content.eyebrow}
+              title={content.title}
+              accent={content.accent}
+              className="mb-0"
+            />
+          </div>
+          <p
+            className="max-w-md font-body text-base leading-relaxed text-[var(--granite-mist)]/60"
+            data-tina-field={tinaField(content, "intro")}
+          >
+            {content.intro}
           </p>
         </div>
 
         <ul className="grid auto-rows-[150px] grid-cols-2 gap-2 lg:auto-rows-[220px] lg:grid-cols-4">
           {images.map((img, i) => (
-            <li key={img.slug} className={img.span}>
+            <li key={`${img.image}-${i}`} className={img.span} data-tina-field={tinaField(content.images[i])}>
               <button
                 type="button"
                 onClick={() => setSelectedIndex(i)}
@@ -53,8 +52,6 @@ export default function Gallery() {
               >
                 <img
                   src={img.src}
-                  srcSet={img.srcSet}
-                  sizes="(min-width: 1024px) 25vw, 50vw"
                   alt={img.alt}
                   width={1200}
                   height={Math.round(1200 / img.aspect)}
