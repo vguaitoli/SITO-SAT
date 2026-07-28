@@ -5,7 +5,7 @@
       "type": "4x4",
       "duration": "5 Giorni",
       "distance": "750",
-      "level": "Medio-Avanzato",
+      "level": "Facile-Medio",
       "offroad": "Off-road",
       "interest": "Mare, montagne e sottobosco",
       "lunchIncluded": true,
@@ -14,15 +14,20 @@
       "startDate": "2026-08-12T00:00:00.000Z",
       "endDate": "2026-08-16T00:00:00.000Z",
       "price": "€350 a persona",
-      "description": "Cinque giorni nel cuore della Sardegna più autentica. \nUn viaggio esclusivo dedicato agli appassionati di veicoli 4x4, alla scoperta degli angoli più selvaggi e incontaminati dell'isola.",
+      "description": "Cinque giorni nel cuore della Sardegna più autentica. \nUn viaggio esclusivo dedicato agli appassionati di veicoli 4x4, alla scoperta degli angoli più selvaggi e incontaminati dell'isola.\nil Wild Camp non è un semplice tour in 4x4. È un viaggio nella Sardegna più autentica, tra natura, tradizioni e luoghi che pochi hanno il privilegio di conoscere. Un'esperienza esclusiva pensata per chi desidera vivere il fuoristrada con passione, rispetto e spirito di avventura.",
       "programNote": "Durante il Wild Camp attraverseremo montagne, foreste, altopiani e antiche piste pastorali, vivendo un'esperienza a stretto contatto con la natura nel pieno rispetto del territorio.",
       "included": [
         "Guida locale esperta",
         "Pernottamenti in tenda",
-        "Percorsi off-road tra mare e montagna",
-        "Esperienza in gruppo a posti limitati"
+        "Assistenza tecnica",
+        "Cena tipica con il Pastore nel Supramonte di Orgosolo",
+        "Gestione permessi per bivacco e pernottanmento",
+        "Gestione autorizzazioni di transito, ove previsto"
       ],
-      "equipment": [],
+      "equipment": [
+        "Veicoli fuoristrada 4x4 dotati di riduttore e in perfette condizioni meccaniche",
+        "è richiesta una minima esperienza in guida fuoristrada"
+      ],
       "stages": [
         {
           "title": "Tappa 1: Nuoro > Jerzu",
