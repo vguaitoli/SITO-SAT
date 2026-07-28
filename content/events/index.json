@@ -4,18 +4,18 @@
       "name": "Wild Camp di Ferragosto",
       "type": "4x4",
       "duration": "5 Giorni",
-      "distance": "Da confermare",
-      "level": "Da verificare",
+      "distance": "750",
+      "level": "Medio-Avanzato",
       "offroad": "Off-road",
-      "interest": "Mare, montagne e natura incontaminata",
-      "lunchIncluded": false,
+      "interest": "Mare, montagne e sottobosco",
+      "lunchIncluded": true,
       "accommodation": "Pernottamenti in tenda",
       "period": "12–16 agosto 2026",
       "startDate": "2026-08-12T00:00:00.000Z",
       "endDate": "2026-08-16T00:00:00.000Z",
       "price": "€350 a persona",
-      "description": "Cinque giorni di avventura in 4x4 nella Sardegna più selvaggia, lontano dai luoghi affollati, tra piste off-road e notti sotto le stelle.",
-      "programNote": "Il Wild Camp attraversa ambienti di mare e montagna con pernottamenti in tenda. Il programma dettagliato e il livello richiesto vengono confermati prima della partenza.",
+      "description": "Cinque giorni nel cuore della Sardegna più autentica. \nUn viaggio esclusivo dedicato agli appassionati di veicoli 4x4, alla scoperta degli angoli più selvaggi e incontaminati dell'isola.",
+      "programNote": "Durante il Wild Camp attraverseremo montagne, foreste, altopiani e antiche piste pastorali, vivendo un'esperienza a stretto contatto con la natura nel pieno rispetto del territorio.",
       "included": [
         "Guida locale esperta",
         "Pernottamenti in tenda",
@@ -23,7 +23,12 @@
         "Esperienza in gruppo a posti limitati"
       ],
       "equipment": [],
-      "stages": [],
+      "stages": [
+        {
+          "title": "Tappa 1: Nuoro > Jerzu",
+          "description": "Ritrovo dei partecipanti a Nuoro, registrazione, briefing tecnico e partenza.\nL'itinerario si sviluppa lungo spettacolari percorsi off-road fino a raggiungere Jerzu, attraversando alcuni dei paesaggi più suggestivi dell'entroterra sardo.\n"
+        }
+      ],
       "sourceUrl": "https://www.instagram.com/p/DbAsuekIjk3/"
     },
     {
@@ -54,25 +59,25 @@
         {
           "title": "Olbia → Dorgali",
           "description": "Partenza da Olbia e prima tappa off-road verso Dorgali.",
-          "image": "/media/reali/maxienduro-tenere-1200.webp",
+          "image": "/media/cms/media/reali/maxienduro-tenere-1200.webp",
           "imageAlt": "Maxienduro da viaggio parcheggiata su uno sterrato sotto il cielo sardo"
         },
         {
           "title": "Tour nei dintorni di Dorgali",
           "description": "Giornata dedicata agli sterrati e ai paesaggi intorno a Dorgali.",
-          "image": "/media/reali/hero-maxienduro-panorama-1800.webp",
+          "image": "/media/cms/media/reali/hero-maxienduro-panorama-1800.webp",
           "imageAlt": "Due maxienduro parcheggiate su uno sterrato panoramico con le montagne sarde sullo sfondo"
         },
         {
           "title": "Nuovo itinerario off-road",
           "description": "Partenza e rientro a Dorgali lungo un nuovo itinerario fuoristrada.",
-          "image": "/media/reali/maxienduro-sosta-bosco-1200.webp",
+          "image": "/media/cms/media/reali/maxienduro-sosta-bosco-1200.webp",
           "imageAlt": "Rider in sosta con le maxienduro lungo un sentiero nel bosco"
         },
         {
           "title": "Dorgali → Olbia",
           "description": "Ultima tappa da Dorgali a Olbia e conclusione del tour.",
-          "image": "/media/reali/gruppo-altopiano-1800.webp",
+          "image": "/media/cms/media/reali/gruppo-altopiano-1800.webp",
           "imageAlt": "Gruppo di rider in sosta con le moto su un altopiano verde della Sardegna"
         }
       ],
