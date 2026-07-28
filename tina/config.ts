@@ -328,6 +328,7 @@ export default defineConfig({
                 ui: { component: "textarea" },
                 required: true,
               },
+              { type: "string", name: "exclusions", label: "Esclusioni", list: true },
               {
                 type: "string",
                 name: "groups",
@@ -410,6 +411,7 @@ export default defineConfig({
                 ui: { component: "textarea" },
               },
               { type: "string", name: "included", label: "Cosa comprende", list: true },
+              { type: "string", name: "exclusions", label: "Esclusioni", list: true },
               { type: "string", name: "equipment", label: "Equipaggiamento", list: true },
               {
                 type: "object",

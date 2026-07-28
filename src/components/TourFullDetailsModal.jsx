@@ -1,6 +1,6 @@
 import React from "react";
 import { createPortal } from "react-dom";
-import { X, BadgeEuro, CalendarDays, CheckCircle2, Clock, Gauge, TrendingUp, ShieldCheck, Send, MessageCircle, Users } from "lucide-react";
+import { X, BadgeEuro, CalendarDays, CheckCircle2, CircleX, Clock, Gauge, TrendingUp, ShieldCheck, Send, MessageCircle, Users } from "lucide-react";
 import { fotoProps } from "@/data/foto-helpers";
 import { tinaField } from "tinacms/dist/react";
 import { useSiteContent } from "@/content/TinaContentProvider";
@@ -135,6 +135,26 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
               </h4>
               <ul className="space-y-2">
                 {tour.incluso.map((item) => (
+                  <li key={item} className="font-body text-sm text-[#F5EBD9]/70 leading-relaxed flex gap-2">
+                    <span style={{ color }}>•</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {tour.esclusioni && tour.esclusioni.length > 0 && (
+            <div
+              className="border-t border-[#F5EBD9]/10 mt-8 pt-6"
+              data-tina-field={tinaField(tour, "exclusions")}
+            >
+              <h4 className="font-heading text-xl text-[#F5EBD9] tracking-wide flex items-center gap-2 mb-4">
+                <CircleX size={18} style={{ color }} />
+                Esclusioni
+              </h4>
+              <ul className="space-y-2">
+                {tour.esclusioni.map((item) => (
                   <li key={item} className="font-body text-sm text-[#F5EBD9]/70 leading-relaxed flex gap-2">
                     <span style={{ color }}>•</span>
                     {item}

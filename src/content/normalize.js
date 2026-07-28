@@ -58,6 +58,7 @@ export function normalizeTours(content) {
     periodo: tour.period,
     prezzo: tour.price,
     descrizione: tour.description,
+    esclusioni: tour.exclusions || [],
     tappe: (tour.stages || []).map((stage) => ({
       ...stage,
       title: stage.title,
@@ -85,6 +86,7 @@ export function normalizeEvents(content) {
     descrizione: event.description,
     programmaNote: event.programNote,
     incluso: event.included || [],
+    esclusioni: event.exclusions || [],
     equipaggiamento: event.equipment || [],
     tappe: (event.stages || []).map((stage) => ({
       ...stage,
