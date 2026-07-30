@@ -65,6 +65,7 @@ const staticPages = {
     description:
       "Eventi, partenze programmate e proposte off-road in Sardegna. Consulta le esperienze disponibili e richiedi informazioni.",
     image: "/media/reali/gruppo-altopiano-1200.webp",
+    lastmod: "2026-07-29",
   },
   "/blog": {
     title: `Racconti e guide sull’off-road in Sardegna | ${SITE_NAME}`,
