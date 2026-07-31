@@ -4,7 +4,7 @@
     "title": "Non visitare la Sardegna.",
     "accent": "Vivila.",
     "description": "Scopri la Sardegna più autentica con tour, spedizioni e corsi off-road guidati. Itinerari selezionati tra natura, cultura e tradizioni locali, lontano dalle rotte del turismo di massa.",
-    "logo": "/media/logo-sardegna-trail-avventura.png",
+    "logo": "/media/cms/media/logo-sardegna-trail-avventura.png",
     "logoAlt": "Sardegna Trail Avventura"
   },
   "experiences": {
@@ -87,7 +87,7 @@
       {
         "name": "Vittorio Guaitoli",
         "role": "Guida Esperta",
-        "description": "Specialista in assistenza tecnica e gestione del gruppo, garantisce un'avventura sicura ad ogni tappa del tour.",
+        "description": "Specialista in navigazione e gestione del gruppo, garantisce un'avventura sicura ad ogni tappa del tour.",
         "image": "/media/cms/guide-vittorio-guaitoli.webp",
         "imageAlt": "Vittorio Guaitoli, guida di Sardegna Trail Avventura"
       }
@@ -103,7 +103,7 @@
       "Collaboriamo con agriturismi, strutture ricettive, guide, pastori, artigiani e produttori locali, contribuendo a un turismo responsabile che valorizza le comunità e le aree interne anche nei periodi di bassa stagione."
     ],
     "quote": "Non semplici escursioni, ma esperienze autentiche tra natura, cultura e tradizioni sarde.",
-    "image": "/media/reali/chi-siamo-gruppo-1200.webp",
+    "image": "/media/cms/media/reali/chi-siamo-gruppo-1200.webp",
     "imageAlt": "Gruppo di rider enduro schierati con le moto lungo la costa sarda",
     "badgeValue": "100%",
     "badgeText": "Sardegna autentica, fuori dai sentieri turistici"
@@ -115,57 +115,57 @@
     "intro": "Momenti scattati durante i nostri tour. Nessuna posa, nessuno stock: solo la Sardegna come la trovi tu.",
     "images": [
       {
-        "image": "/media/reali/hero-maxienduro-panorama-1800.webp",
+        "image": "/media/cms/media/reali/hero-maxienduro-panorama-1800.webp",
         "alt": "Due maxienduro su uno sterrato panoramico tra le montagne sarde",
         "layout": "featured"
       },
       {
-        "image": "/media/reali/hero-ssv-guado-1200.webp",
+        "image": "/media/cms/media/reali/hero-ssv-guado-1200.webp",
         "alt": "SSV durante il guado di un torrente",
         "layout": "normal"
       },
       {
-        "image": "/media/reali/4x4-guado-1200.webp",
+        "image": "/media/cms/media/reali/4x4-guado-1200.webp",
         "alt": "Fuoristrada 4x4 durante il guado di un fiume",
         "layout": "normal"
       },
       {
-        "image": "/media/reali/hero-quad-convoglio-1200.webp",
+        "image": "/media/cms/media/reali/hero-quad-convoglio-1200.webp",
         "alt": "Convoglio di quad su una pista sterrata",
         "layout": "normal"
       },
       {
-        "image": "/media/reali/enduro-vetta-768.webp",
+        "image": "/media/cms/media/reali/enduro-vetta-768.webp",
         "alt": "Rider enduro in cima a un percorso panoramico",
         "layout": "normal"
       },
       {
-        "image": "/media/reali/pranzo-tavolata-1200.webp",
+        "image": "/media/cms/media/reali/pranzo-tavolata-1200.webp",
         "alt": "Tavolata con prodotti tipici sardi durante il tour",
         "layout": "wide"
       },
       {
-        "image": "/media/reali/pinnetta-sosta-1200.webp",
+        "image": "/media/cms/media/reali/pinnetta-sosta-1200.webp",
         "alt": "Sosta del gruppo accanto alle pinnette tradizionali",
         "layout": "normal"
       },
       {
-        "image": "/media/reali/guida-sentiero-1200.webp",
+        "image": "/media/cms/media/reali/guida-sentiero-1200.webp",
         "alt": "Guida lungo un sentiero roccioso",
         "layout": "normal"
       },
       {
-        "image": "/media/reali/ssv-spiaggia-flotta-1200.webp",
+        "image": "/media/cms/media/reali/ssv-spiaggia-flotta-1200.webp",
         "alt": "Flotta di SSV schierata su una spiaggia sarda",
         "layout": "wide"
       },
       {
-        "image": "/media/reali/grotta-mineraria-1200.webp",
+        "image": "/media/cms/media/reali/grotta-mineraria-1200.webp",
         "alt": "Ingresso di una vecchia cava lungo il percorso",
         "layout": "normal"
       },
       {
-        "image": "/media/reali/4x4-crinale-1200.webp",
+        "image": "/media/cms/media/reali/4x4-crinale-1200.webp",
         "alt": "Fuoristrada 4x4 su una pista di crinale",
         "layout": "normal"
       }
