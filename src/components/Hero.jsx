@@ -5,11 +5,10 @@ import { MapPin, ArrowRight, MessageCircle } from "lucide-react";
 import { CATEGORIE } from "@/data/categorie";
 import { tinaField } from "tinacms/dist/react";
 import { useSiteContent } from "@/content/TinaContentProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 // Il noleggio è un servizio di supporto ai tour, non un'esperienza a sé:
 // non compare nella striscia esperienze della hero.
-const esperienze = CATEGORIE.filter((c) => c.kind !== "rental");
-
 // Due loop video dell'hero che si alternano con una dissolvenza incrociata
 // cinematografica. 1080p desktop, 540p mobile.
 const VIDEO_A_DESKTOP = "/media/hero-offroad-loop-1080.mp4";
@@ -33,6 +32,8 @@ const item = {
 
 export default function Hero() {
   const { homepage, CTA_LABELS, SITE, TOUR_GROUP } = useSiteContent();
+  const { t, href, localize } = useI18n();
+  const esperienze = localize(CATEGORIE).filter((c) => c.kind !== "rental");
   const hero = homepage.hero;
   const reduce = useReducedMotion();
   const [videoError, setVideoError] = useState(false);
@@ -242,7 +243,7 @@ export default function Hero() {
 
       {/* Accesso alle esperienze: rappresenta tutto l'universo del brand. */}
       <motion.nav
-        aria-label="Le esperienze"
+        aria-label={t("Le esperienze")}
         {...(reduce
           ? {}
           : { variants: item, initial: "hidden", animate: "visible", transition: { delay: 0.6 } })}
@@ -252,14 +253,14 @@ export default function Hero() {
           {esperienze.map((c) => (
             <li key={c.id}>
               <Link
-                to={`/esperienze/${c.id}`}
+                to={href(`/esperienze/${c.id}`)}
                 className="group flex h-full flex-col items-center justify-center gap-1 px-1 py-3 text-center transition-colors hover:bg-[var(--accent)]/15 sm:py-4"
               >
                 <span className="font-heading text-lg leading-none text-[var(--granite-mist)] transition-colors group-hover:text-[var(--accent-soft)] sm:text-xl lg:text-2xl">
                   {c.nome}
                 </span>
                 <span className="hidden font-button text-[10px] uppercase tracking-[0.15em] text-[var(--granite-mist)]/50 sm:block">
-                  Scopri
+                  {t("Scopri")}
                 </span>
               </Link>
             </li>

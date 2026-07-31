@@ -5,27 +5,30 @@ import { WEB3FORMS_ACCESS_KEY } from "@/config/site";
 import { CATEGORIE } from "@/data/categorie";
 import { tinaField } from "tinacms/dist/react";
 import { useSiteContent } from "@/content/TinaContentProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 export default function Contact() {
   const { homepage, tours, siteSettings, SITE, CTA_LABELS } = useSiteContent();
+  const { t, href, localize } = useI18n();
+  const categories = localize(CATEGORIE);
   const content = homepage.contact;
   const contacts = [
-    { label: "Telefono", value: SITE.telefono.display, href: SITE.telefono.href, icon: Phone },
-    { label: "WhatsApp", value: "Chat immediata", href: SITE.whatsapp.href, icon: MessageCircle },
+    { label: t("Telefono"), value: SITE.telefono.display, href: SITE.telefono.href, icon: Phone },
+    { label: "WhatsApp", value: t("Chat immediata"), href: SITE.whatsapp.href, icon: MessageCircle },
     { label: "Email", value: SITE.email, href: `mailto:${SITE.email}`, icon: Mail },
-    { label: "Social", value: SITE.social.handle, social: true },
-    { label: "Dove siamo", value: SITE.luogo.regione, href: SITE.luogo.mapsHref, icon: MapPin },
+    { label: t("Social"), value: SITE.social.handle, social: true },
+    { label: t("Dove siamo"), value: SITE.luogo.regione, href: SITE.luogo.mapsHref, icon: MapPin },
   ];
   const visibleContacts = SITE.contattiVerificati
     ? contacts
-    : contacts.filter((contact) => contact.label === "Dove siamo");
+    : contacts.filter((contact) => contact.label === t("Dove siamo"));
   const tourOptions = [
     ...tours.map((tour) => `${tour.name} (${tour.type})`),
-    ...CATEGORIE.filter((category) => category.kind === "course").map((category) => category.nome),
-    ...CATEGORIE.filter((category) => category.kind === "rental").map((category) => category.nome),
+    ...categories.filter((category) => category.kind === "course").map((category) => category.nome),
+    ...categories.filter((category) => category.kind === "rental").map((category) => category.nome),
   ];
   const [searchParams] = useSearchParams();
-  const requestedTour = searchParams.get("interesse");
+  const requestedTour = localize(searchParams.get("interesse"));
   const initialTour = requestedTour && tourOptions.includes(requestedTour) ? requestedTour : "";
   const [form, setForm] = useState({
     nome: "",
@@ -85,8 +88,8 @@ export default function Contact() {
       if (import.meta.env.DEV) console.error(err);
       setError(
         SITE.contattiVerificati
-          ? "Si è verificato un errore. Riprova o contattaci via WhatsApp."
-          : "Si è verificato un errore. Riprova tra qualche istante.",
+          ? t("Si è verificato un errore. Riprova o contattaci via WhatsApp.")
+          : t("Si è verificato un errore. Riprova tra qualche istante."),
       );
     } finally {
       setSending(false);
@@ -124,11 +127,10 @@ export default function Contact() {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
           {/* Contact info */}
           <div data-tina-field={tinaField(siteSettings)}>
-            <h3 className="font-heading text-3xl text-[#F5EBD9] mb-8 tracking-wide">Raggiungici</h3>
+            <h3 className="font-heading text-3xl text-[#F5EBD9] mb-8 tracking-wide">{t("Raggiungici")}</h3>
             {!SITE.contattiVerificati && (
               <p className="mb-6 font-body text-sm leading-relaxed text-[#F5EBD9]/60">
-                Telefono e WhatsApp in aggiornamento: compila il modulo qui a
-                fianco e ti ricontattiamo al più presto.
+                {t("Telefono e WhatsApp in aggiornamento: compila il modulo qui a fianco e ti ricontattiamo al più presto.")}
               </p>
             )}
             <div className="space-y-1">
@@ -196,16 +198,16 @@ export default function Contact() {
                 <div className="w-16 h-16 bg-[#6B7A3E] flex items-center justify-center mb-6">
                   <Check size={32} className="text-[#F5EBD9]" />
                 </div>
-                <h3 className="font-heading text-3xl text-[#F5EBD9] mb-3 tracking-wide">Richiesta inviata!</h3>
+                <h3 className="font-heading text-3xl text-[#F5EBD9] mb-3 tracking-wide">{t("Richiesta inviata!")}</h3>
                 <p className="font-body text-[#F5EBD9]/70 mb-6">
-                  Ti contatteremo entro 24 ore.
-                  {SITE.contattiVerificati && " Per una risposta immediata, scrivici su WhatsApp."}
+                  {t("Ti contatteremo entro 24 ore.")}
+                  {SITE.contattiVerificati && ` ${t("Per una risposta immediata, scrivici su WhatsApp.")}`}
                 </p>
                 <button
                   onClick={() => setSent(false)}
                   className="btn-mech border border-[#F5EBD9]/30 text-[#F5EBD9] hover:bg-[#A0612A] hover:border-[#A0612A] px-6 py-3 text-sm"
                 >
-                  Nuova richiesta
+                  {t("Nuova richiesta")}
                 </button>
               </div>
             ) : (
@@ -223,7 +225,7 @@ export default function Contact() {
                 />
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="contact-nome" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Nome *</label>
+                    <label htmlFor="contact-nome" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Nome *")}</label>
                     <input
                       id="contact-nome"
                       name="nome"
@@ -231,23 +233,23 @@ export default function Contact() {
                       onChange={handleChange}
                       required
                       className={inputClass}
-                      placeholder="Il tuo nome"
+                      placeholder={t("Il tuo nome")}
                     />
                   </div>
                   <div>
-                    <label htmlFor="contact-telefono" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Telefono</label>
+                    <label htmlFor="contact-telefono" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Telefono")}</label>
                     <input
                       id="contact-telefono"
                       name="telefono"
                       value={form.telefono}
                       onChange={handleChange}
                       className={inputClass}
-                      placeholder="Numero"
+                      placeholder={t("Numero")}
                     />
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="contact-email" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Email *</label>
+                  <label htmlFor="contact-email" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Email *")}</label>
                   <input
                     id="contact-email"
                     name="email"
@@ -256,12 +258,12 @@ export default function Contact() {
                     onChange={handleChange}
                     required
                     className={inputClass}
-                    placeholder="La tua email"
+                    placeholder={t("La tua email")}
                   />
                 </div>
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="contact-tour" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Esperienza o corso</label>
+                    <label htmlFor="contact-tour" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Esperienza o corso")}</label>
                     <select
                       id="contact-tour"
                       name="tour"
@@ -269,19 +271,19 @@ export default function Contact() {
                       onChange={handleChange}
                       className={inputClass + " text-[#F5EBD9]"}
                     >
-                      <option value="" className="bg-[#1C1814]">Seleziona...</option>
+                      <option value="" className="bg-[#1C1814]">{t("Seleziona...")}</option>
                       {tourOptions.map((t) => (
                         <option key={t} value={t} className="bg-[#1C1814]">
                           {t}
                         </option>
                       ))}
-                      <option value="Non so ancora / consigliatemi voi" className="bg-[#1C1814]">
-                        Non so ancora / consigliatemi voi
+                      <option value={t("Non so ancora / consigliatemi voi")} className="bg-[#1C1814]">
+                        {t("Non so ancora / consigliatemi voi")}
                       </option>
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="contact-data" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Data desiderata</label>
+                    <label htmlFor="contact-data" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Data desiderata")}</label>
                     <input
                       id="contact-data"
                       name="data"
@@ -293,7 +295,7 @@ export default function Contact() {
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="contact-messaggio" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">Messaggio</label>
+                  <label htmlFor="contact-messaggio" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Messaggio")}</label>
                   <textarea
                     id="contact-messaggio"
                     name="messaggio"
@@ -301,7 +303,7 @@ export default function Contact() {
                     onChange={handleChange}
                     rows={4}
                     className={inputClass + " resize-none"}
-                    placeholder="Raccontaci la tua avventura ideale..."
+                    placeholder={t("Raccontaci la tua avventura ideale...")}
                   />
                 </div>
                 <label htmlFor="contact-privacy" className="flex items-start gap-3 cursor-pointer">
@@ -315,11 +317,11 @@ export default function Contact() {
                     className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[#A0612A]"
                   />
                   <span className="font-body text-xs leading-relaxed text-[#F5EBD9]/60">
-                    Ho letto l'
-                    <Link to="/privacy" className="text-[#A0612A] underline hover:text-[#b87033]">
-                      informativa privacy
+                    {t("Ho letto l'")}
+                    <Link to={href("/privacy")} className="text-[#A0612A] underline hover:text-[#b87033]">
+                      {t("informativa privacy")}
                     </Link>{" "}
-                    e acconsento al trattamento dei miei dati per rispondere alla richiesta. *
+                    {t("e acconsento al trattamento dei miei dati per rispondere alla richiesta. *")}
                   </span>
                 </label>
                 {error && <p className="font-body text-sm text-[#A0612A]">{error}</p>}
@@ -328,7 +330,7 @@ export default function Contact() {
                   disabled={sending}
                   className="btn-mech w-full bg-[#A0612A] hover:bg-[#b87033] disabled:opacity-50 text-[#F5EBD9] px-8 py-4 text-base flex items-center justify-center gap-3"
                 >
-                  {sending ? "Invio in corso..." : CTA_LABELS.primary}
+                  {sending ? t("Invio in corso...") : CTA_LABELS.primary}
                   {!sending && <Send size={16} />}
                 </button>
                 {SITE.contattiVerificati && (

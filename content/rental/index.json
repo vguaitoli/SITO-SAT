@@ -1,0 +1,34 @@
+{
+  "hero": {
+    "claim": "Non hai il mezzo. Hai già l'avventura.",
+    "title": "Noleggio",
+    "intro": "Vuoi partecipare a uno dei nostri tour ma non puoi raggiungere la Sardegna con il tuo mezzo? Ti aiutiamo a organizzare il noleggio di Quad, Enduro o Maxienduro attraverso partner locali selezionati, scegliendo la soluzione più adatta all'itinerario e alla tua esperienza.",
+    "audienceLabel": "A chi è adatto",
+    "audience": "A chi vuole vivere un tour Sardegna Trail Avventura senza possedere o trasportare il proprio mezzo."
+  },
+  "offer": {
+    "eyebrow": "Parti senza pensieri",
+    "title": "Il mezzo giusto. La Sardegna",
+    "accent": "davanti",
+    "suffix": ".",
+    "description": "Il noleggio viene coordinato con le date e il percorso del tour. Tu scegli l'esperienza e ci racconti come guidi: noi verifichiamo disponibilità e condizioni con i nostri partner locali, così al punto di partenza trovi una soluzione coerente con il tuo livello."
+  },
+  "process": {
+    "title": "Come funziona il",
+    "accent": "noleggio",
+    "items": [
+      "Scegli il tour e indica le date",
+      "Raccontaci la tua esperienza e il mezzo preferito",
+      "Verifichiamo Quad, Enduro o Maxienduro disponibili",
+      "Ricevi condizioni, documenti richiesti e modalità di ritiro"
+    ],
+    "note": "Disponibilità, tariffa, deposito, documenti, coperture e condizioni dipendono dal partner e dal mezzo scelto e vengono comunicati prima della conferma."
+  },
+  "finalCta": {
+    "title": "La Sardegna è pronta. Ti manca solo il",
+    "accent": "mezzo",
+    "suffix": ".",
+    "description": "Raccontaci quale tour vuoi vivere, quando desideri partire e quale mezzo preferisci. Verificheremo la soluzione più adatta e ti invieremo tutte le condizioni prima della conferma.",
+    "whatsappMessage": "Ciao! Vorrei informazioni sul noleggio di Quad, Enduro o Maxienduro per partecipare a un tour."
+  }
+}

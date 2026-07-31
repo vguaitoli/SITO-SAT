@@ -1,8 +1,10 @@
 import React, { useEffect } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useI18n } from "@/i18n/I18nProvider";
 
 export default function GalleryLightbox({ image, onClose, onNext, onPrev }) {
+  const { t } = useI18n();
   useEffect(() => {
     if (!image) return;
     const onKeyDown = (e) => {
@@ -29,14 +31,14 @@ export default function GalleryLightbox({ image, onClose, onNext, onPrev }) {
       <button
         onClick={onClose}
         className="absolute top-5 right-5 text-[#F5EBD9] hover:text-[#A0612A] transition-colors"
-        aria-label="Chiudi"
+        aria-label={t("Chiudi")}
       >
         <X size={32} />
       </button>
       <button
         onClick={(e) => { e.stopPropagation(); onPrev(); }}
         className="hidden sm:block absolute left-2 lg:left-6 top-1/2 -translate-y-1/2 text-[#F5EBD9] hover:text-[#A0612A] transition-colors"
-        aria-label="Foto precedente"
+        aria-label={t("Foto precedente")}
       >
         <ChevronLeft size={40} />
       </button>
@@ -60,7 +62,7 @@ export default function GalleryLightbox({ image, onClose, onNext, onPrev }) {
       <button
         onClick={(e) => { e.stopPropagation(); onNext(); }}
         className="hidden sm:block absolute right-2 lg:right-6 top-1/2 -translate-y-1/2 text-[#F5EBD9] hover:text-[#A0612A] transition-colors"
-        aria-label="Foto successiva"
+        aria-label={t("Foto successiva")}
       >
         <ChevronRight size={40} />
       </button>

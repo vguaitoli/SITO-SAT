@@ -6,31 +6,36 @@ import ReactMarkdown from "react-markdown";
 import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { getBlogPost } from "@/data/blogPosts.js";
+import { useI18n } from "@/i18n/I18nProvider";
+import SiteNav from "@/components/SiteNav";
+import Footer from "@/components/Footer";
 
 export default function BlogDetail() {
   const { id } = useParams();
-  const post = getBlogPost(id);
+  const { locale, localeMeta, t, route } = useI18n();
+  const post = getBlogPost(id, locale);
 
   if (!post) {
     return (
       <div className="bg-[#1C1814] min-h-screen flex flex-col items-center justify-center gap-6 text-[#F5EBD9]">
-        <p className="font-body">Articolo non trovato.</p>
-        <Link to="/blog" className="font-button text-sm text-[#A0612A] uppercase tracking-wider">Torna al blog</Link>
+        <p className="font-body">{t("Articolo non trovato.")}</p>
+        <Link to={route("blog")} className="font-button text-sm text-[#A0612A] uppercase tracking-wider">{t("Torna al blog")}</Link>
       </div>
     );
   }
 
   return (
     <div className="bg-[#1C1814] min-h-screen topo-dark">
-      <div className="max-w-3xl mx-auto px-5 lg:px-8 py-16 lg:py-24">
-        <Link to="/blog" className="inline-flex items-center gap-2 font-button text-sm text-[#E4D4B0] hover:text-[#A0612A] uppercase tracking-wider mb-10 transition-colors">
+      <SiteNav />
+      <main className="max-w-3xl mx-auto px-5 lg:px-8 pb-16 pt-32 lg:pb-24 lg:pt-40">
+        <Link to={route("blog")} className="inline-flex items-center gap-2 font-button text-sm text-[#E4D4B0] hover:text-[#A0612A] uppercase tracking-wider mb-10 transition-colors">
           <ChevronLeft size={16} />
-          Tutti gli articoli
+          {t("Tutti gli articoli")}
         </Link>
 
         {post.published_date && (
           <p className="font-button text-xs tracking-[0.2em] uppercase text-[#A0612A] mb-4">
-            {new Date(post.published_date).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" })}
+            {new Date(post.published_date).toLocaleDateString(localeMeta.dateLocale, { day: "numeric", month: "long", year: "numeric" })}
           </p>
         )}
         <h1 className="font-heading text-4xl lg:text-6xl text-[#F5EBD9] leading-none mb-8">{post.title}</h1>
@@ -56,7 +61,7 @@ export default function BlogDetail() {
           <div className="mt-12">
             <p className="flex items-center gap-2 font-button text-xs tracking-[0.2em] uppercase text-[#A0612A] mb-4">
               <MapPin size={14} />
-              {post.route_location_name || "Percorso"}
+              {post.route_location_name || t("Percorso sulla mappa")}
             </p>
             <div className="h-80 overflow-hidden border border-[#F5EBD9]/15">
               <MapContainer
@@ -74,13 +79,14 @@ export default function BlogDetail() {
                   radius={10}
                   pathOptions={{ color: "#A0612A", fillColor: "#A0612A", fillOpacity: 0.8 }}
                 >
-                  <Popup>{post.route_location_name || "Punto di interesse"}</Popup>
+                  <Popup>{post.route_location_name || t("Punto di interesse")}</Popup>
                 </CircleMarker>
               </MapContainer>
             </div>
           </div>
         )}
-      </div>
+      </main>
+      <Footer />
     </div>
   );
 }

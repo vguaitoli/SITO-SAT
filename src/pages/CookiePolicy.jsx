@@ -1,115 +1,51 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import { SITE } from "@/config/site";
+import { useI18n } from "@/i18n/I18nProvider";
+import { LEGAL_CONTENT } from "@/i18n/legal-content";
 
-// Cookie Policy. Il sito è volutamente "cookie-free": non imposta cookie,
-// non usa analytics né strumenti di profilazione. L'unico dato conservato nel
-// browser è un valore tecnico in localStorage necessario al funzionamento.
-// Per questo NON è previsto (né richiesto) un banner di consenso.
-
-const Sezione = ({ n, titolo, children }) => (
-  <section className="mb-10">
-    <h2 className="font-heading text-2xl lg:text-3xl text-[#F5EBD9] mb-3 tracking-wide">
-      <span className="text-[#A0612A]">{n}.</span> {titolo}
-    </h2>
-    <div className="space-y-3 font-body text-sm leading-relaxed text-[#F5EBD9]/70">
-      {children}
-    </div>
-  </section>
-);
+function interpolate(value, legal) {
+  return value
+    .replaceAll("{owner}", legal.ragioneSociale)
+    .replaceAll("{form}", legal.formaGiuridica)
+    .replaceAll("{vat}", legal.partitaIva)
+    .replaceAll("{address}", legal.sede)
+    .replaceAll("{email}", SITE.email);
+}
 
 export default function CookiePolicy() {
+  const { locale, href } = useI18n();
+  const content = LEGAL_CONTENT[locale].cookies;
   const { legale } = SITE;
+
   return (
-    <div className="bg-[#1C1814] min-h-screen topo-dark">
+    <div className="min-h-screen bg-[#1C1814] topo-dark">
       <SiteNav />
-      <div className="max-w-3xl mx-auto px-5 lg:px-8 pt-32 lg:pt-40 pb-16 lg:pb-24">
-        <p className="font-button text-[#A0612A] text-xs tracking-[0.3em] uppercase mb-4">Cookie</p>
-        <h1 className="font-heading text-5xl lg:text-6xl text-[#F5EBD9] leading-none mb-4">
-          COOKIE <span className="text-[#A0612A]">POLICY</span>
+      <main className="mx-auto max-w-3xl px-5 pb-16 pt-32 lg:px-8 lg:pb-24 lg:pt-40">
+        <p className="mb-4 font-button text-xs uppercase tracking-[0.3em] text-[#A0612A]">{content.eyebrow}</p>
+        <h1 className="mb-4 font-heading text-5xl leading-none text-[#F5EBD9] lg:text-6xl">
+          {content.title} <span className="text-[#A0612A]">{content.accent}</span>
         </h1>
-        <p className="font-body text-[#F5EBD9]/50 text-sm mb-12">
-          Come questo sito utilizza cookie e strumenti di archiviazione locale.
-        </p>
+        <p className="mb-12 font-body text-sm text-[#F5EBD9]/50">{content.intro}</p>
 
-        <Sezione n="1" titolo="Questo sito non usa cookie di profilazione">
-          <p>
-            Sardegna Trail Avventura ha scelto un approccio rispettoso della tua privacy:
-            il sito <strong className="text-[#F5EBD9]">non installa cookie di profilazione,
-            di marketing o di tracciamento</strong>, non utilizza strumenti di analisi
-            statistica (come Google Analytics) e non condivide i tuoi dati di navigazione con
-            terze parti a fini pubblicitari.
-          </p>
-          <p>
-            Per questo motivo <strong className="text-[#F5EBD9]">non è presente alcun banner
-            di consenso ai cookie</strong>: non essendoci cookie che richiedono il tuo
-            consenso, non c'è nulla da accettare.
-          </p>
-        </Sezione>
+        {content.sections.map((section, index) => (
+          <section key={section.title} className="mb-10">
+            <h2 className="mb-3 font-heading text-2xl tracking-wide text-[#F5EBD9] lg:text-3xl">
+              <span className="text-[#A0612A]">{index + 1}.</span> {section.title}
+            </h2>
+            <div className="space-y-3 font-body text-sm leading-relaxed text-[#F5EBD9]/70">
+              {section.paragraphs.map((paragraph) => (
+                <p key={paragraph}>{interpolate(paragraph, legale)}</p>
+              ))}
+            </div>
+          </section>
+        ))}
 
-        <Sezione n="2" titolo="Cosa sono i cookie">
-          <p>
-            I cookie sono piccoli file di testo che i siti salvano sul dispositivo dell'utente.
-            Possono essere "tecnici" (necessari al funzionamento del sito) oppure "di
-            profilazione" (usati per tracciare la navigazione e proporre pubblicità mirata).
-            La normativa richiede il consenso preventivo solo per questi ultimi.
-          </p>
-        </Sezione>
-
-        <Sezione n="3" titolo="Archiviazione tecnica">
-          <p>
-            Il sito non salva cookie di profilazione né identificatori nella memoria locale
-            del browser. Il browser può conservare temporaneamente file statici come immagini,
-            font, fogli di stile e script per velocizzare i caricamenti successivi.
-          </p>
-        </Sezione>
-
-        <Sezione n="4" titolo="Font e mappe">
-          <p>
-            I caratteri tipografici del sito sono ospitati direttamente sui nostri server
-            (self-hosted): il sito <strong className="text-[#F5EBD9]">non effettua chiamate a
-            Google Fonts</strong>. Nelle pagine del blog che includono una mappa, le tessere
-            cartografiche sono caricate da OpenStreetMap; la richiesta tecnica può trasmettere
-            al relativo server l'indirizzo IP del dispositivo.
-          </p>
-        </Sezione>
-
-        <Sezione n="5" titolo="Modulo di contatto">
-          <p>
-            Quando invii una richiesta tramite il modulo di contatto, i dati vengono
-            trasmessi via email tramite un servizio esterno (Web3Forms). Questa operazione
-            avviene solo su tua azione volontaria e non comporta l'installazione di cookie di
-            tracciamento. Il trattamento dei dati inviati è descritto nell'{" "}
-            <Link to="/privacy" className="text-[#A0612A] underline">Informativa Privacy</Link>.
-          </p>
-        </Sezione>
-
-        <Sezione n="6" titolo="Come gestire i cookie dal browser">
-          <p>
-            Anche se questo sito non usa cookie di profilazione, puoi in ogni momento
-            controllare e cancellare cookie e dati salvati dai siti tramite le impostazioni
-            del tuo browser (sezione "Privacy" o "Cronologia").
-          </p>
-        </Sezione>
-
-        <Sezione n="7" titolo="Titolare e contatti">
-          <p>
-            Titolare del trattamento: <strong className="text-[#F5EBD9]">{legale.ragioneSociale}</strong>{" "}
-            ({legale.formaGiuridica}), P.IVA {legale.partitaIva}, {legale.sede}. Per
-            informazioni scrivi a{" "}
-            <a href={`mailto:${SITE.email}`} className="text-[#A0612A] underline">{SITE.email}</a>.
-          </p>
-        </Sezione>
-
-        <Link
-          to="/privacy"
-          className="btn-mech inline-flex bg-[#A0612A] hover:bg-[#b87033] text-[#F5EBD9] px-8 py-4 text-base mt-4"
-        >
-          Leggi l'Informativa Privacy
+        <Link to={href("/privacy")} className="btn-mech mt-4 inline-flex bg-[#A0612A] px-8 py-4 text-base text-[#F5EBD9] hover:bg-[#b87033]">
+          {content.cta}
         </Link>
-      </div>
+      </main>
       <Footer />
     </div>
   );

@@ -47,16 +47,23 @@ function headMarkup(seo) {
       } fetchpriority="high" />`
     : "";
 
+  const alternates = Object.entries(seo.alternates)
+    .map(
+      ([hreflang, href]) =>
+        `\n    <link rel="alternate" hreflang="${escapeAttribute(hreflang)}" href="${escapeAttribute(href)}" />`,
+    )
+    .join("");
+
   return `<!-- SEO:START -->
     <meta name="robots" content="${escapeAttribute(seo.robots)}" />
     <meta name="googlebot" content="${escapeAttribute(seo.robots)}" />
     <meta name="description" content="${escapeAttribute(seo.description)}" />
-    <link rel="canonical" href="${escapeAttribute(seo.canonical)}" />${preload}
+    <link rel="canonical" href="${escapeAttribute(seo.canonical)}" />${alternates}${preload}
     <meta property="og:site_name" content="${escapeAttribute(SITE_NAME)}" />
     <meta property="og:title" content="${escapeAttribute(seo.title)}" />
     <meta property="og:description" content="${escapeAttribute(seo.description)}" />
     <meta property="og:type" content="${escapeAttribute(seo.type)}" />
-    <meta property="og:locale" content="it_IT" />
+    <meta property="og:locale" content="${escapeAttribute(seo.ogLocale)}" />
     <meta property="og:url" content="${escapeAttribute(seo.canonical)}" />
     <meta property="og:image" content="${escapeAttribute(seo.image)}" />
     <meta property="og:image:alt" content="${escapeAttribute(seo.imageAlt)}" />
@@ -73,7 +80,9 @@ function renderHtml(template, seo) {
   if (!SEO_BLOCK.test(template)) {
     throw new Error("Blocco SEO non trovato in dist/index.html.");
   }
-  return template.replace(SEO_BLOCK, headMarkup(seo));
+  return template
+    .replace(/<html lang="[^"]*">/, `<html lang="${escapeAttribute(seo.htmlLang)}">`)
+    .replace(SEO_BLOCK, headMarkup(seo));
 }
 
 function outputPathForRoute(routePath) {
@@ -85,12 +94,19 @@ function sitemapXml(entries) {
   const urls = entries
     .map((entry) => {
       const lastmod = entry.lastmod ? `\n    <lastmod>${escapeXml(entry.lastmod)}</lastmod>` : "";
-      return `  <url>\n    <loc>${escapeXml(entry.canonical)}</loc>${lastmod}\n  </url>`;
+      const alternates = Object.entries(entry.alternates)
+        .map(
+          ([hreflang, href]) =>
+            `\n    <xhtml:link rel="alternate" hreflang="${escapeXml(hreflang)}" href="${escapeXml(href)}" />`,
+        )
+        .join("");
+      return `  <url>\n    <loc>${escapeXml(entry.canonical)}</loc>${alternates}${lastmod}\n  </url>`;
     })
     .join("\n");
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${urls}
 </urlset>
 `;

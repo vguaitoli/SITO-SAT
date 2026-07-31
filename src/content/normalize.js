@@ -77,6 +77,7 @@ export function normalizeEvents(content) {
     livello: event.level,
     sterrato: event.offroad,
     interesse: event.interest,
+    partenza: event.startLocation,
     pranzo: event.lunchIncluded,
     soggiorno: event.accommodation,
     periodo: event.period,

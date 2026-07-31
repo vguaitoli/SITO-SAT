@@ -5,14 +5,36 @@
     { "source": "/privacy", "destination": "/_seo/privacy.html" },
     { "source": "/cookie-policy", "destination": "/_seo/cookie-policy.html" },
     { "source": "/itinerari", "destination": "/_seo/itinerari.html" },
+    { "source": "/tour/:slug", "destination": "/_seo/tour/:slug.html" },
     { "source": "/eventi", "destination": "/_seo/eventi.html" },
+    { "source": "/eventi/:slug", "destination": "/_seo/eventi/:slug.html" },
     { "source": "/blog", "destination": "/_seo/blog.html" },
     { "source": "/blog/:id", "destination": "/_seo/blog/:id.html" },
-    { "source": "/esperienze/:cat", "destination": "/_seo/esperienze/:cat.html" }
+    { "source": "/esperienze/:cat", "destination": "/_seo/esperienze/:cat.html" },
+    { "source": "/en", "destination": "/_seo/en.html" },
+    { "source": "/en/privacy", "destination": "/_seo/en/privacy.html" },
+    { "source": "/en/cookie-policy", "destination": "/_seo/en/cookie-policy.html" },
+    { "source": "/en/tours", "destination": "/_seo/en/tours.html" },
+    { "source": "/en/tours/:slug", "destination": "/_seo/en/tours/:slug.html" },
+    { "source": "/en/events", "destination": "/_seo/en/events.html" },
+    { "source": "/en/events/:slug", "destination": "/_seo/en/events/:slug.html" },
+    { "source": "/en/blog", "destination": "/_seo/en/blog.html" },
+    { "source": "/en/blog/:id", "destination": "/_seo/en/blog/:id.html" },
+    { "source": "/en/experiences/:cat", "destination": "/_seo/en/experiences/:cat.html" },
+    { "source": "/fr", "destination": "/_seo/fr.html" },
+    { "source": "/fr/confidentialite", "destination": "/_seo/fr/confidentialite.html" },
+    { "source": "/fr/politique-cookies", "destination": "/_seo/fr/politique-cookies.html" },
+    { "source": "/fr/circuits", "destination": "/_seo/fr/circuits.html" },
+    { "source": "/fr/circuits/:slug", "destination": "/_seo/fr/circuits/:slug.html" },
+    { "source": "/fr/evenements", "destination": "/_seo/fr/evenements.html" },
+    { "source": "/fr/evenements/:slug", "destination": "/_seo/fr/evenements/:slug.html" },
+    { "source": "/fr/blog", "destination": "/_seo/fr/blog.html" },
+    { "source": "/fr/blog/:id", "destination": "/_seo/fr/blog/:id.html" },
+    { "source": "/fr/experiences/:cat", "destination": "/_seo/fr/experiences/:cat.html" }
   ],
   "headers": [
     {
-      "source": "/(privacy|cookie-policy)",
+      "source": "/(privacy|cookie-policy|en/privacy|en/cookie-policy|fr/confidentialite|fr/politique-cookies)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]

@@ -2,6 +2,7 @@ import React from "react";
 import { Navigation, Luggage, Wrench, Satellite, Home, Gift } from "lucide-react";
 import { tinaField } from "tinacms/dist/react";
 import { useSiteContent } from "@/content/TinaContentProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 const icons = {
   navigation: Navigation,
@@ -14,14 +15,16 @@ const icons = {
 
 export default function Included() {
   const { homepage } = useSiteContent();
+  const { locale } = useI18n();
   const content = homepage.included;
+  const title = locale === "fr" ? "CE QUI EST" : content.title;
 
   return (
     <section className="bg-[#F5EBD9] topo-bg py-24 lg:py-32 border-y border-[#1C1814]/10">
       <div className="max-w-5xl mx-auto px-5 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="font-heading text-5xl lg:text-7xl text-[#1C1814] leading-none">
-            <span data-tina-field={tinaField(content, "title")}>{content.title}</span>{" "}
+            <span data-tina-field={tinaField(content, "title")}>{title}</span>{" "}
             <span className="text-[#A0612A]" data-tina-field={tinaField(content, "accent")}>
               {content.accent}
             </span>

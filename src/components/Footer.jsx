@@ -4,6 +4,7 @@ import { Phone, Mail, Instagram, Facebook, MessageCircle } from "lucide-react";
 import { CATEGORIE } from "@/data/categorie";
 import PhotoRibbon from "@/components/PhotoRibbon";
 import { useSiteContent } from "@/content/TinaContentProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 // Nastro fotografico dal materiale reale, senza ripetizioni ravvicinate.
 const ribbonSlugs = [
@@ -31,6 +32,8 @@ const toTarget = (href) => (href.startsWith("#") ? `/${href}` : href);
 
 export default function Footer() {
   const { CTA_LABELS, SITE } = useSiteContent();
+  const { t, href, localize } = useI18n();
+  const categories = localize(CATEGORIE);
   return (
     <footer className="border-t border-[var(--accent)]/30 bg-[var(--obsidian)]">
       {/* Nastro fotografico scorrevole */}
@@ -57,39 +60,38 @@ export default function Footer() {
               </span>
             </div>
             <p className="max-w-sm font-heading text-2xl leading-tight tracking-wide text-[var(--accent)]">
-              "La Sardegna che non ti aspetti."
+              {t("La Sardegna che non ti aspetti.")}
             </p>
             <p className="mt-4 max-w-sm font-body text-sm leading-relaxed text-[var(--granite-mist)]/60">
-              Tour off-road guidati in Maxienduro, Enduro, Quad, SSV, 4x4 ed
-              e-bike, oltre a corsi di guida con istruttore qualificato.
+              {t("Tour off-road guidati in Maxienduro, Enduro, Quad, SSV, 4x4 ed e-bike, oltre a corsi di guida con istruttore qualificato.")}
             </p>
           </div>
 
           {/* Navigazione + Esperienze */}
           <div>
             <h4 className="mb-5 font-button text-xs uppercase tracking-[0.2em] text-[var(--accent-soft)]">
-              Naviga
+              {t("Naviga")}
             </h4>
             <ul className="space-y-3">
               {navItems.map((l) => (
                 <li key={l.href}>
                   <Link
-                    to={toTarget(l.href)}
+                    to={href(toTarget(l.href))}
                     className="font-body text-sm text-[var(--granite-mist)]/70 transition-colors hover:text-[var(--accent)]"
                   >
-                    {l.label}
+                    {t(l.label)}
                   </Link>
                 </li>
               ))}
             </ul>
             <h4 className="mb-3 mt-6 font-button text-xs uppercase tracking-[0.2em] text-[var(--accent-soft)]">
-              Esperienze
+              {t("Esperienze")}
             </h4>
             <ul className="flex flex-wrap gap-x-4 gap-y-2">
-              {CATEGORIE.map((c) => (
+              {categories.map((c) => (
                 <li key={c.id}>
                   <Link
-                    to={`/esperienze/${c.id}`}
+                    to={href(`/esperienze/${c.id}`)}
                     className="font-body text-sm text-[var(--granite-mist)]/70 transition-colors hover:text-[var(--accent)]"
                   >
                     {c.nome}
@@ -102,7 +104,7 @@ export default function Footer() {
           {/* Contatti */}
           <div>
             <h4 className="mb-5 font-button text-xs uppercase tracking-[0.2em] text-[var(--accent-soft)]">
-              Contatti
+              {t("Contatti")}
             </h4>
             {SITE.contattiVerificati ? (
               <ul className="space-y-4">
@@ -135,11 +137,11 @@ export default function Footer() {
               </ul>
             ) : (
               <p className="font-body text-sm leading-relaxed text-[var(--granite-mist)]/60">
-                Recapiti in aggiornamento.{" "}
-                <Link to="/#contatti" className="text-[var(--accent-soft)] underline transition-colors hover:text-[var(--accent)]">
-                  Scrivici dal modulo di contatto
+                {t("Recapiti in aggiornamento.")}{" "}
+                <Link to={href("/#contatti")} className="text-[var(--accent-soft)] underline transition-colors hover:text-[var(--accent)]">
+                  {t("Scrivici dal modulo di contatto")}
                 </Link>{" "}
-                e ti rispondiamo al più presto.
+                {t("e ti rispondiamo al più presto.")}
               </p>
             )}
           </div>
@@ -155,15 +157,15 @@ export default function Footer() {
             <span className="md:hidden"> · </span>
             {SITE.legale.sede}
           </p>
-          <nav className="flex items-center gap-4" aria-label="Informative legali">
+          <nav className="flex items-center gap-4" aria-label={t("Informative legali")}>
             <Link
-              to="/privacy"
+              to={href("/privacy")}
               className="font-body text-xs text-[var(--granite-mist)]/60 underline transition-colors hover:text-[var(--accent)]"
             >
               Privacy Policy
             </Link>
             <Link
-              to="/cookie-policy"
+              to={href("/cookie-policy")}
               className="font-body text-xs text-[var(--granite-mist)]/60 underline transition-colors hover:text-[var(--accent)]"
             >
               Cookie Policy
@@ -173,7 +175,7 @@ export default function Footer() {
 
         <div className="flex flex-col items-center justify-between gap-4 pb-16 md:flex-row md:pb-0">
           <p className="text-center font-body text-xs text-[var(--granite-mist)]/40 md:text-left">
-            © {new Date().getFullYear()} {SITE.nome}. Tutti i diritti riservati.
+            © {new Date().getFullYear()} {SITE.nome}. {t("Tutti i diritti riservati.")}
           </p>
           <p className="font-body text-xs text-[var(--granite-mist)]/40">
             Maxienduro · Enduro · Quad · SSV · 4x4 · E-Bike — Sardegna

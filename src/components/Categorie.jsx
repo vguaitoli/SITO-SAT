@@ -7,22 +7,24 @@ import { CATEGORIE } from "@/data/categorie";
 import { fotoProps } from "@/data/foto-helpers";
 import { tinaField } from "tinacms/dist/react";
 import { useSiteContent } from "@/content/TinaContentProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 /**
  * "Scegli la tua avventura": una card per ciascuna categoria, in una griglia
  * uniforme che scala con il numero di esperienze.
  */
 function Card({ cat, featuredMobile = false }) {
+  const { t, href } = useI18n();
   const photo = fotoProps(cat.fotoCard);
   const cta =
     cat.kind === "course"
-      ? "Scopri i corsi"
+      ? t("Scopri i corsi")
       : cat.tourType
-        ? "Scopri i tour"
-        : "Richiedi informazioni";
+        ? t("Scopri i tour")
+        : t("Richiedi informazioni");
   return (
     <Link
-      to={`/esperienze/${cat.id}`}
+      to={href(`/esperienze/${cat.id}`)}
       className={`group relative block h-full overflow-hidden bg-[var(--obsidian)] ${
         featuredMobile ? "aspect-[8/5] md:aspect-[4/5]" : "aspect-[4/5]"
       }`}
@@ -33,7 +35,7 @@ function Card({ cat, featuredMobile = false }) {
           src={photo.src}
           srcSet={photo.srcSet}
           sizes={featuredMobile ? "(min-width: 768px) 33vw, 100vw" : "(min-width: 768px) 33vw, 50vw"}
-          alt={photo.alt}
+          alt={t(photo.alt)}
           width={1200}
           height={Math.round(1200 / photo.aspect)}
           loading="lazy"
@@ -74,10 +76,10 @@ function Card({ cat, featuredMobile = false }) {
 
 // Il noleggio è un servizio di supporto ai tour, non un'esperienza a sé:
 // resta raggiungibile da navbar e pagina dedicata, ma non compare qui.
-const esperienze = CATEGORIE.filter((cat) => cat.kind !== "rental");
-
 export default function Categorie() {
   const { homepage } = useSiteContent();
+  const { localize } = useI18n();
+  const esperienze = localize(CATEGORIE).filter((cat) => cat.kind !== "rental");
   const content = homepage.experiences;
 
   return (

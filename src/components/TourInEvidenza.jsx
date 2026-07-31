@@ -7,6 +7,7 @@ import TourCard from "@/components/TourCard.jsx";
 import { typeColors } from "@/components/TourDetails.jsx";
 import { tinaField } from "tinacms/dist/react";
 import { useSiteContent } from "@/content/TinaContentProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 /**
  * "Tour in evidenza": un assaggio di itinerari reali direttamente in home.
@@ -18,6 +19,7 @@ import { useSiteContent } from "@/content/TinaContentProvider";
  */
 export default function TourInEvidenza() {
   const { homepage, tours, TOUR_GROUP } = useSiteContent();
+  const { t, href, route } = useI18n();
   const content = homepage.featuredTours;
   const featured = content.tourNames
     .map((name) => tours.find((tour) => tour.name === name))
@@ -38,18 +40,22 @@ export default function TourInEvidenza() {
             />
           </div>
           <Link
-            to="/itinerari"
+            to={href("/itinerari")}
             className="btn-mech hidden shrink-0 items-center gap-2.5 bg-[var(--cta)] px-6 py-3.5 text-sm text-[var(--cta-text)] hover:bg-[var(--cta-hover)] lg:inline-flex"
           >
-            Vedi tutti gli itinerari
+            {t("Vedi tutti gli itinerari")}
             <ArrowRight size={16} aria-hidden="true" />
           </Link>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {featured.map((tour, i) => (
-            <Reveal key={tour.name} delay={i * 0.08}>
-              <TourCard tour={tour} color={typeColors[tour.type] || "var(--accent)"} />
+            <Reveal key={tour.slug} delay={i * 0.08}>
+              <TourCard
+                tour={tour}
+                color={typeColors[tour.type] || "var(--accent)"}
+                detailPath={route("tourDetail", { slug: tour.slug })}
+              />
             </Reveal>
           ))}
         </div>
@@ -57,10 +63,10 @@ export default function TourInEvidenza() {
         {/* CTA a piena larghezza per mobile/tablet, dove quella nell'header è nascosta. */}
         <div className="mt-10 lg:hidden">
           <Link
-            to="/itinerari"
+            to={href("/itinerari")}
             className="btn-mech flex items-center justify-center gap-2.5 bg-[var(--cta)] px-6 py-4 text-base text-[var(--cta-text)] hover:bg-[var(--cta-hover)]"
           >
-            Vedi tutti gli itinerari
+            {t("Vedi tutti gli itinerari")}
             <ArrowRight size={18} aria-hidden="true" />
           </Link>
         </div>

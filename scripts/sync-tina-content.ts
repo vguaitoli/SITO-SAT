@@ -10,10 +10,11 @@ async function readJson(relativePath: string) {
 }
 
 async function fallbackSnapshot() {
-  const [homepage, tourCatalog, eventCatalog, siteSettings] = await Promise.all([
+  const [homepage, tourCatalog, eventCatalog, rentalPage, siteSettings] = await Promise.all([
     readJson("content/homepage/index.json"),
     readJson("content/tours/index.json"),
     readJson("content/events/index.json"),
+    readJson("content/rental/index.json"),
     readJson("content/settings/index.json"),
   ]);
 
@@ -27,24 +28,47 @@ async function fallbackSnapshot() {
     homepage: entry("homepage", homepage),
     tourCatalog: entry("tourCatalog", tourCatalog),
     eventCatalog: entry("eventCatalog", eventCatalog),
+    rentalPage: entry("rentalPage", rentalPage),
     siteSettings: entry("siteSettings", siteSettings),
   };
 }
 
-async function tinaSnapshot() {
+async function tinaSnapshot(apiUrl?: string) {
   const { client } = await import("../tina/__generated__/client");
-  const [homepage, tourCatalog, eventCatalog, siteSettings] = await Promise.all([
+  if (apiUrl) client.apiUrl = apiUrl;
+  const fallback = await fallbackSnapshot();
+  const keys = ["homepage", "tourCatalog", "eventCatalog", "rentalPage", "siteSettings"] as const;
+  const results = await Promise.allSettled([
     client.queries.homepage({ relativePath: "index.json" }),
     client.queries.tourCatalog({ relativePath: "index.json" }),
     client.queries.eventCatalog({ relativePath: "index.json" }),
+    client.queries.rentalPage({ relativePath: "index.json" }),
     client.queries.siteSettings({ relativePath: "index.json" }),
   ]);
 
-  return { homepage, tourCatalog, eventCatalog, siteSettings };
+  return Object.fromEntries(
+    results.map((result, index) => {
+      const key = keys[index];
+      if (result.status === "fulfilled") {
+        return [key, result.value];
+      }
+
+      console.warn(
+        `[tina] ${key} non disponibile dalla Content API: uso il file JSON locale.`,
+      );
+      return [key, fallback[key]];
+    }),
+  );
 }
 
 let snapshot;
-try {
+if (process.env.TINA_CONTENT_SOURCE === "local-api") {
+  snapshot = await tinaSnapshot("http://localhost:4001/graphql");
+  console.log("[tina] Snapshot generato tramite l'API locale.");
+} else if (process.env.TINA_CONTENT_SOURCE === "local") {
+  snapshot = await fallbackSnapshot();
+  console.log("[tina] Snapshot generato dai file JSON locali.");
+} else try {
   snapshot = await tinaSnapshot();
   console.log("[tina] Snapshot generato tramite Content API.");
 } catch (error) {

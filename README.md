@@ -27,6 +27,7 @@ TinaCMS gestisce i contenuti senza spostare layout e grafica fuori dal codice:
 - homepage, FAQ, servizi, guide e galleria: `content/homepage/index.json`;
 - tour, descrizioni, prezzi e programmi: `content/tours/index.json`;
 - eventi, partenze, date, prezzi e servizi specifici: `content/events/index.json`;
+- testi della pagina Noleggio: `content/rental/index.json`;
 - contatti e impostazioni comuni: `content/settings/index.json`.
 
 Lo schema dell'editor è in `tina/config.ts`. In locale, il pulsante **Save**

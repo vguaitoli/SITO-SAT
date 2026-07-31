@@ -2,7 +2,10 @@ import { createContext, useContext, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { useTina } from "tinacms/dist/react";
 import snapshot from "@/content/tina-snapshot.json";
+import rentalPageFallback from "../../content/rental/index.json";
 import { normalizeEvents, normalizeSettings, normalizeTours } from "@/content/normalize";
+import { useI18n } from "@/i18n/I18nProvider";
+import { resolveRoute } from "@/i18n/routes";
 
 const TinaContentContext = createContext(null);
 
@@ -23,14 +26,21 @@ function useEditableDocument(entry, documentName, formId, primary) {
 
 export function TinaContentProvider({ children }) {
   const { pathname, search } = useLocation();
+  const { locale, localize } = useI18n();
   const requestedDocument = new URLSearchParams(search).get("tinaDocument");
-  const primaryDocument = requestedDocument === "siteSettings"
-    ? "siteSettings"
-    : pathname === "/" ? "homepage" : pathname.startsWith("/eventi")
-    ? "eventCatalog"
-    : pathname.startsWith("/itinerari")
-    ? "tourCatalog"
-    : "siteSettings";
+  const currentRoute = resolveRoute(pathname);
+  const primaryDocument =
+    requestedDocument === "siteSettings"
+      ? "siteSettings"
+      : currentRoute.name === "home"
+        ? "homepage"
+        : currentRoute.name === "events" || currentRoute.name === "eventDetail"
+          ? "eventCatalog"
+          : currentRoute.name === "tours" || currentRoute.name === "tourDetail"
+            ? "tourCatalog"
+            : currentRoute.name === "experiences" && currentRoute.params.cat === "noleggio"
+              ? "rentalPage"
+              : "siteSettings";
 
   const homepage = useEditableDocument(
     snapshot.homepage,
@@ -50,6 +60,17 @@ export function TinaContentProvider({ children }) {
     "content/events/index.json",
     primaryDocument === "eventCatalog",
   );
+  const rentalEntry = snapshot.rentalPage || {
+    data: { rentalPage: rentalPageFallback },
+    query: "query rentalPageFallback { __typename }",
+    variables: {},
+  };
+  const rentalPage = useEditableDocument(
+    rentalEntry,
+    "rentalPage",
+    "content/rental/index.json",
+    primaryDocument === "rentalPage",
+  );
   const siteSettings = useEditableDocument(
     snapshot.siteSettings,
     "siteSettings",
@@ -58,15 +79,28 @@ export function TinaContentProvider({ children }) {
   );
 
   const value = useMemo(() => {
-    const settings = normalizeSettings(siteSettings);
+    if (locale === "it") {
+      const settings = normalizeSettings(siteSettings);
+      return {
+        homepage,
+        rentalPage,
+        siteSettings,
+        ...settings,
+        tours: normalizeTours(tourCatalog),
+        events: normalizeEvents(eventCatalog),
+      };
+    }
+
+    const settings = normalizeSettings(localize(siteSettings));
     return {
-      homepage,
+      homepage: localize(homepage),
+      rentalPage: localize(rentalPage),
       siteSettings,
       ...settings,
-      tours: normalizeTours(tourCatalog),
-      events: normalizeEvents(eventCatalog),
+      tours: localize(normalizeTours(tourCatalog)),
+      events: localize(normalizeEvents(eventCatalog)),
     };
-  }, [eventCatalog, homepage, siteSettings, tourCatalog]);
+  }, [eventCatalog, homepage, locale, localize, rentalPage, siteSettings, tourCatalog]);
 
   return <TinaContentContext.Provider value={value}>{children}</TinaContentContext.Provider>;
 }

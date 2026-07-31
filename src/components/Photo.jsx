@@ -1,6 +1,7 @@
 import React from "react";
 import { fotoProps } from "@/data/foto-helpers";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/i18n/I18nProvider";
 
 /**
  * Immagine reale responsive con prevenzione del layout shift.
@@ -22,6 +23,7 @@ export default function Photo({
   overlay = false,
   ...rest
 }) {
+  const { t } = useI18n();
   const props = fotoProps(slug);
   if (!props) {
     if (import.meta.env.DEV) console.warn(`Photo: slug non trovato "${slug}"`);
@@ -38,7 +40,7 @@ export default function Photo({
         src={props.src}
         srcSet={props.srcSet}
         sizes={sizes}
-        alt={props.alt}
+        alt={t(props.alt)}
         width={1600}
         height={Math.round(1600 / props.aspect)}
         loading={priority ? "eager" : "lazy"}

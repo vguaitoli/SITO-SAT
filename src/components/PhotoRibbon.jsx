@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { fotoProps } from "@/data/foto-helpers";
+import { useI18n } from "@/i18n/I18nProvider";
 
 // Durata di un ciclo completo dell'auto-scroll: stessa cadenza dell'animazione
 // CSS che sostituisce, ricalcolata in px/s in base alla larghezza reale.
@@ -16,6 +17,7 @@ const RESUME_DELAY_MS = 1500;
  * scroll sia durante lo scroll manuale.
  */
 export default function PhotoRibbon({ slugs, className = "h-40 w-60 sm:h-52 sm:w-80" }) {
+  const { t } = useI18n();
   const photos = (slugs || []).map(fotoProps).filter(Boolean);
   const scrollerRef = useRef(null);
   const trackRef = useRef(null);
@@ -125,7 +127,7 @@ export default function PhotoRibbon({ slugs, className = "h-40 w-60 sm:h-52 sm:w
   return (
     <div
       ref={scrollerRef}
-      aria-label="Galleria fotografica scorrevole"
+      aria-label={t("Galleria fotografica scorrevole")}
       tabIndex={0}
       className="w-full max-w-full cursor-grab select-none overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [scroll-behavior:auto] [overscroll-behavior-x:contain] [&::-webkit-scrollbar]:hidden"
     >
@@ -143,7 +145,7 @@ export default function PhotoRibbon({ slugs, className = "h-40 w-60 sm:h-52 sm:w
                 src={photo.src}
                 srcSet={photo.srcSet}
                 sizes="320px"
-                alt={copy === 0 ? photo.alt : ""}
+                alt={copy === 0 ? t(photo.alt) : ""}
                 width={640}
                 height={Math.round(640 / photo.aspect)}
                 loading="lazy"

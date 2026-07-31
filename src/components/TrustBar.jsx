@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion, useInView, animate } from "framer-motion";
 import { CATEGORIE } from "@/data/categorie";
 import { useSiteContent } from "@/content/TinaContentProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 function Counter({ value, suffix }) {
   const ref = useRef(null);
@@ -27,11 +28,12 @@ function Counter({ value, suffix }) {
 
 export default function TrustBar() {
   const { tours } = useSiteContent();
+  const { t } = useI18n();
   // Solo dati verificabili dai contenuti del sito: nessuna statistica inventata.
   const stats = [
-    { value: CATEGORIE.length, suffix: "", label: "Esperienze proposte" },
-    { value: tours.length, suffix: "", label: "Itinerari disponibili" },
-    { value: new Set(tours.map((tour) => tour.livello)).size, suffix: "", label: "Livelli di difficoltà" },
+    { value: CATEGORIE.length, suffix: "", label: t("Esperienze proposte") },
+    { value: tours.length, suffix: "", label: t("Itinerari disponibili") },
+    { value: new Set(tours.map((tour) => tour.livello)).size, suffix: "", label: t("Livelli di difficoltà") },
   ];
 
   return (

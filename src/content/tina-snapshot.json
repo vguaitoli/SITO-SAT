@@ -145,7 +145,7 @@
           "eyebrow": "Gallery",
           "title": "L'avventura",
           "accent": "in immagini",
-          "intro": "Fotografie scattate durante i nostri tour. Nessuna posa, nessuno stock: solo la Sardegna come la trovi tu.",
+          "intro": "Momenti scattati durante i nostri tour. Nessuna posa, nessuno stock: solo la Sardegna come la trovi tu.",
           "images": [
             {
               "__typename": "HomepageGalleryImages",
@@ -331,6 +331,8 @@
           {
             "__typename": "TourCatalogTours",
             "name": "Supramonte Extreme",
+            "slug": "supramonte-extreme",
+            "updatedAt": "2026-07-31T00:00:00.000Z",
             "type": "Maxienduro",
             "duration": "3 Giorni",
             "distance": "260 km",
@@ -342,6 +344,7 @@
             "date": "2026-10-17T00:00:00.000Z",
             "price": "Su richiesta",
             "description": "Tre giorni nel cuore del Supramonte, dai nuraghi d'altura alle gole calcaree.",
+            "exclusions": null,
             "groups": [
               "weekend"
             ],
@@ -372,6 +375,8 @@
           {
             "__typename": "TourCatalogTours",
             "name": "Barbagia Trail",
+            "slug": "barbagia-trail",
+            "updatedAt": "2026-07-31T00:00:00.000Z",
             "type": "Enduro",
             "duration": "2 Giorni",
             "distance": "180 km",
@@ -383,6 +388,7 @@
             "date": "2026-10-03T00:00:00.000Z",
             "price": "Su richiesta",
             "description": "Due giorni di sentieri tecnici nella Barbagia più selvaggia, tra borghi di pietra e passaggi da enduro puro.",
+            "exclusions": null,
             "groups": [
               "weekend"
             ],
@@ -406,6 +412,8 @@
           {
             "__typename": "TourCatalogTours",
             "name": "Costa & Dune Expedition",
+            "slug": "costa-dune-expedition",
+            "updatedAt": "2026-07-31T00:00:00.000Z",
             "type": "Quad",
             "duration": "2 Giorni",
             "distance": "220 km",
@@ -417,6 +425,7 @@
             "date": "2026-07-25T00:00:00.000Z",
             "price": "Su richiesta",
             "description": "Due giorni tra dune dorate e coste incontaminate, con pernottamento e mezzi quad accessibili a tutti.",
+            "exclusions": null,
             "groups": [
               "weekend"
             ],
@@ -440,6 +449,8 @@
           {
             "__typename": "TourCatalogTours",
             "name": "Sardegna 4x4 Explorer",
+            "slug": "sardegna-4x4-explorer",
+            "updatedAt": "2026-07-31T00:00:00.000Z",
             "type": "4x4",
             "duration": "4 Giorni",
             "distance": "350 km",
@@ -451,6 +462,7 @@
             "date": "2026-08-22T00:00:00.000Z",
             "price": "Su richiesta",
             "description": "Quattro giorni a bordo di mezzi 4x4 tra altipiani, miniere abbandonate e coste remote.",
+            "exclusions": null,
             "groups": [
               "weekend"
             ],
@@ -488,6 +500,8 @@
           {
             "__typename": "TourCatalogTours",
             "name": "Gennargentu Wild",
+            "slug": "gennargentu-wild",
+            "updatedAt": "2026-07-31T00:00:00.000Z",
             "type": "Maxienduro",
             "duration": "4 Giorni",
             "distance": "380 km",
@@ -499,6 +513,7 @@
             "date": "2026-09-19T00:00:00.000Z",
             "price": "Su richiesta",
             "description": "Quattro giorni tra le creste del Gennargentu, sterrati panoramici e discese verso valli incontaminate.",
+            "exclusions": null,
             "groups": [
               "weekend"
             ],
@@ -536,6 +551,8 @@
           {
             "__typename": "TourCatalogTours",
             "name": "Sardegna Enduro Week",
+            "slug": "sardegna-enduro-week",
+            "updatedAt": "2026-07-31T00:00:00.000Z",
             "type": "Enduro",
             "duration": "7 Giorni",
             "distance": "620 km",
@@ -547,6 +564,7 @@
             "date": "2026-08-29T00:00:00.000Z",
             "price": "Su richiesta",
             "description": "Una settimana immersiva tra i sentieri enduro più suggestivi dell'isola.",
+            "exclusions": null,
             "groups": [
               "week"
             ],
@@ -605,6 +623,8 @@
           {
             "__typename": "TourCatalogTours",
             "name": "Isola in Quad Week",
+            "slug": "isola-in-quad-week",
+            "updatedAt": "2026-07-31T00:00:00.000Z",
             "type": "Quad",
             "duration": "7 Giorni",
             "distance": "580 km",
@@ -616,6 +636,7 @@
             "date": "2026-08-08T00:00:00.000Z",
             "price": "Su richiesta",
             "description": "Sette giorni in quad per esplorare l'isola da costa a costa, tra dune e altipiani.",
+            "exclusions": null,
             "groups": [
               "week"
             ],
@@ -674,6 +695,8 @@
           {
             "__typename": "TourCatalogTours",
             "name": "Sardegna E-Bike Experience",
+            "slug": "sardegna-e-bike-experience",
+            "updatedAt": "2026-07-31T00:00:00.000Z",
             "type": "E-Bike",
             "duration": "2 Giorni",
             "distance": "70 km",
@@ -685,6 +708,7 @@
             "date": null,
             "price": "Su richiesta",
             "description": "Itinerario tipo su e-bike a pedalata assistita: due giorni tra sterrati facili, nuraghi e borghi dell'entroterra. Personalizzabile per ogni gruppo.",
+            "exclusions": null,
             "groups": [
               "weekend"
             ],
@@ -708,6 +732,8 @@
           {
             "__typename": "TourCatalogTours",
             "name": "Custom Moto Club",
+            "slug": "custom-moto-club",
+            "updatedAt": "2026-07-31T00:00:00.000Z",
             "type": "Su Misura",
             "duration": "Variabile",
             "distance": "Su richiesta",
@@ -719,6 +745,7 @@
             "date": null,
             "price": "Su richiesta",
             "description": "Itinerario cucito su misura per il tuo gruppo o moto club: territorio, difficoltà e durata scelti da voi.",
+            "exclusions": null,
             "groups": [
               "custom"
             ],
@@ -728,7 +755,7 @@
       }
     },
     "errors": null,
-    "query": "\n    query tourCatalog($relativePath: String!) {\n  tourCatalog(relativePath: $relativePath) {\n    ... on Document {\n      _sys {\n        filename\n        basename\n        hasReferences\n        breadcrumbs\n        path\n        relativePath\n        extension\n      }\n      id\n    }\n    ...TourCatalogParts\n  }\n}\n    \n    fragment TourCatalogParts on TourCatalog {\n  __typename\n  tours {\n    __typename\n    name\n    type\n    duration\n    distance\n    level\n    offroad\n    interest\n    lunchIncluded\n    period\n    date\n    price\n    description\n    groups\n    stages {\n      __typename\n      title\n      description\n      image\n      imageAlt\n    }\n  }\n}\n    ",
+    "query": "\n    query tourCatalog($relativePath: String!) {\n  tourCatalog(relativePath: $relativePath) {\n    ... on Document {\n      _sys {\n        filename\n        basename\n        hasReferences\n        breadcrumbs\n        path\n        relativePath\n        extension\n      }\n      id\n    }\n    ...TourCatalogParts\n  }\n}\n    \n    fragment TourCatalogParts on TourCatalog {\n  __typename\n  tours {\n    __typename\n    name\n    slug\n    updatedAt\n    type\n    duration\n    distance\n    level\n    offroad\n    interest\n    lunchIncluded\n    period\n    date\n    price\n    description\n    exclusions\n    groups\n    stages {\n      __typename\n      title\n      description\n      image\n      imageAlt\n    }\n  }\n}\n    ",
     "variables": {
       "relativePath": "index.json"
     }
@@ -753,39 +780,93 @@
           {
             "__typename": "EventCatalogEvents",
             "name": "Wild Camp di Ferragosto",
+            "slug": "wild-camp-ferragosto-2026",
+            "updatedAt": "2026-07-31T00:00:00.000Z",
             "type": "4x4",
             "duration": "5 Giorni",
-            "distance": "Da confermare",
-            "level": "Da verificare",
+            "distance": "750 km",
+            "level": "Facile-Medio",
             "offroad": "Off-road",
-            "interest": "Mare, montagne e natura incontaminata",
-            "lunchIncluded": false,
+            "interest": "Mare, montagne e sottobosco",
+            "startLocation": "Nuoro",
+            "lunchIncluded": true,
             "accommodation": "Pernottamenti in tenda",
             "period": "12–16 agosto 2026",
             "startDate": "2026-08-12T00:00:00.000Z",
             "endDate": "2026-08-16T00:00:00.000Z",
             "price": "€350 a persona",
-            "description": "Cinque giorni di avventura in 4x4 nella Sardegna più selvaggia, lontano dai luoghi affollati, tra piste off-road e notti sotto le stelle.",
-            "programNote": "Il Wild Camp attraversa ambienti di mare e montagna con pernottamenti in tenda. Il programma dettagliato e il livello richiesto vengono confermati prima della partenza.",
+            "description": "Cinque giorni nel cuore della Sardegna più autentica. \nUn viaggio esclusivo dedicato agli appassionati di veicoli 4x4, alla scoperta degli angoli più selvaggi e incontaminati dell'isola.\nIl Wild Camp non è un semplice tour in 4x4. È un viaggio nella Sardegna più autentica, tra natura, tradizioni e luoghi che pochi hanno il privilegio di conoscere. Un'esperienza esclusiva pensata per chi desidera vivere il fuoristrada con passione, rispetto e spirito di avventura.",
+            "programNote": "Durante il Wild Camp attraverseremo montagne, foreste, altopiani e antiche piste pastorali, vivendo un'esperienza a stretto contatto con la natura nel pieno rispetto del territorio.",
             "included": [
               "Guida locale esperta",
               "Pernottamenti in tenda",
-              "Percorsi off-road tra mare e montagna",
-              "Esperienza in gruppo a posti limitati"
+              "Assistenza tecnica",
+              "Cena tipica con il Pastore nel Supramonte di Orgosolo",
+              "Gestione permessi per bivacco e pernottamento",
+              "Gestione autorizzazioni di transito, ove previsto"
             ],
-            "equipment": [],
-            "stages": [],
+            "exclusions": [
+              "Prima colazione e Pranzo",
+              "Cena (ad esclusione della cena con il Pastore)",
+              "Carburante",
+              "Pedaggi e spese personali",
+              "Tutto quanto non espressamente indicato nella voce \"Cosa Comprende\""
+            ],
+            "equipment": [
+              "Veicoli fuoristrada 4x4 dotati di riduttore e in perfette condizioni meccaniche",
+              "È richiesta una minima esperienza in guida fuoristrada"
+            ],
+            "stages": [
+              {
+                "__typename": "EventCatalogEventsStages",
+                "title": "Tappa 1: Nuoro > Jerzu",
+                "description": "Ritrovo dei partecipanti a Nuoro, registrazione, briefing tecnico e partenza.\nL'itinerario si sviluppa lungo spettacolari percorsi off-road fino a raggiungere Jerzu, attraversando alcuni dei paesaggi più suggestivi dell'entroterra sardo.\n",
+                "image": null,
+                "imageAlt": null
+              },
+              {
+                "__typename": "EventCatalogEventsStages",
+                "title": "Tappa 2: Esplorazione dell'Ogliastra",
+                "description": "Intera giornata dedicata ai percorsi più panoramici dell'Ogliastra, tra boschi, vallate, piste storiche e scenari naturali di straordinaria bellezza.\nRientro a Jerzu.\n",
+                "image": null,
+                "imageAlt": null
+              },
+              {
+                "__typename": "EventCatalogEventsStages",
+                "title": "Tappa 3: Jerzu > Orgosolo",
+                "description": "Partenza verso il Supramonte attraverso un itinerario off-road di grande fascino fino a raggiungere Orgosolo, nel cuore della Barbagia.\n",
+                "image": null,
+                "imageAlt": null
+              },
+              {
+                "__typename": "EventCatalogEventsStages",
+                "title": "Tappa 4: Il Supramonte di Orgosolo",
+                "description": "Intera giornata dedicata all'esplorazione del Supramonte di Orgosolo, tra boschi secolari, altopiani calcarei e antichi sentieri pastorali.\nLa serata sarà uno dei momenti più suggestivi dell'intero viaggio:\nCena tipica con il pastore, preparata secondo la tradizione locale con prodotti genuini del territorio.\nA seguire...\nPernottamento sotto le stelle nel cuore del Supramonte di Orgosolo, per vivere un'esperienza unica immersi nella natura incontaminata.\n",
+                "image": null,
+                "imageAlt": null
+              },
+              {
+                "__typename": "EventCatalogEventsStages",
+                "title": "Tappa 5: Orgosolo > Nuoro",
+                "description": "Ultima giornata di viaggio con rientro verso Nuoro lungo nuovi percorsi off-road, attraversando gli ultimi spettacolari paesaggi della Barbagia.\nConclusione del tour e saluti finali.",
+                "image": null,
+                "imageAlt": null
+              }
+            ],
             "sourceUrl": "https://www.instagram.com/p/DbAsuekIjk3/"
           },
           {
             "__typename": "EventCatalogEvents",
             "name": "Maxienduro Sardegna",
+            "slug": "maxienduro-sardegna-ottobre-2026",
+            "updatedAt": "2026-07-31T00:00:00.000Z",
             "type": "Maxienduro",
             "duration": "4 Giorni",
             "distance": "Da confermare",
             "level": "Da verificare",
             "offroad": "Off-road",
             "interest": "Olbia, Dorgali e sterrati della Sardegna",
+            "startLocation": "Olbia",
             "lunchIncluded": false,
             "accommodation": "3 pernottamenti con mezza pensione",
             "period": "22–25 ottobre 2026",
@@ -801,6 +882,7 @@
               "3 pernottamenti con mezza pensione",
               "Gruppo a numero chiuso"
             ],
+            "exclusions": null,
             "equipment": [],
             "stages": [
               {
@@ -838,7 +920,67 @@
       }
     },
     "errors": null,
-    "query": "\n    query eventCatalog($relativePath: String!) {\n  eventCatalog(relativePath: $relativePath) {\n    ... on Document {\n      _sys {\n        filename\n        basename\n        hasReferences\n        breadcrumbs\n        path\n        relativePath\n        extension\n      }\n      id\n    }\n    ...EventCatalogParts\n  }\n}\n    \n    fragment EventCatalogParts on EventCatalog {\n  __typename\n  events {\n    __typename\n    name\n    type\n    duration\n    distance\n    level\n    offroad\n    interest\n    lunchIncluded\n    accommodation\n    period\n    startDate\n    endDate\n    price\n    description\n    programNote\n    included\n    equipment\n    stages {\n      __typename\n      title\n      description\n      image\n      imageAlt\n    }\n    sourceUrl\n  }\n}\n    ",
+    "query": "\n    query eventCatalog($relativePath: String!) {\n  eventCatalog(relativePath: $relativePath) {\n    ... on Document {\n      _sys {\n        filename\n        basename\n        hasReferences\n        breadcrumbs\n        path\n        relativePath\n        extension\n      }\n      id\n    }\n    ...EventCatalogParts\n  }\n}\n    \n    fragment EventCatalogParts on EventCatalog {\n  __typename\n  events {\n    __typename\n    name\n    slug\n    updatedAt\n    type\n    duration\n    distance\n    level\n    offroad\n    interest\n    startLocation\n    lunchIncluded\n    accommodation\n    period\n    startDate\n    endDate\n    price\n    description\n    programNote\n    included\n    exclusions\n    equipment\n    stages {\n      __typename\n      title\n      description\n      image\n      imageAlt\n    }\n    sourceUrl\n  }\n}\n    ",
+    "variables": {
+      "relativePath": "index.json"
+    }
+  },
+  "rentalPage": {
+    "data": {
+      "rentalPage": {
+        "_sys": {
+          "filename": "index",
+          "basename": "index.json",
+          "hasReferences": false,
+          "breadcrumbs": [
+            "index"
+          ],
+          "path": "content/rental/index.json",
+          "relativePath": "index.json",
+          "extension": ".json"
+        },
+        "id": "content/rental/index.json",
+        "__typename": "RentalPage",
+        "hero": {
+          "__typename": "RentalPageHero",
+          "claim": "Non hai il mezzo. Hai già l'avventura.",
+          "title": "Noleggio",
+          "intro": "Vuoi partecipare a uno dei nostri tour ma non puoi raggiungere la Sardegna con il tuo mezzo? Ti aiutiamo a organizzare il noleggio di Quad, Enduro o Maxienduro attraverso partner locali selezionati, scegliendo la soluzione più adatta all'itinerario e alla tua esperienza.",
+          "audienceLabel": "A chi è adatto",
+          "audience": "A chi vuole vivere un tour Sardegna Trail Avventura senza possedere o trasportare il proprio mezzo."
+        },
+        "offer": {
+          "__typename": "RentalPageOffer",
+          "eyebrow": "Parti senza pensieri",
+          "title": "Il mezzo giusto. La Sardegna",
+          "accent": "davanti",
+          "suffix": ".",
+          "description": "Il noleggio viene coordinato con le date e il percorso del tour. Tu scegli l'esperienza e ci racconti come guidi: noi verifichiamo disponibilità e condizioni con i nostri partner locali, così al punto di partenza trovi una soluzione coerente con il tuo livello."
+        },
+        "process": {
+          "__typename": "RentalPageProcess",
+          "title": "Come funziona il",
+          "accent": "noleggio",
+          "items": [
+            "Scegli il tour e indica le date",
+            "Raccontaci la tua esperienza e il mezzo preferito",
+            "Verifichiamo Quad, Enduro o Maxienduro disponibili",
+            "Ricevi condizioni, documenti richiesti e modalità di ritiro"
+          ],
+          "note": "Disponibilità, tariffa, deposito, documenti, coperture e condizioni dipendono dal partner e dal mezzo scelto e vengono comunicati prima della conferma."
+        },
+        "finalCta": {
+          "__typename": "RentalPageFinalCta",
+          "title": "La Sardegna è pronta. Ti manca solo il",
+          "accent": "mezzo",
+          "suffix": ".",
+          "description": "Raccontaci quale tour vuoi vivere, quando desideri partire e quale mezzo preferisci. Verificheremo la soluzione più adatta e ti invieremo tutte le condizioni prima della conferma.",
+          "whatsappMessage": "Ciao! Vorrei informazioni sul noleggio di Quad, Enduro o Maxienduro per partecipare a un tour."
+        }
+      }
+    },
+    "errors": null,
+    "query": "\n    query rentalPage($relativePath: String!) {\n  rentalPage(relativePath: $relativePath) {\n    ... on Document {\n      _sys {\n        filename\n        basename\n        hasReferences\n        breadcrumbs\n        path\n        relativePath\n        extension\n      }\n      id\n    }\n    ...RentalPageParts\n  }\n}\n    \n    fragment RentalPageParts on RentalPage {\n  __typename\n  hero {\n    __typename\n    claim\n    title\n    intro\n    audienceLabel\n    audience\n  }\n  offer {\n    __typename\n    eyebrow\n    title\n    accent\n    suffix\n    description\n  }\n  process {\n    __typename\n    title\n    accent\n    items\n    note\n  }\n  finalCta {\n    __typename\n    title\n    accent\n    suffix\n    description\n    whatsappMessage\n  }\n}\n    ",
     "variables": {
       "relativePath": "index.json"
     }

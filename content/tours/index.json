@@ -2,6 +2,8 @@
   "tours": [
     {
       "name": "Supramonte Extreme",
+      "slug": "supramonte-extreme",
+      "updatedAt": "2026-07-31T00:00:00.000Z",
       "type": "Maxienduro",
       "duration": "3 Giorni",
       "distance": "260 km",
@@ -39,6 +41,8 @@
     },
     {
       "name": "Barbagia Trail",
+      "slug": "barbagia-trail",
+      "updatedAt": "2026-07-31T00:00:00.000Z",
       "type": "Enduro",
       "duration": "2 Giorni",
       "distance": "180 km",
@@ -70,6 +74,8 @@
     },
     {
       "name": "Costa & Dune Expedition",
+      "slug": "costa-dune-expedition",
+      "updatedAt": "2026-07-31T00:00:00.000Z",
       "type": "Quad",
       "duration": "2 Giorni",
       "distance": "220 km",
@@ -101,6 +107,8 @@
     },
     {
       "name": "Sardegna 4x4 Explorer",
+      "slug": "sardegna-4x4-explorer",
+      "updatedAt": "2026-07-31T00:00:00.000Z",
       "type": "4x4",
       "duration": "4 Giorni",
       "distance": "350 km",
@@ -144,6 +152,8 @@
     },
     {
       "name": "Gennargentu Wild",
+      "slug": "gennargentu-wild",
+      "updatedAt": "2026-07-31T00:00:00.000Z",
       "type": "Maxienduro",
       "duration": "4 Giorni",
       "distance": "380 km",
@@ -187,6 +197,8 @@
     },
     {
       "name": "Sardegna Enduro Week",
+      "slug": "sardegna-enduro-week",
+      "updatedAt": "2026-07-31T00:00:00.000Z",
       "type": "Enduro",
       "duration": "7 Giorni",
       "distance": "620 km",
@@ -248,6 +260,8 @@
     },
     {
       "name": "Isola in Quad Week",
+      "slug": "isola-in-quad-week",
+      "updatedAt": "2026-07-31T00:00:00.000Z",
       "type": "Quad",
       "duration": "7 Giorni",
       "distance": "580 km",
@@ -309,6 +323,8 @@
     },
     {
       "name": "Sardegna E-Bike Experience",
+      "slug": "sardegna-e-bike-experience",
+      "updatedAt": "2026-07-31T00:00:00.000Z",
       "type": "E-Bike",
       "duration": "2 Giorni",
       "distance": "70 km",
@@ -340,6 +356,8 @@
     },
     {
       "name": "Custom Moto Club",
+      "slug": "custom-moto-club",
+      "updatedAt": "2026-07-31T00:00:00.000Z",
       "type": "Su Misura",
       "duration": "Variabile",
       "distance": "Su richiesta",

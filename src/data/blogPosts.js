@@ -1,3 +1,6 @@
+import { localizeValue } from "../i18n/translate.js";
+import { BLOG_TRANSLATIONS } from "../i18n/blog-translations.js";
+
 export const blogPosts = [
   {
     id: "supramonte-extreme-maxienduro",
@@ -51,11 +54,21 @@ const byNewest = (a, b) =>
   new Date(b.published_date || 0).getTime() -
   new Date(a.published_date || 0).getTime();
 
-export function listBlogPosts(limit) {
-  const posts = [...blogPosts].sort(byNewest);
+export function listBlogPosts(limit, locale = "it") {
+  const posts = blogPosts
+    .map((post) => ({
+      ...localizeValue(post, locale),
+      ...(BLOG_TRANSLATIONS[locale]?.[post.id] || {}),
+    }))
+    .sort(byNewest);
   return typeof limit === "number" ? posts.slice(0, limit) : posts;
 }
 
-export function getBlogPost(id) {
-  return blogPosts.find((post) => post.id === id) || null;
+export function getBlogPost(id, locale = "it") {
+  const post = blogPosts.find((item) => item.id === id) || null;
+  if (!post) return null;
+  return {
+    ...localizeValue(post, locale),
+    ...(BLOG_TRANSLATIONS[locale]?.[post.id] || {}),
+  };
 }

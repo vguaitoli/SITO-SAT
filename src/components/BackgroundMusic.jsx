@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
+import { useI18n } from "@/i18n/I18nProvider";
 
 const TRACK_SRC = "/media/homepage-sito.mp3";
 // Volume contenuto: la musica accompagna la navigazione senza coprire il contenuto.
@@ -17,6 +18,7 @@ const FADE_IN_MS = 1800;
  * attivo il file non viene richiesto finché l'utente non sceglie di ascoltarlo.
  */
 export default function BackgroundMusic() {
+  const { t } = useI18n();
   const audioRef = useRef(null);
   const playRef = useRef(null);
   const fadeInRafRef = useRef(null);
@@ -190,8 +192,8 @@ export default function BackgroundMusic() {
           type="button"
           data-audio-control
           onClick={handleAudioControl}
-          aria-label={audioOff ? "Attiva la musica di sottofondo" : "Disattiva la musica di sottofondo"}
-          title={audioOff ? "Attiva musica" : "Disattiva musica"}
+          aria-label={audioOff ? t("Attiva la musica di sottofondo") : t("Disattiva la musica di sottofondo")}
+          title={audioOff ? t("Attiva musica") : t("Disattiva musica")}
           className="fixed right-4 top-24 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--granite-mist)]/40 bg-[var(--obsidian)]/80 text-[var(--granite-mist)] shadow-lg backdrop-blur-sm transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-soft)] lg:bottom-5 lg:right-5 lg:top-auto"
         >
           {audioOff ? (

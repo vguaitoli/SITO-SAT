@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { ArrowRight, BadgeEuro, BedDouble, Clock, Gauge, TrendingUp, Percent, MapPin, UtensilsCrossed, Calendar, Navigation, Users } from "lucide-react";
-import TourFullDetailsModal from "@/components/TourFullDetailsModal.jsx";
 import { tinaField } from "tinacms/dist/react";
 import { useSiteContent } from "@/content/TinaContentProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
-export default function TourCard({ tour, color }) {
+export default function TourCard({ tour, color, detailPath }) {
   const { TOUR_GROUP } = useSiteContent();
+  const { t } = useI18n();
   const [flipped, setFlipped] = useState(false);
-  const [showFull, setShowFull] = useState(false);
 
   return (
     <motion.div
@@ -47,7 +48,7 @@ export default function TourCard({ tour, color }) {
             <div className="p-5 text-center">
               <span className="font-button text-[10px] tracking-[0.15em] uppercase text-[#E4D4B0]/60 flex items-center justify-center gap-1.5 mb-1.5">
                 <Percent size={12} />
-                Sterrato
+                {t("Sterrato")}
               </span>
               <span className="font-heading text-3xl leading-none" style={{ color }}>{tour.sterrato}</span>
             </div>
@@ -58,28 +59,28 @@ export default function TourCard({ tour, color }) {
             <div className="flex flex-col gap-1">
               <span className="font-button text-[10px] tracking-[0.15em] uppercase text-[#F5EBD9]/40 flex items-center gap-1.5">
                 <Clock size={12} />
-                Durata
+                {t("Durata")}
               </span>
               <span className="font-body text-sm font-semibold text-[#F5EBD9]">{tour.durata}</span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="font-button text-[10px] tracking-[0.15em] uppercase text-[#F5EBD9]/40 flex items-center gap-1.5">
                 <TrendingUp size={12} />
-                Livello
+                {t("Livello")}
               </span>
               <span className="font-body text-sm font-semibold text-[#F5EBD9]">{tour.livello}</span>
             </div>
             <div className="col-span-2 flex flex-col gap-1">
               <span className="font-button text-[10px] tracking-[0.15em] uppercase text-[#F5EBD9]/40 flex items-center gap-1.5">
                 <Users size={12} aria-hidden="true" />
-                Partecipanti
+                {t("Partecipanti")}
               </span>
               <span className="font-body text-sm font-semibold text-[#F5EBD9]">{TOUR_GROUP.label}</span>
             </div>
             <div className="col-span-2 flex flex-col gap-1">
               <span className="font-button text-[10px] tracking-[0.15em] uppercase text-[#F5EBD9]/40 flex items-center gap-1.5">
                 <MapPin size={12} />
-                Punti di interesse
+                {t("Punti di interesse")}
               </span>
               <span className="font-body text-sm text-[#F5EBD9]/80 leading-snug">{tour.interesse}</span>
             </div>
@@ -90,7 +91,7 @@ export default function TourCard({ tour, color }) {
             {tour.pranzo !== false && (
               <div className="flex items-center gap-2">
                 <UtensilsCrossed size={15} className="text-[#6B7A3E]" />
-                <span className="font-body text-sm text-[#F5EBD9]/80">Pranzo tipico incluso</span>
+                <span className="font-body text-sm text-[#F5EBD9]/80">{t("Pranzo tipico incluso")}</span>
               </div>
             )}
             {tour.soggiorno && (
@@ -126,13 +127,14 @@ export default function TourCard({ tour, color }) {
               {tour.descrizione}
             </p>
             <div className="flex items-center mt-2">
-              <button
-                onClick={(e) => { e.stopPropagation(); setShowFull(true); }}
+              <Link
+                to={detailPath}
+                onClick={(event) => event.stopPropagation()}
                 className="btn-mech inline-flex items-center gap-2 text-[#A0612A] hover:text-[#E4D4B0] border-b border-[#A0612A] hover:border-[#E4D4B0] pb-1 w-fit text-sm transition-colors font-heading tracking-wide"
               >
-                Vedi il programma
+                {t("Vedi il programma")}
                 <ArrowRight size={16} aria-hidden="true" />
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -149,7 +151,7 @@ export default function TourCard({ tour, color }) {
           <div className="p-6 pb-3 flex items-center justify-between">
             <span className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 flex items-center gap-1.5">
               <Navigation size={12} />
-              Anteprima del tour
+              {t("Anteprima del tour")}
             </span>
             <span className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]" style={{ color }}>
               {tour.type}
@@ -173,15 +175,10 @@ export default function TourCard({ tour, color }) {
 
           <div className="px-6 pb-6 text-center">
             <h4 className="font-heading text-2xl text-[#F5EBD9] tracking-wide leading-none mb-1">{tour.name}</h4>
-            <p className="font-body text-xs text-[#F5EBD9]/50">{tour.km} · {tour.sterrato} sterrato</p>
+            <p className="font-body text-xs text-[#F5EBD9]/50">{tour.km} · {tour.sterrato} {t("sterrato")}</p>
           </div>
         </div>
       </div>
-      {showFull && (
-        <div onClick={(e) => e.stopPropagation()}>
-          <TourFullDetailsModal tour={tour} color={color} onClose={() => setShowFull(false)} />
-        </div>
-      )}
     </motion.div>
   );
 }

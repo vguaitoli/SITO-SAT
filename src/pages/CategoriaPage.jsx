@@ -1,5 +1,6 @@
 import React from "react";
-import { Link, useParams, Navigate } from "react-router-dom";
+import { Link, useLocation, useParams, Navigate } from "react-router-dom";
+import { tinaField } from "tinacms/dist/react";
 import { ArrowRight, MessageCircle, Check, Route } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
@@ -13,6 +14,8 @@ import { CATEGORIE, categoria } from "@/data/categorie";
 import { fotoProps } from "@/data/foto-helpers";
 import guideGianluca from "@/assets/guides/guide-gianluca-serra.webp";
 import { useSiteContent } from "@/content/TinaContentProvider";
+import { useI18n } from "@/i18n/I18nProvider";
+import { resolveRoute } from "@/i18n/routes";
 
 /**
  * Pagina dedicata a una delle esperienze.
@@ -22,41 +25,47 @@ import { useSiteContent } from "@/content/TinaContentProvider";
  */
 export default function CategoriaPage() {
   const { cat } = useParams();
-  const c = categoria(cat);
-  const { tours, CTA_LABELS, SITE, TOUR_GROUP } = useSiteContent();
+  const { pathname } = useLocation();
+  const resolvedRoute = resolveRoute(pathname);
+  const categoryId =
+    resolvedRoute.name === "experiences" ? resolvedRoute.params.cat : cat;
+  const sourceCategory = categoria(categoryId);
+  const { t, href, route, localize } = useI18n();
+  const c = localize(sourceCategory);
+  const { tours, rentalPage, CTA_LABELS, SITE, TOUR_GROUP } = useSiteContent();
   const whatsappLink = (message) =>
     `https://wa.me/${SITE.whatsapp.numero}?text=${encodeURIComponent(message)}`;
 
-  if (!c) return <Navigate to="/#esperienze" replace />;
+  if (!c) return <Navigate to={href("/#esperienze")} replace />;
 
   const hero = fotoProps(c.fotoHero);
   const tourCategoria = c.tourType ? tours.filter((t) => t.type === c.tourType) : [];
-  const altre = CATEGORIE.filter((x) => x.id !== c.id);
+  const altre = localize(CATEGORIE).filter((x) => x.id !== c.id);
   const colore = typeColors[c.tourType] || "#A0612A";
   const isCourse = c.kind === "course";
   const isRental = c.kind === "rental";
-  const contactTarget = isRental ? "/?interesse=Noleggio#contatti" : "/#contatti";
+  const rentalHero = isRental ? rentalPage.hero : null;
+  const rentalOffer = isRental ? rentalPage.offer : null;
+  const rentalProcess = isRental ? rentalPage.process : null;
+  const rentalFinalCta = isRental ? rentalPage.finalCta : null;
+  const pageName = rentalHero?.title || c.nome;
+  const contactTarget = href(isRental ? "/?interesse=Noleggio#contatti" : "/#contatti");
   const highlights = isCourse
     ? [
-        "Istruttore qualificato",
-        "Percorso definito sul livello di partenza",
-        "Lavoro pratico su tecnica e controllo del mezzo",
-        "Attenzione a sicurezza e lettura del terreno",
+        t("Istruttore qualificato"),
+        t("Percorso definito sul livello di partenza"),
+        t("Lavoro pratico su tecnica e controllo del mezzo"),
+        t("Attenzione a sicurezza e lettura del terreno"),
       ]
     : isRental
-      ? [
-          "Scegli il tour e indica le date",
-          "Raccontaci la tua esperienza e il mezzo preferito",
-          "Verifichiamo Quad, Enduro o Maxienduro disponibili",
-          "Ricevi condizioni, documenti richiesti e modalità di ritiro",
-        ]
+      ? rentalProcess?.items || []
       : [
-          "Guida locale esperta",
-          "Trasporto bagagli",
-          "Assistenza tecnica",
-          "Dispositivo GPS Live Tracking",
-          "Agriturismo mezza pensione",
-          "Gadget esclusivi",
+          t("Guida locale esperta"),
+          t("Trasporto bagagli"),
+          t("Assistenza tecnica"),
+          t("Dispositivo GPS Live Tracking"),
+          t("Agriturismo mezza pensione"),
+          t("Gadget esclusivi"),
         ];
 
   return (
@@ -70,7 +79,7 @@ export default function CategoriaPage() {
             src={hero.src}
             srcSet={hero.srcSet}
             sizes="100vw"
-            alt={hero.alt}
+            alt={t(hero.alt)}
             width={1600}
             height={Math.round(1600 / hero.aspect)}
             {...{ fetchpriority: "high" }}
@@ -90,20 +99,26 @@ export default function CategoriaPage() {
         <div className="absolute inset-0 topo-dark opacity-50" />
 
         <div className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-14 lg:px-8">
-          <nav aria-label="Percorso" className="mb-5 font-button text-xs uppercase tracking-[0.2em] text-[var(--granite-mist)]/60">
-            <Link to="/#esperienze" className="hover:text-[var(--accent)]">
-              Esperienze
+          <nav aria-label={t("Percorso")} className="mb-5 font-button text-xs uppercase tracking-[0.2em] text-[var(--granite-mist)]/60">
+            <Link to={href("/#esperienze")} className="hover:text-[var(--accent)]">
+              {t("Esperienze")}
             </Link>
             <span className="mx-2" aria-hidden="true">
               /
             </span>
-            <span className="text-[var(--accent-soft)]">{c.nome}</span>
+            <span className="text-[var(--accent-soft)]">{pageName}</span>
           </nav>
-          <p className="font-button mb-3 text-xs uppercase tracking-[0.3em] text-[var(--accent-soft)]">
-            {c.claim}
+          <p
+            className="font-button mb-3 text-xs uppercase tracking-[0.3em] text-[var(--accent-soft)]"
+            data-tina-field={isRental ? tinaField(rentalHero, "claim") : undefined}
+          >
+            {rentalHero?.claim || c.claim}
           </p>
-          <h1 className="font-heading text-6xl leading-none text-[var(--granite-mist)] lg:text-8xl">
-            {c.nome}
+          <h1
+            className="font-heading text-6xl leading-none text-[var(--granite-mist)] lg:text-8xl"
+            data-tina-field={isRental ? tinaField(rentalHero, "title") : undefined}
+          >
+            {pageName}
           </h1>
         </div>
       </header>
@@ -112,15 +127,26 @@ export default function CategoriaPage() {
       <section className="bg-[var(--obsidian)] py-16 lg:py-24">
         <div className="mx-auto grid max-w-7xl gap-10 px-5 lg:grid-cols-3 lg:px-8">
           <Reveal className="lg:col-span-2">
-            <p className="font-body text-xl leading-relaxed text-[var(--granite-mist)]/85 lg:text-2xl">
-              {c.intro}
+            <p
+              className="font-body text-xl leading-relaxed text-[var(--granite-mist)]/85 lg:text-2xl"
+              data-tina-field={isRental ? tinaField(rentalHero, "intro") : undefined}
+            >
+              {rentalHero?.intro || c.intro}
             </p>
           </Reveal>
           <Reveal delay={0.1} className="border-l-2 border-[var(--accent)] pl-6">
-            <p className="font-button mb-2 text-xs uppercase tracking-[0.25em] text-[var(--accent-soft)]">
-              A chi è adatto
+            <p
+              className="font-button mb-2 text-xs uppercase tracking-[0.25em] text-[var(--accent-soft)]"
+              data-tina-field={isRental ? tinaField(rentalHero, "audienceLabel") : undefined}
+            >
+              {rentalHero?.audienceLabel || t("A chi è adatto")}
             </p>
-            <p className="font-body leading-relaxed text-[var(--granite-mist)]/75">{c.adatto}</p>
+            <p
+              className="font-body leading-relaxed text-[var(--granite-mist)]/75"
+              data-tina-field={isRental ? tinaField(rentalHero, "audience") : undefined}
+            >
+              {rentalHero?.audience || c.adatto}
+            </p>
           </Reveal>
         </div>
       </section>
@@ -139,21 +165,26 @@ export default function CategoriaPage() {
             <>
               <Reveal className="mb-14 max-w-3xl">
                 <p className="font-button mb-4 text-xs uppercase tracking-[0.3em] text-[var(--accent)]">
-                  Itinerari
+                  {t("Itinerari")}
                 </p>
                 <h2 className="font-heading text-5xl leading-none text-[var(--text-on-light)] lg:text-7xl">
-                  I tour in <span className="text-[var(--accent)]">{c.nome}</span>
+                  {t("I tour in")} <span className="text-[var(--accent)]">{c.nome}</span>
                 </h2>
                 <p className="mt-6 font-body text-lg text-[var(--text-on-light-muted)]">
                   {tourCategoria.length === 1
-                    ? "Un itinerario a catalogo, con dati tecnici completi."
-                    : `${tourCategoria.length} itinerari a catalogo, con dati tecnici completi.`}{" "}
-                  Ogni tour è personalizzabile per il tuo gruppo. {TOUR_GROUP.sentence}
+                    ? t("Un itinerario a catalogo, con dati tecnici completi.")
+                    : `${tourCategoria.length} ${t("itinerari a catalogo, con dati tecnici completi.")}`}{" "}
+                  {t("Ogni tour è personalizzabile per il tuo gruppo.")} {TOUR_GROUP.sentence}
                 </p>
               </Reveal>
               <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                 {tourCategoria.map((tour) => (
-                  <TourCard key={tour.name} tour={tour} color={typeColors[tour.type] || colore} />
+                  <TourCard
+                    key={tour.slug}
+                    tour={tour}
+                    color={typeColors[tour.type] || colore}
+                    detailPath={route("tourDetail", { slug: tour.slug })}
+                  />
                 ))}
               </div>
             </>
@@ -161,16 +192,13 @@ export default function CategoriaPage() {
             <div className="grid items-stretch gap-10 lg:grid-cols-[1.35fr_0.65fr]">
               <Reveal className="flex flex-col justify-center">
                 <p className="font-button mb-4 text-xs uppercase tracking-[0.3em] text-[var(--accent)]">
-                  Formazione off-road
+                  {t("Formazione off-road")}
                 </p>
                 <h2 className="font-heading text-5xl leading-none text-[var(--text-on-light)] lg:text-7xl">
-                  Migliora la tua <span className="text-[var(--accent)]">guida</span>
+                  {t("Migliora la tua")} <span className="text-[var(--accent)]">{t("guida")}</span>
                 </h2>
                 <p className="mt-6 max-w-2xl font-body text-lg leading-relaxed text-[var(--text-on-light-muted)]">
-                  Il corso viene costruito a partire dalla tua esperienza, dalla moto
-                  che utilizzi e dagli obiettivi che vuoi raggiungere. Contattaci per
-                  definire insieme programma, disponibilità e requisiti prima di
-                  iniziare.
+                  {t("Il corso viene costruito a partire dalla tua esperienza, dalla moto che utilizzi e dagli obiettivi che vuoi raggiungere. Contattaci per definire insieme programma, disponibilità e requisiti prima di iniziare.")}
                 </p>
                 <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                   <Link
@@ -182,7 +210,7 @@ export default function CategoriaPage() {
                   </Link>
                   {SITE.contattiVerificati && (
                     <a
-                      href={whatsappLink("Ciao! Vorrei informazioni sui corsi di guida off-road con Gianluca.")}
+                      href={whatsappLink(t("Ciao! Vorrei informazioni sui corsi di guida off-road con Gianluca."))}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--wild-sage)] px-8 py-4 text-base text-[var(--granite-mist)] hover:bg-[var(--wild-sage-bright)]"
@@ -200,7 +228,7 @@ export default function CategoriaPage() {
               >
                 <img
                   src={guideGianluca}
-                  alt="Gianluca Serra, istruttore qualificato di guida off-road"
+                  alt={t("Gianluca Serra, istruttore qualificato di guida off-road")}
                   width={600}
                   height={800}
                   loading="lazy"
@@ -210,31 +238,37 @@ export default function CategoriaPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--obsidian)] via-transparent to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-7">
                   <p className="font-button text-xs uppercase tracking-[0.24em] text-[var(--accent-soft)]">
-                    Istruttore qualificato
+                    {t("Istruttore qualificato")}
                   </p>
                   <h3 className="mt-2 font-heading text-4xl text-[var(--granite-mist)]">
                     Gianluca Serra
                   </h3>
                   <p className="mt-2 font-body text-sm leading-relaxed text-[var(--granite-mist)]/75">
-                    Esperienza sul territorio e attenzione alla progressione tecnica
-                    e alla sicurezza in fuoristrada.
+                    {t("Esperienza sul territorio e attenzione alla progressione tecnica e alla sicurezza in fuoristrada.")}
                   </p>
                 </div>
               </Reveal>
             </div>
           ) : isRental ? (
             <Reveal className="mx-auto max-w-2xl text-center">
-              <p className="font-button mb-4 text-xs uppercase tracking-[0.3em] text-[var(--accent)]">
-                Parti senza pensieri
+              <p
+                className="font-button mb-4 text-xs uppercase tracking-[0.3em] text-[var(--accent)]"
+                data-tina-field={tinaField(rentalOffer, "eyebrow")}
+              >
+                {rentalOffer.eyebrow}
               </p>
               <h2 className="font-heading text-5xl leading-none text-[var(--text-on-light)] lg:text-6xl">
-                Il mezzo giusto. La Sardegna <span className="text-[var(--accent)]">davanti</span>.
+                <span data-tina-field={tinaField(rentalOffer, "title")}>{rentalOffer.title}</span>{" "}
+                <span className="text-[var(--accent)]" data-tina-field={tinaField(rentalOffer, "accent")}>
+                  {rentalOffer.accent}
+                </span>
+                <span data-tina-field={tinaField(rentalOffer, "suffix")}>{rentalOffer.suffix}</span>
               </h2>
-              <p className="mt-6 font-body text-lg leading-relaxed text-[var(--text-on-light-muted)]">
-                Il noleggio viene coordinato con le date e il percorso del tour. Tu
-                scegli l'esperienza e ci racconti come guidi: noi verifichiamo
-                disponibilità e condizioni con i nostri partner locali, così al punto
-                di partenza trovi una soluzione coerente con il tuo livello.
+              <p
+                className="mt-6 font-body text-lg leading-relaxed text-[var(--text-on-light-muted)]"
+                data-tina-field={tinaField(rentalOffer, "description")}
+              >
+                {rentalOffer.description}
               </p>
               <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
                 <Link
@@ -246,7 +280,7 @@ export default function CategoriaPage() {
                 </Link>
                 {SITE.contattiVerificati && (
                   <a
-                    href={whatsappLink("Ciao! Vorrei informazioni sul noleggio di quad/moto enduro/maxienduro per partecipare a un tour.")}
+                    href={whatsappLink(rentalFinalCta.whatsappMessage)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--wild-sage)] px-8 py-4 text-base text-[var(--granite-mist)] hover:bg-[var(--wild-sage-bright)]"
@@ -261,15 +295,13 @@ export default function CategoriaPage() {
             /* Nessun itinerario a catalogo: nessun dato inventato, si passa dal contatto. */
             <Reveal className="mx-auto max-w-2xl text-center">
               <p className="font-button mb-4 text-xs uppercase tracking-[0.3em] text-[var(--accent)]">
-                Itinerari {c.nome}
+                {t("Itinerari")} {c.nome}
               </p>
               <h2 className="font-heading text-5xl leading-none text-[var(--text-on-light)] lg:text-6xl">
-                Costruiamo il tuo <span className="text-[var(--accent)]">percorso</span>
+                {t("Costruiamo il tuo")} <span className="text-[var(--accent)]">{t("percorso")}</span>
               </h2>
               <p className="mt-6 font-body text-lg leading-relaxed text-[var(--text-on-light-muted)]">
-                I tour in {c.nome} li organizziamo su richiesta, in base al gruppo, al
-                periodo e al tipo di percorso che cercate. Scrivici: ti diciamo cosa è
-                possibile fare e quando.
+                {t("Organizziamo questi tour su richiesta, in base al gruppo, al periodo e al tipo di percorso che cercate. Scrivici: ti diciamo cosa è possibile fare e quando.")}
               </p>
               <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
                 <Link
@@ -281,7 +313,7 @@ export default function CategoriaPage() {
                 </Link>
                 {SITE.contattiVerificati && (
                   <a
-                    href={whatsappLink(`Ciao! Vorrei informazioni sui tour in ${c.nome} in Sardegna.`)}
+                    href={whatsappLink(`${t("Ciao! Vorrei informazioni sui tour in")} ${c.nome} ${t("in Sardegna.")}`)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--wild-sage)] px-8 py-4 text-base text-[var(--granite-mist)] hover:bg-[var(--wild-sage-bright)]"
@@ -302,21 +334,28 @@ export default function CategoriaPage() {
           <h2 className="font-heading mb-8 text-4xl text-[var(--granite-mist)] lg:text-5xl">
             {isCourse ? (
               <>
-                Un percorso <span className="text-[var(--accent)]">su misura</span>
+                {t("Un percorso")} <span className="text-[var(--accent)]">{t("su misura")}</span>
               </>
             ) : isRental ? (
               <>
-                Come funziona il <span className="text-[var(--accent)]">noleggio</span>
+                <span data-tina-field={tinaField(rentalProcess, "title")}>{rentalProcess.title}</span>{" "}
+                <span className="text-[var(--accent)]" data-tina-field={tinaField(rentalProcess, "accent")}>
+                  {rentalProcess.accent}
+                </span>
               </>
             ) : (
               <>
-                In base al tour <span className="text-[var(--accent)]">può essere incluso</span>
+                {t("In base al tour")} <span className="text-[var(--accent)]">{t("può essere incluso")}</span>
               </>
             )}
           </h2>
           <ul className="grid gap-x-10 gap-y-4 sm:grid-cols-2">
-            {highlights.map((item) => (
-              <li key={item} className="flex items-center gap-3 border-b border-[var(--border-on-dark)] py-3">
+            {highlights.map((item, index) => (
+              <li
+                key={item}
+                className="flex items-center gap-3 border-b border-[var(--border-on-dark)] py-3"
+                data-tina-field={isRental ? tinaField(rentalProcess, "items", index) : undefined}
+              >
                 <Check size={16} className="flex-shrink-0 text-[var(--wild-sage-bright)]" aria-hidden="true" />
                 <span className="font-body text-[var(--granite-mist)]/85">{item}</span>
               </li>
@@ -324,19 +363,15 @@ export default function CategoriaPage() {
           </ul>
           {!isCourse && !isRental && (
             <p className="mt-6 font-body text-sm leading-relaxed text-[var(--granite-mist)]/60">
-              Quando previsto, il dispositivo GPS Live Tracking viene fornito
-              dall'organizzazione, che può così verificare in ogni momento che il gruppo
-              rimanga compatto e che nessun partecipante resti isolato o si disperda
-              lungo il percorso. Non viene utilizzato come navigatore e non fornisce
-              indicazioni di percorso ai partecipanti. Servizi e dotazioni vengono
-              confermati prima della prenotazione.
+              {t("Quando previsto, il dispositivo GPS Live Tracking viene fornito dall'organizzazione, che può così verificare in ogni momento che il gruppo rimanga compatto e che nessun partecipante resti isolato o si disperda lungo il percorso. Non viene utilizzato come navigatore e non fornisce indicazioni di percorso ai partecipanti. Servizi e dotazioni vengono confermati prima della prenotazione.")}
             </p>
           )}
           {isRental && (
-            <p className="mt-6 font-body text-sm leading-relaxed text-[var(--granite-mist)]/55">
-              Disponibilità, tariffa, deposito, documenti, coperture e condizioni
-              dipendono dal partner e dal mezzo scelto e vengono comunicati prima
-              della conferma.
+            <p
+              className="mt-6 font-body text-sm leading-relaxed text-[var(--granite-mist)]/55"
+              data-tina-field={tinaField(rentalProcess, "note")}
+            >
+              {rentalProcess.note}
             </p>
           )}
         </div>
@@ -346,13 +381,13 @@ export default function CategoriaPage() {
       <section className="bg-[var(--obsidian)] topo-dark py-20">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           <h2 className="font-heading mb-8 text-3xl text-[var(--granite-mist)] lg:text-4xl">
-            Le altre <span className="text-[var(--accent)]">esperienze</span>
+            {t("Le altre")} <span className="text-[var(--accent)]">{t("esperienze")}</span>
           </h2>
           <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
             {altre.map((o) => (
               <Link
                 key={o.id}
-                to={`/esperienze/${o.id}`}
+                to={href(`/esperienze/${o.id}`)}
                 className="group relative block aspect-[4/3] overflow-hidden bg-[var(--obsidian)]"
               >
                 {o.fotoCard ? (
@@ -384,24 +419,31 @@ export default function CategoriaPage() {
           <h2 className="font-heading text-4xl leading-tight text-[var(--granite-mist)] lg:text-6xl">
             {isCourse ? (
               <>
-                Pronto a migliorare la tua <span className="text-[var(--accent)]">guida</span>?
+                {t("Pronto a migliorare la tua")} <span className="text-[var(--accent)]">{t("guida")}</span>?
               </>
             ) : isRental ? (
               <>
-                La Sardegna è pronta. Ti manca solo il <span className="text-[var(--accent)]">mezzo</span>.
+                <span data-tina-field={tinaField(rentalFinalCta, "title")}>{rentalFinalCta.title}</span>{" "}
+                <span className="text-[var(--accent)]" data-tina-field={tinaField(rentalFinalCta, "accent")}>
+                  {rentalFinalCta.accent}
+                </span>
+                <span data-tina-field={tinaField(rentalFinalCta, "suffix")}>{rentalFinalCta.suffix}</span>
               </>
             ) : (
               <>
-                Pronto a partire in <span className="text-[var(--accent)]">{c.nome}</span>?
+                {t("Pronto a partire in")} <span className="text-[var(--accent)]">{c.nome}</span>?
               </>
             )}
           </h2>
-          <p className="mt-5 font-body text-lg text-[var(--granite-mist)]/70">
+          <p
+            className="mt-5 font-body text-lg text-[var(--granite-mist)]/70"
+            data-tina-field={isRental ? tinaField(rentalFinalCta, "description") : undefined}
+          >
             {isCourse
-              ? "Raccontaci la tua esperienza, la moto che utilizzi e cosa vuoi migliorare: ti daremo le informazioni adatte al tuo livello."
+              ? t("Raccontaci la tua esperienza, la moto che utilizzi e cosa vuoi migliorare: ti daremo le informazioni adatte al tuo livello.")
               : isRental
-                ? "Raccontaci quale tour vuoi vivere, quando desideri partire e quale mezzo preferisci. Verificheremo la soluzione più adatta e ti invieremo tutte le condizioni prima della conferma."
-                : "Dicci quando vorresti venire: verifichiamo la disponibilità e ti diciamo qual è il percorso giusto per te."}
+                ? rentalFinalCta.description
+                : t("Dicci quando vorresti venire: verifichiamo la disponibilità e ti diciamo qual è il percorso giusto per te.")}
           </p>
           <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
             <Link
@@ -413,7 +455,11 @@ export default function CategoriaPage() {
             </Link>
             {SITE.contattiVerificati && (
               <a
-                href={whatsappLink(`Ciao! Vorrei verificare la disponibilità per ${c.nome}.`)}
+                href={whatsappLink(
+                  isRental
+                    ? rentalFinalCta.whatsappMessage
+                    : `${t("Ciao! Vorrei verificare la disponibilità per")} ${c.nome}.`,
+                )}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--wild-sage)] px-8 py-4 text-base text-[var(--granite-mist)] hover:bg-[var(--wild-sage-bright)]"

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, MessageCircle, ArrowRight } from "lucide-react";
 import { CATEGORIE } from "@/data/categorie";
 import { useSiteContent } from "@/content/TinaContentProvider";
+import { useI18n } from "@/i18n/I18nProvider";
+import { LOCALE_META, SUPPORTED_LOCALES } from "@/i18n/routes";
 
 const navLinks = [
   { label: "Esperienze", href: "#esperienze" },
@@ -16,14 +18,20 @@ const navLinks = [
   { label: "FAQ", href: "#faq" },
 ];
 
-const mobileCategories = CATEGORIE.filter(({ id }) => id !== "corsi-off-road" && id !== "noleggio");
-
-const toTarget = (href) => (href.startsWith("#") ? `/${href}` : href);
-
 export default function SiteNav() {
   const { CTA_LABELS, SITE } = useSiteContent();
+  const { locale, t, href, localize, switchTo } = useI18n();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const mobileCategories = localize(CATEGORIE).filter(
+    ({ id }) => id !== "corsi-off-road" && id !== "noleggio",
+  );
+  const changeLanguage = (event) => {
+    navigate(`${switchTo(event.target.value)}${location.search}${location.hash}`);
+    setOpen(false);
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -50,7 +58,7 @@ export default function SiteNav() {
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 lg:px-8">
-        <Link to="/#hero" className="flex shrink-0 items-center gap-2 sm:gap-3" aria-label={`${SITE.nome} — home`}>
+        <Link to={href("/#hero")} className="flex shrink-0 items-center gap-2 sm:gap-3" aria-label={`${SITE.nome} — home`}>
           <img
             src="/media/logo-sardegna-trail-avventura.png"
             alt=""
@@ -65,20 +73,35 @@ export default function SiteNav() {
           </span>
         </Link>
 
-        <nav aria-label="Navigazione principale" className="hidden items-center gap-5 xl:flex 2xl:gap-8">
+        <nav aria-label={t("Navigazione principale")} className="hidden items-center gap-5 xl:flex 2xl:gap-8">
           {navLinks.map((l) => (
             <Link
               key={l.href}
-              to={toTarget(l.href)}
+              to={href(l.href)}
               className="group relative font-button text-xs uppercase tracking-wider text-[var(--granite-mist)]/85 transition-colors hover:text-[var(--accent)] 2xl:text-sm"
             >
-              {l.label}
+              {t(l.label)}
               <span className="absolute -bottom-1 left-0 h-px w-0 bg-[var(--accent)] transition-all duration-300 group-hover:w-full" />
             </Link>
           ))}
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          <label className="relative">
+            <span className="sr-only">{t("Cambia lingua")}</span>
+            <select
+              value={locale}
+              onChange={changeLanguage}
+              aria-label={t("Cambia lingua")}
+              className="h-10 cursor-pointer border border-[var(--border-on-dark)] bg-[var(--obsidian)] px-2 font-button text-[11px] uppercase tracking-wider text-[var(--granite-mist)] outline-none transition-colors hover:border-[var(--accent)] focus:border-[var(--accent)]"
+            >
+              {SUPPORTED_LOCALES.map((language) => (
+                <option key={language} value={language}>
+                  {LOCALE_META[language].short}
+                </option>
+              ))}
+            </select>
+          </label>
           {SITE.contattiVerificati && (
             <a
               href={SITE.whatsapp.href}
@@ -91,7 +114,7 @@ export default function SiteNav() {
             </a>
           )}
           <Link
-            to="/#contatti"
+            to={href("/#contatti")}
             className="btn-mech hidden items-center gap-2 bg-[var(--cta)] px-5 py-2.5 text-sm text-[var(--cta-text)] hover:bg-[var(--cta-hover)] md:flex"
           >
             {CTA_LABELS.primary}
@@ -99,7 +122,7 @@ export default function SiteNav() {
           <button
             onClick={() => setOpen((o) => !o)}
             className="p-2 text-[var(--granite-mist)] xl:hidden"
-            aria-label={open ? "Chiudi menu" : "Apri menu"}
+            aria-label={open ? t("Chiudi menu") : t("Apri menu")}
             aria-expanded={open}
           >
             {open ? <X size={26} /> : <Menu size={26} />}
@@ -110,27 +133,27 @@ export default function SiteNav() {
       {/* Menu mobile */}
       {open && (
         <div className="max-h-[calc(100svh-4rem)] overflow-y-auto border-t border-[var(--accent)]/30 bg-[var(--obsidian)] xl:hidden">
-          <nav aria-label="Navigazione mobile" className="flex flex-col px-5 py-4">
+          <nav aria-label={t("Navigazione mobile")} className="flex flex-col px-5 py-4">
             {navLinks.map((l) => (
               <Link
                 key={l.href}
-                to={toTarget(l.href)}
+                to={href(l.href)}
                 onClick={() => setOpen(false)}
                 className="border-b border-[var(--border-on-dark)] py-3.5 font-button text-base uppercase tracking-wider text-[var(--granite-mist)]/90 hover:text-[var(--accent)]"
               >
-                {l.label}
+                {t(l.label)}
               </Link>
             ))}
 
             {/* Accesso rapido alle categorie */}
             <p className="mt-5 font-button text-[10px] uppercase tracking-[0.25em] text-[var(--granite-mist)]/50">
-              Le esperienze
+              {t("Le esperienze")}
             </p>
             <div className="mt-3 grid grid-cols-2 gap-2">
               {mobileCategories.map((c) => (
                 <Link
                   key={c.id}
-                  to={`/esperienze/${c.id}`}
+                  to={href(`/esperienze/${c.id}`)}
                   onClick={() => setOpen(false)}
                   className="border border-[var(--border-on-dark)] px-3 py-2.5 text-center font-heading text-lg tracking-wide text-[var(--granite-mist)] hover:border-[var(--accent)] hover:text-[var(--accent-soft)]"
                 >
@@ -141,7 +164,7 @@ export default function SiteNav() {
 
             <div className="mt-5 flex flex-col gap-2">
               <Link
-                to="/#contatti"
+                to={href("/#contatti")}
                 onClick={() => setOpen(false)}
                 className="btn-mech flex items-center justify-center gap-2 bg-[var(--cta)] px-5 py-3 text-sm text-[var(--cta-text)]"
               >

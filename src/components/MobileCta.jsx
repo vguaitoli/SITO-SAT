@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { MessageCircle, CalendarCheck } from "lucide-react";
 import { useSiteContent } from "@/content/TinaContentProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 /**
  * Barra CTA persistente ma discreta, solo su mobile. Compare dopo la hero e
@@ -9,6 +10,7 @@ import { useSiteContent } from "@/content/TinaContentProvider";
  */
 export default function MobileCta() {
   const { CTA_LABELS, SITE } = useSiteContent();
+  const { href } = useI18n();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -26,7 +28,7 @@ export default function MobileCta() {
       aria-hidden={!visible}
     >
       <Link
-        to="/#contatti"
+        to={href("/#contatti")}
         className="flex flex-1 items-center justify-center gap-2 bg-[var(--cta)] px-2 py-3.5 text-center font-button text-xs uppercase leading-tight tracking-wider text-[var(--cta-text)]"
         tabIndex={visible ? 0 : -1}
       >

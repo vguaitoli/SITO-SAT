@@ -4,6 +4,7 @@ import { X, BadgeEuro, CalendarDays, CheckCircle2, CircleX, Clock, Gauge, Trendi
 import { fotoProps } from "@/data/foto-helpers";
 import { tinaField } from "tinacms/dist/react";
 import { useSiteContent } from "@/content/TinaContentProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 const EQUIPAGGIAMENTO = [
   "Mezzo con gomme tassellate o miste in buono stato, tagliando recente e paramotore/paracolpi montati",
@@ -16,11 +17,12 @@ const EQUIPAGGIAMENTO = [
 
 export default function TourFullDetailsModal({ tour, color, onClose }) {
   const { CTA_LABELS, SITE, TOUR_GROUP } = useSiteContent();
+  const { t, href, localize } = useI18n();
   if (typeof document === "undefined") return null;
 
   const equipaggiamento = Array.isArray(tour.equipaggiamento)
     ? tour.equipaggiamento
-    : EQUIPAGGIAMENTO;
+    : localize(EQUIPAGGIAMENTO);
 
   return createPortal(
     <div
@@ -41,7 +43,7 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
             </span>
             <h3 className="font-heading text-3xl text-[#F5EBD9] tracking-wide">{tour.name}</h3>
           </div>
-          <button onClick={onClose} className="text-[#F5EBD9]/60 hover:text-[#A0612A]" aria-label="Chiudi">
+          <button onClick={onClose} className="text-[#F5EBD9]/60 hover:text-[#A0612A]" aria-label={t("Chiudi")}>
             <X size={22} />
           </button>
         </div>
@@ -88,7 +90,7 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
                       src={foto.src}
                       srcSet={foto.srcSet}
                       sizes="(min-width: 640px) 160px, 100vw"
-                      alt={foto.alt}
+                      alt={t(foto.alt)}
                       width={640}
                       height={Math.round(640 / foto.aspect)}
                       loading="lazy"
@@ -98,7 +100,7 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
                   )}
                   <div>
                     <span className="font-button text-[10px] tracking-[0.15em] uppercase" style={{ color }}>
-                      Giorno {i + 1}
+                      {t("Giorno")} {i + 1}
                     </span>
                     <h4
                       className="font-heading text-xl text-[#F5EBD9] tracking-wide mb-1"
@@ -123,7 +125,7 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
                 tour.programmaNote ? "text-[#F5EBD9]/70" : "text-[#F5EBD9]/50 italic"
               }`}
             >
-              {tour.programmaNote || "Itinerario giornaliero personalizzato, da definire insieme a te."}
+              {tour.programmaNote || t("Itinerario giornaliero personalizzato, da definire insieme a te.")}
             </p>
           )}
 
@@ -131,7 +133,7 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
             <div className="border-t border-[#F5EBD9]/10 mt-8 pt-6">
               <h4 className="font-heading text-xl text-[#F5EBD9] tracking-wide flex items-center gap-2 mb-4">
                 <CheckCircle2 size={18} style={{ color }} />
-                Cosa comprende
+                {t("Cosa comprende")}
               </h4>
               <ul className="space-y-2">
                 {tour.incluso.map((item) => (
@@ -151,7 +153,7 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
             >
               <h4 className="font-heading text-xl text-[#F5EBD9] tracking-wide flex items-center gap-2 mb-4">
                 <CircleX size={18} style={{ color }} />
-                Esclusioni
+                {t("Esclusioni")}
               </h4>
               <ul className="space-y-2">
                 {tour.esclusioni.map((item) => (
@@ -168,7 +170,7 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
             <div className="border-t border-[#F5EBD9]/10 mt-8 pt-6">
               <h4 className="font-heading text-xl text-[#F5EBD9] tracking-wide flex items-center gap-2 mb-4">
                 <ShieldCheck size={18} style={{ color }} />
-                Come equipaggiarsi
+                {t("Come equipaggiarsi")}
               </h4>
               <ul className="space-y-2">
                 {equipaggiamento.map((item) => (
@@ -183,7 +185,7 @@ export default function TourFullDetailsModal({ tour, color, onClose }) {
 
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
             <a
-              href="/#contatti"
+              href={href("/#contatti")}
               onClick={onClose}
               className="btn-mech flex w-full items-center justify-center gap-3 bg-[#A0612A] px-8 py-4 text-base text-[#F5EBD9] hover:bg-[#b87033]"
             >
