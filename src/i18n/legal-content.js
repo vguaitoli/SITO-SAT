@@ -17,7 +17,7 @@ export const LEGAL_CONTENT = {
           title: "Quali dati raccogliamo",
           paragraphs: [
             "Raccogliamo esclusivamente i dati che ci fornisci spontaneamente tramite il modulo del sito o i canali diretti (telefono, WhatsApp ed email).",
-            "Il sito non utilizza cookie di profilazione, strumenti di analisi statistica o di tracciamento e non raccoglie dati a tua insaputa.",
+            "Il sito non utilizza cookie di profilazione o di tracciamento pubblicitario e non raccoglie dati a tua insaputa. Per capire quali pagine sono più consultate utilizziamo Vercel Analytics, uno strumento di statistica che non installa cookie, non assegna identificatori persistenti e non permette di risalire alla tua identità: raccoglie solo dati aggregati come la pagina visitata, il paese e il tipo di dispositivo. La base giuridica è il nostro legittimo interesse a migliorare il sito (art. 6, par. 1, lett. f, GDPR).",
           ],
           list: ["nome", "indirizzo email", "numero di telefono (facoltativo)", "tour di interesse e data desiderata (facoltativi)", "contenuto del messaggio"],
         },
@@ -66,7 +66,8 @@ export const LEGAL_CONTENT = {
         {
           title: "Questo sito non usa cookie di profilazione",
           paragraphs: [
-            "Sardegna Trail Avventura non installa cookie di profilazione, marketing o tracciamento, non usa strumenti di analisi statistica come Google Analytics e non condivide dati di navigazione con terze parti a fini pubblicitari.",
+            "Sardegna Trail Avventura non installa cookie di profilazione, marketing o tracciamento e non condivide dati di navigazione con terze parti a fini pubblicitari. Non utilizziamo Google Analytics.",
+            "Per le statistiche di visita usiamo Vercel Analytics, che non installa cookie e non assegna identificatori persistenti: rileva solo dati aggregati e anonimi (pagina visitata, paese, tipo di dispositivo) e non consente di riconoscere o seguire un singolo visitatore.",
             "Per questo non è presente un banner di consenso: non ci sono cookie che richiedono l’accettazione dell’utente.",
           ],
         },
@@ -116,7 +117,7 @@ export const LEGAL_CONTENT = {
           title: "Data we collect",
           paragraphs: [
             "We only collect information that you voluntarily provide through the website form or direct channels (telephone, WhatsApp and email).",
-            "The website does not use profiling cookies, analytics or tracking tools and does not collect information without your knowledge.",
+            "The website does not use profiling cookies or advertising trackers and does not collect information without your knowledge. To understand which pages are most visited we use Vercel Analytics, a statistics tool that sets no cookies, assigns no persistent identifiers and cannot identify you: it only collects aggregated data such as the page viewed, the country and the device type. The legal basis is our legitimate interest in improving the website (Article 6(1)(f) GDPR).",
           ],
           list: ["name", "email address", "telephone number (optional)", "tour of interest and preferred date (optional)", "message content"],
         },
@@ -163,7 +164,8 @@ export const LEGAL_CONTENT = {
         {
           title: "This website does not use profiling cookies",
           paragraphs: [
-            "Sardegna Trail Avventura does not install profiling, marketing or tracking cookies, does not use analytics tools such as Google Analytics and does not share browsing data with third parties for advertising.",
+            "Sardegna Trail Avventura does not install profiling, marketing or tracking cookies and does not share browsing data with third parties for advertising. We do not use Google Analytics.",
+            "For visit statistics we use Vercel Analytics, which sets no cookies and assigns no persistent identifiers: it records only aggregated, anonymous data (page viewed, country, device type) and cannot recognise or follow an individual visitor.",
             "There is therefore no consent banner: the website does not use cookies that require your consent.",
           ],
         },
@@ -195,7 +197,7 @@ export const LEGAL_CONTENT = {
           title: "Données collectées",
           paragraphs: [
             "Nous collectons uniquement les informations que vous fournissez volontairement via le formulaire ou les canaux directs (téléphone, WhatsApp et e-mail).",
-            "Le site n’utilise aucun cookie de profilage, outil d’analyse ou de suivi et ne collecte aucune donnée à votre insu.",
+            "Le site n’utilise aucun cookie de profilage ni traceur publicitaire et ne collecte aucune donnée à votre insu. Pour savoir quelles pages sont les plus consultées, nous utilisons Vercel Analytics, un outil de statistiques qui n’installe aucun cookie, n’attribue aucun identifiant persistant et ne permet pas de vous identifier : il ne recueille que des données agrégées comme la page consultée, le pays et le type d’appareil. La base juridique est notre intérêt légitime à améliorer le site (art. 6, par. 1, point f, RGPD).",
           ],
           list: ["nom", "adresse e-mail", "numéro de téléphone (facultatif)", "circuit souhaité et date préférée (facultatifs)", "contenu du message"],
         },
@@ -233,7 +235,8 @@ export const LEGAL_CONTENT = {
         {
           title: "Ce site n’utilise pas de cookies de profilage",
           paragraphs: [
-            "Sardegna Trail Avventura n’installe aucun cookie de profilage, marketing ou suivi, n’utilise aucun outil d’analyse comme Google Analytics et ne partage aucune donnée de navigation à des fins publicitaires.",
+            "Sardegna Trail Avventura n’installe aucun cookie de profilage, marketing ou suivi et ne partage aucune donnée de navigation à des fins publicitaires. Nous n’utilisons pas Google Analytics.",
+            "Pour les statistiques de visite, nous utilisons Vercel Analytics, qui n’installe aucun cookie et n’attribue aucun identifiant persistant : il ne relève que des données agrégées et anonymes (page consultée, pays, type d’appareil) et ne permet pas de reconnaître ou de suivre un visiteur en particulier.",
             "Aucun bandeau de consentement n’est donc affiché : le site n’utilise aucun cookie nécessitant votre accord.",
           ],
         },

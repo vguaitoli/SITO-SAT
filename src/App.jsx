@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster"
+import { Analytics } from '@vercel/analytics/react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
 import SeoHead from '@/components/SeoHead';
@@ -81,6 +82,9 @@ function App() {
           <BackgroundMusic />
           <SiteRoutes />
           <Toaster />
+          {/* Statistiche aggregate senza cookie né identificatori persistenti:
+              non richiede un banner di consenso. */}
+          <Analytics />
         </TinaContentProvider>
       </I18nProvider>
     </Router>
