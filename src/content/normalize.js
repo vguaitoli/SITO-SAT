@@ -36,6 +36,7 @@ export function normalizeSettings(content) {
         mapsHref: content.mapsUrl || "",
       },
       legale: {
+        titolare: content.legal?.ownerName || "",
         ragioneSociale: content.legal?.businessName || "",
         formaGiuridica: content.legal?.legalForm || "",
         partitaIva: content.legal?.vatNumber || "",

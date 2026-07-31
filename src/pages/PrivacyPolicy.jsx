@@ -7,6 +7,7 @@ import { LEGAL_CONTENT } from "@/i18n/legal-content";
 
 function interpolate(value, legal) {
   return value
+    .replaceAll("{person}", legal.titolare)
     .replaceAll("{owner}", legal.ragioneSociale)
     .replaceAll("{form}", legal.formaGiuridica)
     .replaceAll("{vat}", legal.partitaIva)
@@ -47,7 +48,10 @@ export default function PrivacyPolicy() {
         <h1 className="mb-4 font-heading text-5xl leading-none text-[#F5EBD9] lg:text-6xl">
           {content.title} <span className="text-[#A0612A]">{content.accent}</span>
         </h1>
-        <p className="mb-12 font-body text-sm text-[#F5EBD9]/50">{content.intro}</p>
+        <div className="mb-12 space-y-1 font-body text-sm text-[#F5EBD9]/50">
+          <p>{content.intro}</p>
+          <p>{content.updated}</p>
+        </div>
 
         {content.sections.map((section, index) => (
           <LegalSection key={section.title} index={index + 1} section={section} legal={legale} />

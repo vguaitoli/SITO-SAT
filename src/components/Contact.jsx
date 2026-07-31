@@ -321,7 +321,7 @@ export default function Contact() {
                     <Link to={href("/privacy")} className="text-[#A0612A] underline hover:text-[#b87033]">
                       {t("informativa privacy")}
                     </Link>{" "}
-                    {t("e acconsento al trattamento dei miei dati per rispondere alla richiesta. *")}
+                    {t("e chiedo di essere ricontattato in merito alla mia richiesta. *")}
                   </span>
                 </label>
                 {error && <p className="font-body text-sm text-[#A0612A]">{error}</p>}

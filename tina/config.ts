@@ -590,6 +590,7 @@ export default defineConfig({
             name: "legal",
             label: "Dati legali",
             fields: [
+              { type: "string", name: "ownerName", label: "Nome e cognome del titolare", required: true },
               { type: "string", name: "businessName", label: "Ragione sociale", required: true },
               { type: "string", name: "legalForm", label: "Forma giuridica", required: true },
               { type: "string", name: "vatNumber", label: "Partita IVA", required: true },
