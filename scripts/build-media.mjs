@@ -40,8 +40,9 @@ const PHOTOS = [
   // ---- Card categorie ----
   { src: "06dd726c-e61d-4709-b7e9-791be0da9eba.webp", slug: "cat-maxienduro", cat: "maxienduro",
     alt: "Gruppo di maxienduro da viaggio parcheggiate in una pineta sarda" },
-  { src: "copertina enduro.jpeg", sourceDir: ENDURO_SOURCE_DIR, slug: "cat-enduro", cat: "enduro",
-    alt: "Rider con casco e moto da enduro durante una sosta su un percorso roccioso in Sardegna" },
+  { src: "WhatsApp Image 2026-07-16 at 13.30.26 (4).jpeg", sourceDir: ENDURO_SOURCE_DIR,
+    slug: "cat-enduro", cat: "enduro",
+    alt: "Rider in sella a una moto da enduro su un punto panoramico affacciato sul mare della Sardegna" },
   { src: "WhatsApp Image 2026-07-13 at 15.26.52.webp", slug: "cat-quad", cat: "quad",
     alt: "Quad in marcia su una pista sterrata accanto a pale eoliche" },
   { src: "WhatsApp Image 2026-07-13 at 15.26.51 (1).webp", slug: "cat-ssv", cat: "ssv",

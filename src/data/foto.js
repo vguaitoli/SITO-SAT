@@ -90,14 +90,14 @@ export const FOTO = [
   {
     "slug": "cat-enduro",
     "cat": "enduro",
-    "alt": "Rider con casco e moto da enduro durante una sosta su un percorso roccioso in Sardegna",
-    "aspect": 1.3333,
+    "alt": "Rider in sella a una moto da enduro su un punto panoramico affacciato sul mare della Sardegna",
+    "aspect": 0.75,
     "widths": [
       480,
       768,
       1200
     ],
-    "source": "copertina enduro.jpeg"
+    "source": "WhatsApp Image 2026-07-16 at 13.30.26 (4).jpeg"
   },
   {
     "slug": "cat-quad",
