@@ -90,15 +90,14 @@ export const FOTO = [
   {
     "slug": "cat-enduro",
     "cat": "enduro",
-    "alt": "Rider in sosta con le moto da enduro su un crinale panoramico",
+    "alt": "Rider con casco e moto da enduro durante una sosta su un percorso roccioso in Sardegna",
     "aspect": 1.3333,
     "widths": [
       480,
       768,
-      1200,
-      1800
+      1200
     ],
-    "source": "5dfd4b0a-fd1e-4dbf-87cd-0e43c7ce7374.webp"
+    "source": "copertina enduro.jpeg"
   },
   {
     "slug": "cat-quad",
@@ -184,6 +183,18 @@ export const FOTO = [
       1200
     ],
     "source": "PHOTO-2023-10-05-14-38-00.webp"
+  },
+  {
+    "slug": "corsi-guida-enduro-fiume",
+    "cat": "enduro",
+    "alt": "Gianluca Serra attraversa un corso d'acqua in moto durante un corso di guida enduro",
+    "aspect": 1.5,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "source": "gianluca enduro moto fiume corsi guida.jpeg"
   },
   {
     "slug": "enduro-vetta",

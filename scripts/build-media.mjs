@@ -10,12 +10,13 @@
  * indica il mezzo riconoscibile nello scatto: viene assegnata solo quando il
  * mezzo è identificabile con certezza, altrimenti la foto resta "generale".
  */
-import { mkdir, readdir, writeFile } from "node:fs/promises";
+import { access, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import sharp from "sharp";
 
 const SOURCE_DIR = "/Users/vittorioguaitoli/Desktop/FOTO SARDA SITO 2 - WEB";
+const ENDURO_SOURCE_DIR = "/Users/vittorioguaitoli/Desktop/FOTO GALLERY/ENDURO";
 const OUT_DIR = path.resolve("public/media/reali");
 
 // Larghezze generate per ogni foto: alimentano srcset/sizes lato componente.
@@ -39,8 +40,8 @@ const PHOTOS = [
   // ---- Card categorie ----
   { src: "06dd726c-e61d-4709-b7e9-791be0da9eba.webp", slug: "cat-maxienduro", cat: "maxienduro",
     alt: "Gruppo di maxienduro da viaggio parcheggiate in una pineta sarda" },
-  { src: "5dfd4b0a-fd1e-4dbf-87cd-0e43c7ce7374.webp", slug: "cat-enduro", cat: "enduro",
-    alt: "Rider in sosta con le moto da enduro su un crinale panoramico" },
+  { src: "copertina enduro.jpeg", sourceDir: ENDURO_SOURCE_DIR, slug: "cat-enduro", cat: "enduro",
+    alt: "Rider con casco e moto da enduro durante una sosta su un percorso roccioso in Sardegna" },
   { src: "WhatsApp Image 2026-07-13 at 15.26.52.webp", slug: "cat-quad", cat: "quad",
     alt: "Quad in marcia su una pista sterrata accanto a pale eoliche" },
   { src: "WhatsApp Image 2026-07-13 at 15.26.51 (1).webp", slug: "cat-ssv", cat: "ssv",
@@ -57,6 +58,9 @@ const PHOTOS = [
     alt: "Gruppo di rider in sosta con le moto su un altopiano verde della Sardegna" },
   { src: "PHOTO-2023-10-05-14-38-00.webp", slug: "enduro-sentiero", cat: "enduro",
     alt: "Rider su moto da enduro lungo un sentiero sterrato tra le montagne" },
+  { src: "gianluca enduro moto fiume corsi guida.jpeg", sourceDir: ENDURO_SOURCE_DIR,
+    slug: "corsi-guida-enduro-fiume", cat: "enduro",
+    alt: "Gianluca Serra attraversa un corso d'acqua in moto durante un corso di guida enduro" },
   { src: "PHOTO-2024-05-01-16-24-40.webp", slug: "enduro-vetta", cat: "enduro",
     alt: "Rider esulta accanto alla moto da enduro in cima a un percorso panoramico" },
   { src: "WhatsApp Image 2026-07-13 at 15.26.54 (1).webp", slug: "quad-pietraia", cat: "quad",
@@ -309,8 +313,15 @@ const PHOTOS = [
 ];
 
 async function main() {
-  const available = new Set(await readdir(SOURCE_DIR));
-  const missing = PHOTOS.filter((p) => !available.has(p.src));
+  const photoInput = (photo) => path.join(photo.sourceDir || SOURCE_DIR, photo.src);
+  const missing = [];
+  for (const photo of PHOTOS) {
+    try {
+      await access(photoInput(photo));
+    } catch {
+      missing.push(photo);
+    }
+  }
   if (missing.length) {
     console.error("Originali non trovate:\n" + missing.map((m) => "  - " + m.src).join("\n"));
     process.exitCode = 1;
@@ -321,7 +332,7 @@ async function main() {
   const manifest = [];
 
   for (const photo of PHOTOS) {
-    const input = path.join(SOURCE_DIR, photo.src);
+    const input = photoInput(photo);
     const image = sharp(input);
     const { width, height } = await image.metadata();
 

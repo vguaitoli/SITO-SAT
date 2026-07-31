@@ -58,7 +58,7 @@ function Card({ cat, featuredMobile = false }) {
         <h3 className="mt-2 font-heading text-3xl tracking-wide text-[var(--granite-mist)]">
           {cat.nome}
         </h3>
-        <p className="mt-2 line-clamp-2 font-body text-[11px] leading-snug text-[var(--granite-mist)]/75 sm:line-clamp-3 sm:text-sm sm:leading-relaxed">
+        <p className="mt-2 hidden font-body text-[var(--granite-mist)]/75 sm:line-clamp-3 sm:text-sm sm:leading-relaxed">
           {cat.cardIntro || cat.intro}
         </p>
         <span className="mt-4 inline-flex items-center gap-2 font-button text-xs uppercase tracking-[0.2em] text-[var(--accent-soft)]">

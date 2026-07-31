@@ -129,8 +129,8 @@ export const CATEGORIE = [
     // I corsi non sono itinerari a catalogo: programma, disponibilità e
     // requisiti vengono definiti direttamente con il partecipante.
     tourType: null,
-    fotoCard: "enduro-sentiero",
-    fotoHero: "enduro-sentiero",
+    fotoCard: "corsi-guida-enduro-fiume",
+    fotoHero: "corsi-guida-enduro-fiume",
     carosello: [],
     claim: "Più tecnica, più controllo",
     cardIntro: "Tecnica e sicurezza con un istruttore qualificato.",
