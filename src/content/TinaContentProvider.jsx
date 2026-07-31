@@ -17,10 +17,23 @@ const TinaContentContext = createContext(null);
  * restituiscono 404. Riportiamo ogni percorso al file locale, che esiste sempre,
  * viene servito dal nostro dominio ed evita una richiesta a terzi.
  */
-const TINA_CDN_FILE = /^https?:\/\/assets\.tina\.io\/.*?\/__file\//;
+const TINA_CDN_FILE = /^https?:\/\/assets\.tina\.io\/.*?\/__file\/(.*)$/;
+// Deve restare allineato a media.tina.mediaRoot in tina/config.ts.
+const TINA_MEDIA_ROOT = "media/cms";
+
+function tinaUrlToLocalPath(url) {
+  const match = url.match(TINA_CDN_FILE);
+  if (!match) return url;
+  const path = match[1];
+  // Il percorso dopo __file/ ha due forme: le immagini scritte nei contenuti
+  // riportano già il percorso pubblico completo ("media/reali/foto.webp"),
+  // mentre quelle caricate dall'editor Tina sono relative a mediaRoot
+  // ("foto.webp") e vanno ricondotte sotto di esso.
+  return path.startsWith("media/") ? `/${path}` : `/${TINA_MEDIA_ROOT}/${path}`;
+}
 
 function toLocalMedia(value) {
-  if (typeof value === "string") return value.replace(TINA_CDN_FILE, "/");
+  if (typeof value === "string") return tinaUrlToLocalPath(value);
   if (Array.isArray(value)) return value.map(toLocalMedia);
   if (value && typeof value === "object") {
     return Object.fromEntries(
