@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster"
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
 import SeoHead from '@/components/SeoHead';
@@ -82,9 +83,10 @@ function App() {
           <BackgroundMusic />
           <SiteRoutes />
           <Toaster />
-          {/* Statistiche aggregate senza cookie né identificatori persistenti:
-              non richiede un banner di consenso. */}
+          {/* Statistiche di visita e Core Web Vitals: entrambi senza cookie né
+              identificatori persistenti, quindi non richiedono un banner. */}
           <Analytics />
+          <SpeedInsights />
         </TinaContentProvider>
       </I18nProvider>
     </Router>
