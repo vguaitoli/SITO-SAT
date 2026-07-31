@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import { useI18n } from "@/i18n/I18nProvider";
 
-const TRACK_SRC = "/media/homepage-sito.mp3";
+const TRACK_SRC = "/media/ascent-of-stone.mp3";
 // Volume contenuto: la musica accompagna la navigazione senza coprire il contenuto.
 const TARGET_VOLUME = 0.24;
 const FADE_IN_MS = 1800;
