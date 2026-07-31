@@ -9,6 +9,32 @@ import { resolveRoute } from "@/i18n/routes";
 
 const TinaContentContext = createContext(null);
 
+/**
+ * TinaCMS riscrive i percorsi delle immagini verso il proprio CDN, nella forma
+ * assets.tina.io/<clientId>/__staging/<branch>/__file/<percorso>. Sul CDN però
+ * esiste solo ciò che è stato caricato dall'editor, cioè la sola cartella
+ * media/cms: tutte le altre immagini vivono nel repository e da quegli URL
+ * restituiscono 404. Riportiamo ogni percorso al file locale, che esiste sempre,
+ * viene servito dal nostro dominio ed evita una richiesta a terzi.
+ */
+const TINA_CDN_FILE = /^https?:\/\/assets\.tina\.io\/.*?\/__file\//;
+
+function toLocalMedia(value) {
+  if (typeof value === "string") return value.replace(TINA_CDN_FILE, "/");
+  if (Array.isArray(value)) return value.map(toLocalMedia);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [
+        key,
+        // I metadati di Tina (_content_source, _sys, …) passano intatti: servono
+        // a tinaField per l'editing visuale e non contengono percorsi immagine.
+        key.startsWith("_") ? item : toLocalMedia(item),
+      ]),
+    );
+  }
+  return value;
+}
+
 function useEditableDocument(entry, documentName, formId, primary) {
   const options = {
     query: entry.query,
@@ -21,7 +47,7 @@ function useEditableDocument(entry, documentName, formId, primary) {
   }
 
   const response = useTina(options);
-  return response.data?.[documentName] || entry.data[documentName];
+  return toLocalMedia(response.data?.[documentName] || entry.data[documentName]);
 }
 
 export function TinaContentProvider({ children }) {
