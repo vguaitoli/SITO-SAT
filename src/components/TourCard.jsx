@@ -56,14 +56,14 @@ export default function TourCard({ tour, color, detailPath }) {
                 <Gauge size={12} />
                 Km
               </span>
-              <span className="font-heading text-3xl leading-none" style={{ color }}>{tour.km}</span>
+              <span className="font-heading text-3xl leading-none sm:flex sm:min-h-[2em] sm:items-center sm:justify-center" style={{ color }}>{tour.km}</span>
             </div>
             <div className="p-5 text-center">
               <span className="font-button text-[10px] tracking-[0.15em] uppercase text-[#E4D4B0]/60 flex items-center justify-center gap-1.5 mb-1.5">
                 <Percent size={12} />
                 {t("Sterrato")}
               </span>
-              <span className="font-heading text-3xl leading-none" style={{ color }}>{tour.sterrato}</span>
+              <span className="font-heading text-3xl leading-none sm:flex sm:min-h-[2em] sm:items-center sm:justify-center" style={{ color }}>{tour.sterrato}</span>
             </div>
           </div>
 
@@ -95,12 +95,14 @@ export default function TourCard({ tour, color, detailPath }) {
                 <MapPin size={12} />
                 {t("Punti di interesse")}
               </span>
-              <span className="font-body text-sm text-[#F5EBD9]/80 leading-snug">{tour.interesse}</span>
+              <span className="font-body text-sm text-[#F5EBD9]/80 leading-snug sm:min-h-[2.5rem]">{tour.interesse}</span>
             </div>
           </div>
 
-          {/* Extra info + CTA */}
-          <div className="px-6 pb-6 mt-auto flex flex-col gap-2.5">
+          {/* Extra info + CTA. Il blocco non è ancorato in basso: lo era, e nelle
+              schede con meno voci si apriva un vuoto a metà scheda. Ora il
+              contenuto scorre dall'alto e solo il pulsante resta in fondo. */}
+          <div className="px-6 pb-6 flex flex-1 flex-col gap-2.5">
             {tour.pranzo !== false && (
               <div className="flex items-center gap-2">
                 <UtensilsCrossed size={15} className="text-[#6B7A3E]" />
@@ -139,7 +141,7 @@ export default function TourCard({ tour, color, detailPath }) {
             >
               {tour.descrizione}
             </p>
-            <div className="flex items-center mt-2">
+            <div className="mt-auto flex items-center pt-2">
               <Link
                 to={detailPath}
                 onClick={(event) => event.stopPropagation()}
