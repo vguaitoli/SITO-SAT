@@ -70,9 +70,24 @@ export function normalizeTours(content) {
   }));
 }
 
+/**
+ * Il nome di un evento può portare con sé un sottotitolo dopo un trattino
+ * lungo, come "Tour dei Santi 4x4 – Sardegna senza confini". Lo separiamo qui
+ * per mostrarlo su due livelli e tenere corto il titolo della pagina.
+ * La convenzione vive nel nome invece che in un campo dedicato perché
+ * aggiungere un campo allo schema TinaCMS blocca le build finché Tina Cloud
+ * non reindicizza il branch.
+ */
+function splitEventName(name) {
+  const [title, ...rest] = String(name || "").split(" – ");
+  return { title: title.trim(), subtitle: rest.join(" – ").trim() || undefined };
+}
+
 export function normalizeEvents(content) {
   return (content?.events || []).map((event) => ({
     ...event,
+    name: splitEventName(event.name).title,
+    subtitle: splitEventName(event.name).subtitle,
     durata: event.duration,
     km: event.distance,
     livello: event.level,
