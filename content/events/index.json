@@ -123,13 +123,13 @@
       "updatedAt": "2026-07-31T00:00:00.000Z",
       "type": "4x4",
       "duration": "6 Giorni",
-      "distance": "Da confermare",
-      "level": "Da verificare",
+      "distance": "850 km",
+      "level": "Medio",
       "offroad": "Off-road",
       "interest": "Gallura, Barbagia, Ogliastra, Supramonte di Orgosolo",
       "startLocation": "Olbia",
       "lunchIncluded": false,
-      "accommodation": "",
+      "accommodation": "Pernottamenti in agriturismi convenzionati",
       "period": "31 ottobre – 5 novembre 2026",
       "startDate": "2026-10-31T00:00:00.000Z",
       "endDate": "2026-11-05T00:00:00.000Z",
@@ -138,7 +138,10 @@
       "programNote": "Sono previste promozioni dedicate: sconti speciali per gruppi 4x4, condizioni riservate ai clienti abituali, pacchetti personalizzati su richiesta e offerte per chi prenota in anticipo. Contattaci per i dettagli.",
       "included": [],
       "exclusions": [],
-      "equipment": [],
+      "equipment": [
+        "Veicoli fuoristrada 4x4 dotati di riduttore e in perfette condizioni meccaniche",
+        "È richiesta una minima esperienza in guida fuoristrada"
+      ],
       "stages": [
         {
           "title": "Tappa 1: Olbia > Tempio Pausania",
