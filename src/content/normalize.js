@@ -78,6 +78,10 @@ export function normalizeTours(content) {
  * aggiungere un campo allo schema TinaCMS blocca le build finché Tina Cloud
  * non reindicizza il branch.
  */
+function soloVociPiene(list) {
+  return (list || []).filter((voce) => String(voce || "").trim() !== "");
+}
+
 function splitEventName(name) {
   const [title, ...rest] = String(name || "").split(" – ");
   return { title: title.trim(), subtitle: rest.join(" – ").trim() || undefined };
@@ -102,9 +106,11 @@ export function normalizeEvents(content) {
     prezzo: event.price,
     descrizione: event.description,
     programmaNote: event.programNote,
-    incluso: event.included || [],
-    esclusioni: event.exclusions || [],
-    equipaggiamento: event.equipment || [],
+    // Una riga lasciata vuota nell'editor arriva qui come stringa vuota e
+    // produrrebbe un punto elenco senza testo: la scartiamo.
+    incluso: soloVociPiene(event.included),
+    esclusioni: soloVociPiene(event.exclusions),
+    equipaggiamento: soloVociPiene(event.equipment),
     tappe: (event.stages || []).map((stage) => ({
       ...stage,
       title: stage.title,

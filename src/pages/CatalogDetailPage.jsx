@@ -104,9 +104,14 @@ export default function CatalogDetailPage({ kind }) {
     { icon: Clock3, label: t("Durata"), value: item.durata },
     { icon: Gauge, label: t("Distanza"), value: item.km },
     { icon: TrendingUp, label: t("Livello"), value: item.livello },
-    // Nei tour il campo è una percentuale ("88%"), negli eventi descrive il tipo
-    // di percorso ("Off-road"): l'etichetta segue il significato del dato.
-    { icon: Percent, label: isEvent ? t("Tipo di percorso") : t("Sterrato"), value: item.sterrato },
+    // L'etichetta segue la forma del dato, non il tipo di scheda: una
+    // percentuale ("88%") è sterrato, un testo descrittivo ("Off-road") è il
+    // tipo di percorso. Negli eventi il campo può essere l'uno o l'altro.
+    {
+      icon: Percent,
+      label: /%/.test(item.sterrato || "") ? t("Sterrato") : t("Tipo di percorso"),
+      value: item.sterrato,
+    },
     { icon: CalendarDays, label: t("Periodo"), value: item.periodo },
     { icon: Users, label: t("Partecipanti"), value: TOUR_GROUP.label },
   ];
