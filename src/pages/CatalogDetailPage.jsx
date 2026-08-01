@@ -157,6 +157,14 @@ export default function CatalogDetailPage({ kind }) {
               >
                 {item.name}
               </h1>
+              {item.subtitle && (
+                <p
+                  className="mt-4 font-button text-sm uppercase tracking-[0.22em] text-[var(--accent-soft)]"
+                  data-tina-field={tinaField(item, "subtitle")}
+                >
+                  {item.subtitle}
+                </p>
+              )}
               <p
                 className="mt-7 max-w-3xl whitespace-pre-line font-body text-base leading-relaxed text-[var(--granite-mist)]/85 sm:text-lg lg:text-xl"
                 data-tina-field={tinaField(item, "description")}

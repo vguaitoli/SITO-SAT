@@ -387,6 +387,7 @@ export default defineConfig({
             ui: { itemProps: (item) => ({ label: item?.name || "Evento" }) },
             fields: [
               { type: "string", name: "name", label: "Nome", required: true, isTitle: true },
+              { type: "string", name: "subtitle", label: "Sottotitolo" },
               {
                 type: "string",
                 name: "slug",

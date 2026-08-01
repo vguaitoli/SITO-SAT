@@ -31,9 +31,22 @@ export default function TourCard({ tour, color, detailPath }) {
             >
               {tour.type}
             </span>
-            <h3 className="font-heading text-3xl text-[#F5EBD9] leading-none tracking-wide">
-              <span data-tina-field={tinaField(tour, "name")}>{tour.name}</span>
-            </h3>
+            {/* Altezza riservata a due righe di titolo: senza, un titolo che va a
+                capo o un sottotitolo presente disallineano i dati fra schede
+                affiancate. */}
+            <div className="sm:min-h-[3.75rem]">
+              <h3 className="font-heading text-3xl text-[#F5EBD9] leading-none tracking-wide">
+                <span data-tina-field={tinaField(tour, "name")}>{tour.name}</span>
+              </h3>
+              {tour.subtitle && (
+                <p
+                  className="mt-2 font-button text-[11px] uppercase tracking-[0.18em] text-[#E4D4B0]/70"
+                  data-tina-field={tinaField(tour, "subtitle")}
+                >
+                  {tour.subtitle}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Key stats — km & sterrato front and center */}
