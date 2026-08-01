@@ -10,7 +10,7 @@ const navLinks = [
   { label: "Esperienze", href: "#esperienze" },
   { label: "Corsi Off-road", href: "/esperienze/corsi-off-road" },
   { label: "Noleggio", href: "/esperienze/noleggio" },
-  { label: "Tour", href: "/itinerari" },
+  { label: "Itinerari", href: "/itinerari" },
   { label: "Chi Siamo", href: "#guide" },
   { label: "Gallery", href: "#gallery" },
   { label: "Blog", href: "/blog" },

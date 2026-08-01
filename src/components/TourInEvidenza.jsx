@@ -9,21 +9,47 @@ import { tinaField } from "tinacms/dist/react";
 import { useSiteContent } from "@/content/TinaContentProvider";
 import { useI18n } from "@/i18n/I18nProvider";
 
+const IN_EVIDENZA = 3;
+
+function dataEvento(value) {
+  if (!value) return null;
+  return new Date(value.includes("T") ? value : `${value}T00:00:00`);
+}
+
 /**
- * "Tour in evidenza": un assaggio di itinerari reali direttamente in home.
+ * "Prossime partenze": la vetrina della home.
  *
- * Mostra tre tour scelti per dare varietà di mezzo e di durata; il catalogo
- * completo (con filtro per formato) vive nella pagina dedicata /itinerari.
- * Non è un secondo sistema di navigazione: le categorie restano l'unica
- * porta d'ingresso, questa sezione è solo una vetrina.
+ * Mostra per prime le partenze con data confermata, perché sono l'unica cosa
+ * su cui una persona può agire subito. Gli eventi però scadono: quando i
+ * futuri non bastano a riempire la vetrina, la completano gli itinerari
+ * selezionati del catalogo, così la sezione non resta mai vuota.
+ * Non è un secondo sistema di navigazione: le categorie restano la porta
+ * d'ingresso, questa è solo una vetrina.
  */
 export default function TourInEvidenza() {
-  const { homepage, tours, TOUR_GROUP } = useSiteContent();
+  const { homepage, tours, events, TOUR_GROUP } = useSiteContent();
   const { t, href, route } = useI18n();
   const content = homepage.featuredTours;
-  const featured = content.tourNames
+
+  const oggi = new Date();
+  oggi.setHours(0, 0, 0, 0);
+  const inProgramma = events
+    .filter((evento) => {
+      const fine = dataEvento(evento.endDate || evento.date);
+      return !fine || fine >= oggi;
+    })
+    .sort((a, b) => (dataEvento(a.date)?.getTime() || 0) - (dataEvento(b.date)?.getTime() || 0))
+    .map((evento) => ({ item: evento, kind: "event" }));
+
+  const itinerari = content.tourNames
     .map((name) => tours.find((tour) => tour.name === name))
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((tour) => ({ item: tour, kind: "tour" }));
+
+  const featured = [...inProgramma, ...itinerari].slice(0, IN_EVIDENZA);
+  const ciSonoEventi = featured.some((voce) => voce.kind === "event");
+  const ctaHref = ciSonoEventi ? "/eventi" : "/itinerari";
+  const ctaLabel = ciSonoEventi ? t("Vedi il calendario") : t("Vedi tutti gli itinerari");
 
   return (
     <section id="tour-in-evidenza" className="bg-[var(--surface-light)] topo-bg py-24 lg:py-32">
@@ -40,21 +66,23 @@ export default function TourInEvidenza() {
             />
           </div>
           <Link
-            to={href("/itinerari")}
+            to={href(ctaHref)}
             className="btn-mech hidden shrink-0 items-center gap-2.5 bg-[var(--cta)] px-6 py-3.5 text-sm text-[var(--cta-text)] hover:bg-[var(--cta-hover)] lg:inline-flex"
           >
-            {t("Vedi tutti gli itinerari")}
+            {ctaLabel}
             <ArrowRight size={16} aria-hidden="true" />
           </Link>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {featured.map((tour, i) => (
-            <Reveal key={tour.slug} delay={i * 0.08}>
+        <div className="grid items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {featured.map(({ item, kind }, i) => (
+            <Reveal key={`${kind}-${item.slug}`} delay={i * 0.08} className="h-full">
               <TourCard
-                tour={tour}
-                color={typeColors[tour.type] || "var(--accent)"}
-                detailPath={route("tourDetail", { slug: tour.slug })}
+                tour={item}
+                color={typeColors[item.type] || "var(--accent)"}
+                detailPath={route(kind === "event" ? "eventDetail" : "tourDetail", {
+                  slug: item.slug,
+                })}
               />
             </Reveal>
           ))}
@@ -63,10 +91,10 @@ export default function TourInEvidenza() {
         {/* CTA a piena larghezza per mobile/tablet, dove quella nell'header è nascosta. */}
         <div className="mt-10 lg:hidden">
           <Link
-            to={href("/itinerari")}
+            to={href(ctaHref)}
             className="btn-mech flex items-center justify-center gap-2.5 bg-[var(--cta)] px-6 py-4 text-base text-[var(--cta-text)] hover:bg-[var(--cta-hover)]"
           >
-            {t("Vedi tutti gli itinerari")}
+            {ctaLabel}
             <ArrowRight size={18} aria-hidden="true" />
           </Link>
         </div>

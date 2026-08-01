@@ -1,4 +1,9 @@
 export const UI_EXTRA_EN = {
+  "Il calendario": "The calendar",
+  "Prossime": "Upcoming",
+  "partenze": "departures",
+  "Vedi il calendario": "View the calendar",
+  "Le prossime partenze con data confermata e una selezione dei nostri itinerari su richiesta. Ogni viaggio ha programma, tappe e scheda tecnica completa.": "Upcoming departures with confirmed dates, plus a selection of our routes available on request. Every trip comes with a programme, stages and full technical details.",
   "Anteprima del tour": "Tour preview",
   "Attenzione a sicurezza e lettura del terreno": "Focus on safety and reading the terrain",
   "Chat immediata": "Instant chat",
@@ -88,6 +93,11 @@ export const UI_EXTRA_EN = {
 };
 
 export const UI_EXTRA_FR = {
+  "Il calendario": "Le calendrier",
+  "Prossime": "Prochains",
+  "partenze": "départs",
+  "Vedi il calendario": "Voir le calendrier",
+  "Le prossime partenze con data confermata e una selezione dei nostri itinerari su richiesta. Ogni viaggio ha programma, tappe e scheda tecnica completa.": "Les prochains départs à dates confirmées, ainsi qu’une sélection de nos itinéraires sur demande. Chaque voyage a son programme, ses étapes et une fiche technique complète.",
   "Anteprima del tour": "Aperçu du circuit",
   "Attenzione a sicurezza e lettura del terreno": "Attention portée à la sécurité et à la lecture du terrain",
   "Chat immediata": "Discussion instantanée",
