@@ -208,6 +208,14 @@ export default function CatalogDetailPage({ kind }) {
                   {t("Programma del tour")}
                 </h2>
 
+                {/* La nota sul programma accompagna le tappe quando ci sono, e le
+                    sostituisce quando l'itinerario è ancora da definire. */}
+                {stages.length > 0 && item.programmaNote && (
+                  <p className="mt-8 border-l-2 pl-6 font-body leading-relaxed text-[var(--text-on-light-muted)]" style={{ borderColor: color }}>
+                    {item.programmaNote}
+                  </p>
+                )}
+
                 {stages.length > 0 ? (
                   <div className="mt-10 space-y-10">
                     {stages.map((stage, index) => (

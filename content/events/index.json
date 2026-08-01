@@ -116,6 +116,68 @@
         }
       ],
       "sourceUrl": "https://www.instagram.com/p/DahyVLriP0q/"
+    },
+    {
+      "name": "Tour dei Santi 4x4 – Sardegna senza confini",
+      "slug": "tour-dei-santi-4x4-2026",
+      "updatedAt": "2026-07-31T00:00:00.000Z",
+      "type": "4x4",
+      "duration": "6 Giorni",
+      "distance": "Da confermare",
+      "level": "Da verificare",
+      "offroad": "Off-road",
+      "interest": "Gallura, Barbagia, Ogliastra, Supramonte di Orgosolo",
+      "startLocation": "Olbia",
+      "lunchIncluded": false,
+      "accommodation": "",
+      "period": "31 ottobre – 5 novembre 2026",
+      "startDate": "2026-10-31T00:00:00.000Z",
+      "endDate": "2026-11-05T00:00:00.000Z",
+      "price": "",
+      "description": "C'è una Sardegna che tutti conoscono. E poi ce n'è un'altra, quella che vogliamo farvi vivere.\nUna Sardegna fatta di sterrati, montagne, foreste, piccoli borghi e antichi territori pastorali, dove il viaggio diventa scoperta e ogni giornata racconta una parte diversa dell'isola.\nSei giorni di viaggio itinerante dedicati agli appassionati di fuoristrada che vogliono andare oltre la classica vacanza e conoscere la Sardegna più autentica.",
+      "programNote": "Sono previste promozioni dedicate: sconti speciali per gruppi 4x4, condizioni riservate ai clienti abituali, pacchetti personalizzati su richiesta e offerte per chi prenota in anticipo. Contattaci per i dettagli.",
+      "included": [],
+      "exclusions": [],
+      "equipment": [],
+      "stages": [
+        {
+          "title": "Tappa 1: Olbia > Tempio Pausania",
+          "description": "Si parte dalla Gallura tra graniti e panorami mozzafiato.",
+          "image": "/media/reali/hero-4x4-costa-1200.webp",
+          "imageAlt": "Fuoristrada 4x4 su una pista in quota con il mare della Sardegna sullo sfondo"
+        },
+        {
+          "title": "Tappa 2: Tempio Pausania > Dorgali",
+          "description": "Attraversiamo l'entroterra gallurese e la Barbagia.",
+          "image": "/media/reali/4x4-borgo-pietra-1200.webp",
+          "imageAlt": "Fuoristrada 4x4 in sosta accanto a una costruzione in pietra dell'entroterra"
+        },
+        {
+          "title": "Tappa 3: Dorgali > Tortolì",
+          "description": "Dalle montagne al mare, attraverso paesaggi selvaggi.",
+          "image": "/media/reali/4x4-crinale-1200.webp",
+          "imageAlt": "Fuoristrada 4x4 attrezzato su una pista di crinale tra le montagne sarde"
+        },
+        {
+          "title": "Tappa 4: Tortolì > Jerzu",
+          "description": "Entriamo nel cuore dell'Ogliastra tra sterrati e panorami unici.",
+          "image": "/media/reali/4x4exp-crinale-1200.webp",
+          "imageAlt": "Convoglio di fuoristrada 4x4 in fila su un crinale panoramico tra le montagne sarde"
+        },
+        {
+          "title": "Tappa 5: Jerzu > Gavoi",
+          "description": "Verso il cuore della Sardegna, tra montagne e altipiani.",
+          "image": "/media/reali/4x4exp-nuvole-1200.webp",
+          "imageAlt": "Fuoristrada 4x4 su un crinale sopra il mare di nuvole tra le montagne della Sardegna"
+        },
+        {
+          "title": "Tappa 6: Gavoi > Orgosolo > Supramonte > Olbia",
+          "description": "Orgosolo, il Supramonte e l'esperienza tipica dal pastore prima del rientro.",
+          "image": "/media/reali/4x4-guado-1200.webp",
+          "imageAlt": "Fuoristrada 4x4 durante il guado di un fiume in Sardegna"
+        }
+      ],
+      "sourceUrl": ""
     }
   ]
 }
