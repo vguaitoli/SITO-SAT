@@ -220,7 +220,11 @@
         "Cena e prima colazione",
         "Pranzo tipico dal pastore"
       ],
-      "exclusions": [],
+      "exclusions": [
+        "Pranzi",
+        "Carburante",
+        "Tutto quanto non indicato"
+      ],
       "equipment": [
         "Honda XR in perfette condizioni meccaniche",
         "È richiesta una minima esperienza in guida fuoristrada"
