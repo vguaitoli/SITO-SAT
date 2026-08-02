@@ -203,7 +203,7 @@
       "level": "Medio-Avanzato",
       "offroad": "100%",
       "interest": "Sardegna più selvaggia e autentica",
-      "startLocation": "",
+      "startLocation": "Olbia",
       "lunchIncluded": true,
       "accommodation": "Pernottamenti in agriturismi",
       "period": "19–22 novembre 2026",
@@ -211,7 +211,7 @@
       "endDate": "2026-11-22T00:00:00.000Z",
       "price": "",
       "description": "Quattro giorni di pura avventura dedicati alla mitica Honda XR, attraverso la Sardegna più autentica e selvaggia tra sterrati, montagne e panorami mozzafiato.\nUn viaggio dove Enduro Dual, natura, tradizioni e passione per la Honda XR si incontrano: non un semplice tour, ma un'esperienza da ricordare.",
-      "programNote": "Quattro giorni di pura avventura dedicati alla mitica Honda XR, attraverso la Sardegna più autentica e selvaggia tra sterrati, montagne e panorami mozzafiato. Un viaggio dove Enduro Dual, natura, tradizioni e passione per la Honda XR si incontrano: non un semplice tour, ma un'esperienza da ricordare. Tour guidato senza GPS track: la guida accompagna il gruppo lungo il percorso. Posti limitati.",
+      "programNote": "Quattro giorni. Una Honda XR. La Sardegna più selvaggia davanti alle ruote.\n\nUn viaggio tra sterrati, montagne e orizzonti senza fine, dove l’Enduro Dual incontra la natura, le tradizioni e la passione per una moto diventata leggenda. Nessuna traccia GPS da inseguire e nessun itinerario prestabilito: sarà la guida ad aprire la strada, adattando il percorso al terreno e alle condizioni meteo.\n\nNon un semplice tour, ma un’avventura da vivere e ricordare. Posti limitati.",
       "included": [
         "Guida esperta per tutta la durata del viaggio",
         "Trasporto bagagli",
@@ -222,7 +222,7 @@
       ],
       "exclusions": [],
       "equipment": [
-        "Honda XR o moto Enduro Dual in perfette condizioni meccaniche",
+        "Honda XR in perfette condizioni meccaniche",
         "È richiesta una minima esperienza in guida fuoristrada"
       ],
       "stages": []
