@@ -8,13 +8,13 @@ import { LOCALE_META, SUPPORTED_LOCALES } from "@/i18n/routes";
 
 const navLinks = [
   { label: "Esperienze", href: "#esperienze" },
+  { label: "Eventi", href: "/eventi" },
+  { label: "Itinerari", href: "/itinerari" },
   { label: "Corsi Off-road", href: "/esperienze/corsi-off-road" },
   { label: "Noleggio", href: "/esperienze/noleggio" },
-  { label: "Itinerari", href: "/itinerari" },
   { label: "Chi Siamo", href: "#guide" },
-  { label: "Gallery", href: "#gallery" },
   { label: "Blog", href: "/blog" },
-  { label: "Eventi", href: "/eventi" },
+  { label: "Gallery", href: "#gallery" },
   { label: "FAQ", href: "#faq" },
 ];
 
