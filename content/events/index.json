@@ -192,6 +192,40 @@
         }
       ],
       "sourceUrl": "https://www.facebook.com/61587909898685/posts/122121869037263663/"
+    },
+    {
+      "name": "Honda XR Tour – Tour dedicato alle Honda XR",
+      "slug": "honda-xr-tour-2026",
+      "updatedAt": "2026-08-02T00:00:00.000Z",
+      "type": "Enduro",
+      "duration": "4 Giorni",
+      "distance": "600 km",
+      "level": "Medio-Avanzato",
+      "offroad": "100%",
+      "interest": "Sardegna più selvaggia e autentica",
+      "startLocation": "",
+      "lunchIncluded": true,
+      "accommodation": "Pernottamenti in agriturismi",
+      "period": "19–22 novembre 2026",
+      "startDate": "2026-11-19T00:00:00.000Z",
+      "endDate": "2026-11-22T00:00:00.000Z",
+      "price": "",
+      "description": "Quattro giorni di pura avventura dedicati alla mitica Honda XR, attraverso la Sardegna più autentica e selvaggia tra sterrati, montagne e panorami mozzafiato.\nUn viaggio dove Enduro Dual, natura, tradizioni e passione per la Honda XR si incontrano: non un semplice tour, ma un'esperienza da ricordare.",
+      "programNote": "Tour guidato senza GPS track: la guida accompagna il gruppo lungo il percorso. Posti limitati.",
+      "included": [
+        "Guida esperta per tutta la durata del viaggio",
+        "Trasporto bagagli",
+        "Assistenza durante il percorso",
+        "Pernottamenti in agriturismi",
+        "Cena e prima colazione",
+        "Pranzo tipico dal pastore"
+      ],
+      "exclusions": [],
+      "equipment": [
+        "Honda XR o moto Enduro Dual in perfette condizioni meccaniche",
+        "È richiesta una minima esperienza in guida fuoristrada"
+      ],
+      "stages": []
     }
   ]
 }
