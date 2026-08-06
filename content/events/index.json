@@ -127,6 +127,59 @@
       "sourceUrl": "https://www.instagram.com/p/DahyVLriP0q/"
     },
     {
+      "name": "La Via dei Giganti – Quattro giorni di sterrato, granito e mare. La Sardegna che non si lascia addomesticare",
+      "slug": "la-via-dei-giganti-2026",
+      "updatedAt": "2026-08-06T00:00:00.000Z",
+      "type": "Maxienduro",
+      "duration": "4 Giorni",
+      "distance": "550 km",
+      "level": "Medio-Avanzato",
+      "offroad": "85%",
+      "interest": "Punta Contratta, Monte Muros, Berchidda, Pattada, Lago del Coghinas",
+      "startLocation": "Olbia",
+      "lunchIncluded": false,
+      "accommodation": "Pernottamenti in agriturismo",
+      "period": "29 ottobre – 1 novembre 2026",
+      "startDate": "2026-10-29T00:00:00.000Z",
+      "endDate": "2026-11-01T00:00:00.000Z",
+      "price": "580 €",
+      "description": "Percorreremo un anello di quasi 550 km per scoprire il volto più selvaggio del nord Sardegna.\nDalle spiagge della Gallura ai graniti del Limbara, attraversando borghi autentici, altopiani e montagne.\nUn viaggio tra mare e terra, lontano dalle rotte più prevedibili.\nUna Sardegna ruvida, essenziale e incredibilmente affascinante.",
+      "programNote": "Dato il periodo dal meteo volubile si consiglia di avere tuta o giacca antiacqua e abbigliamento idoneo a climi freschi e ventilati.",
+      "included": [
+        "Mezza pensione in agriturismo",
+        "Trasporto bagagli",
+        "Assistenza tecnica"
+      ],
+      "exclusions": [
+        "Carburante",
+        "Pranzi",
+        "Tutto quanto non compreso"
+      ],
+      "equipment": [
+        "Abbigliamento tecnico da enduro",
+        "Mezzo in regola con il Codice della Strada",
+        "Pneumatici Enduro/Dual in buone condizioni"
+      ],
+      "stages": [
+        {
+          "title": "Olbia – Tempio",
+          "description": "Lasceremo Olbia per attraversare la Gallura tra mare, rocce di granito e profumi di macchia mediterranea, fino al cuore storico di Tempio."
+        },
+        {
+          "title": "Tempio – Buddusò",
+          "description": "Guideremo tra i paesaggi del Limbara e del Monte Acuto, passando per borghi autentici dove vino, artigianato e tradizioni raccontano la Sardegna più vera."
+        },
+        {
+          "title": "Buddusò – Siniscola",
+          "description": "Dagli altopiani granitici scenderemo verso il Monte Albo, tra boschi, panorami selvaggi e piccoli paesi sospesi tra montagna e Baronia."
+        },
+        {
+          "title": "Siniscola – Olbia",
+          "description": "Torneremo verso Olbia alternando scorci di mare, spiagge luminose e l'entroterra di Budoni e Padru: l'ultimo assaggio di una Sardegna tutta da guidare."
+        }
+      ]
+    },
+    {
       "name": "Tour dei Santi 4x4 – Sardegna senza confini",
       "slug": "tour-dei-santi-4x4-2026",
       "updatedAt": "2026-07-31T00:00:00.000Z",
