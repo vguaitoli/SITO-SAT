@@ -30,7 +30,10 @@ dist-ssr
 
 .vite
 .vercel
-.claude
+# Si escludono i contenuti, non la cartella: Git non entra in una directory
+# esclusa e la riammissione dei comandi non avrebbe effetto.
+.claude/*
+!.claude/commands/
 graphify-out
 
 # Generati da TinaCMS durante dev/build
