@@ -5,11 +5,13 @@ import { ArrowRight, BadgeEuro, BedDouble, Clock, Gauge, TrendingUp, Percent, Ma
 import { tinaField } from "tinacms/dist/react";
 import { useSiteContent } from "@/content/TinaContentProvider";
 import { useI18n } from "@/i18n/I18nProvider";
+import { ROUTE_MAPS } from "@/data/route-maps";
 
 export default function TourCard({ tour, color, detailPath }) {
   const { TOUR_GROUP } = useSiteContent();
   const { t } = useI18n();
   const [flipped, setFlipped] = useState(false);
+  const routeMap = ROUTE_MAPS[tour.slug];
 
   return (
     <motion.div
@@ -173,19 +175,33 @@ export default function TourCard({ tour, color, detailPath }) {
             </span>
           </div>
 
+          {/* La mappa reale del percorso quando esiste; altrimenti il tracciato
+              decorativo, che resta il ripiego per i tour senza mappa. La mappa
+              riempie lo spazio disponibile: va letta, e il limite di 160px
+              pensato per il tracciato astratto la renderebbe illeggibile. */}
           <div className="flex-1 flex items-center justify-center px-6">
-            <svg viewBox="0 0 200 140" className="w-full h-full max-h-40">
-              <path
-                d="M 15 115 C 45 100, 40 70, 70 65 S 110 30, 100 15 S 140 20, 130 45 S 180 60, 185 95"
-                fill="none"
-                stroke={color}
-                strokeWidth="2.5"
-                strokeDasharray="6 5"
-                strokeLinecap="round"
+            {routeMap ? (
+              <img
+                src={routeMap.src}
+                alt={routeMap.alt}
+                loading="lazy"
+                decoding="async"
+                className="h-full max-h-full w-full object-contain"
               />
-              <circle cx="15" cy="115" r="5" fill={color} />
-              <circle cx="185" cy="95" r="5" fill="none" stroke={color} strokeWidth="2.5" />
-            </svg>
+            ) : (
+              <svg viewBox="0 0 200 140" className="w-full h-full max-h-40">
+                <path
+                  d="M 15 115 C 45 100, 40 70, 70 65 S 110 30, 100 15 S 140 20, 130 45 S 180 60, 185 95"
+                  fill="none"
+                  stroke={color}
+                  strokeWidth="2.5"
+                  strokeDasharray="6 5"
+                  strokeLinecap="round"
+                />
+                <circle cx="15" cy="115" r="5" fill={color} />
+                <circle cx="185" cy="95" r="5" fill="none" stroke={color} strokeWidth="2.5" />
+              </svg>
+            )}
           </div>
 
           <div className="px-6 pb-6 text-center">
