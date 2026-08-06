@@ -1,0 +1,112 @@
+<!doctype html>
+<!--
+  Template locandina tour — 1080x1080 (Instagram).
+
+  Non modificare la grafica: è ciò che tiene identiche fra loro tutte le
+  locandine. Si compilano solo i segnaposto {{...}}, si apre il file in un
+  browser a 1080x1080 e si esporta lo screenshot.
+
+  Accanto al file servono tre cose:
+    logo.png    -> public/media/logo-sardegna-trail-avventura.png
+    sfondo.jpg  -> la foto del tour (orizzontale, soggetto centrato)
+    fonts/      -> bebas-neue.woff2, oswald.woff2, montserrat.woff2
+                   (copiati da public/fonts/)
+
+  Se il tour non ha sottotitolo, elimina l'intera riga <div class="sub">.
+-->
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<style>
+  @font-face { font-family:"Bebas Neue"; src:url("fonts/bebas-neue.woff2") format("woff2"); font-display:block; }
+  @font-face { font-family:"Oswald";     src:url("fonts/oswald.woff2")     format("woff2"); font-display:block; }
+  @font-face { font-family:"Montserrat"; src:url("fonts/montserrat.woff2") format("woff2"); font-display:block; }
+
+  :root{ --obsidian:#1C1814; --accent:#A0612A; --accent-soft:#C98B4B; --cream:#F5EBD9; }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ width:1080px; height:1080px; overflow:hidden; background:var(--obsidian); }
+
+  .poster{ position:relative; width:1080px; height:1080px; display:flex; flex-direction:column; }
+
+  /* La fotografia tiene la metà alta e resta libera da testo: il mezzo
+     è il soggetto e deve restare leggibile. Il testo vive sulla fascia scura. */
+  .top{ position:relative; height:556px; flex:none; overflow:hidden; }
+  .top img.shot{ width:100%; height:100%; object-fit:cover; object-position:50% 46%; }
+  .topveil{ position:absolute; inset:0;
+    background:
+      linear-gradient(to bottom, rgba(28,24,20,.72) 0%, rgba(28,24,20,.10) 22%, rgba(28,24,20,0) 38%),
+      linear-gradient(to top,    var(--obsidian) 0%, rgba(28,24,20,.55) 12%, rgba(28,24,20,0) 30%);
+  }
+
+  .head{ position:absolute; top:52px; left:60px; display:flex; align-items:center; gap:17px; }
+  .head img{ width:70px; height:70px; object-fit:contain; }
+  .brand{ font-family:"Oswald"; font-size:18px; line-height:1.26; letter-spacing:.21em;
+          text-transform:uppercase; color:var(--cream); }
+
+  .when{ position:absolute; left:60px; bottom:34px; display:inline-flex; align-items:center;
+         background:var(--accent); color:var(--cream);
+         font-family:"Oswald"; font-size:22px; letter-spacing:.15em; text-transform:uppercase;
+         padding:12px 22px; }
+
+  /* --- fascia testi --- */
+  .bottom{ flex:1; padding:38px 60px 52px; display:flex; flex-direction:column; }
+
+  h1{ font-family:"Bebas Neue"; color:var(--cream); font-size:104px; line-height:.85;
+      letter-spacing:.012em; text-transform:uppercase; }
+  .sub{ font-family:"Oswald"; color:var(--accent-soft); font-size:25px; letter-spacing:.30em;
+        text-transform:uppercase; margin-top:16px; }
+
+  .stats{ display:flex; margin-top:auto; border-top:1px solid rgba(245,235,217,.22);
+          border-bottom:1px solid rgba(245,235,217,.22); }
+  .stat{ flex:1; padding:17px 4px 15px; }
+  .stat + .stat{ border-left:1px solid rgba(245,235,217,.16); padding-left:22px; }
+  .k{ display:block; font-family:"Oswald"; font-size:13px; letter-spacing:.19em; text-transform:uppercase;
+      color:rgba(245,235,217,.55); margin-bottom:6px; }
+  .v{ display:block; font-family:"Bebas Neue"; font-size:38px; line-height:1; color:var(--accent-soft); }
+
+  .route{ font-family:"Montserrat"; font-size:18px; line-height:1.6; color:rgba(245,235,217,.85);
+          margin-top:20px; }
+  .route b{ color:var(--accent-soft); font-weight:600; }
+
+  .foot{ display:flex; justify-content:space-between; align-items:flex-end; margin-top:20px; }
+  .note{ font-family:"Montserrat"; font-size:15px; color:rgba(245,235,217,.58); }
+  .site{ font-family:"Oswald"; font-size:18px; letter-spacing:.13em; text-transform:uppercase;
+         color:var(--cream); border-bottom:2px solid var(--accent); padding-bottom:5px; }
+</style>
+</head>
+<body>
+  <div class="poster">
+    <div class="top">
+      <img class="shot" src="sfondo.jpg" alt="" />
+      <div class="topveil"></div>
+      <div class="head">
+        <img src="logo.png" alt="" />
+        <div class="brand">Sardegna<br />Trail Avventura</div>
+      </div>
+      <div class="when">{{DATE}}</div>
+    </div>
+
+    <div class="bottom">
+      <h1>{{TITOLO}}</h1>
+      <div class="sub">{{SOTTOTITOLO}}</div>
+
+      <div class="stats">
+        <div class="stat"><span class="k">Durata</span><span class="v">{{DURATA}}</span></div>
+        <div class="stat"><span class="k">Percorso</span><span class="v">{{KM}}</span></div>
+        <div class="stat"><span class="k">Sterrato</span><span class="v">{{STERRATO}}</span></div>
+        <div class="stat"><span class="k">Livello</span><span class="v">{{LIVELLO}}</span></div>
+      </div>
+
+      <!-- Partenza in evidenza, poi le tappe separate da " · " -->
+      <div class="route">
+        <b>Partenza da {{PARTENZA}}</b> · {{TAPPE_IN_RIGA}}
+      </div>
+
+      <div class="foot">
+        <div class="note">{{NOTA_GRUPPI}}</div>
+        <div class="site">sardegnatrailavventura.it</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
