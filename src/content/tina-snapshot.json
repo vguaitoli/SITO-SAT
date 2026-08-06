@@ -2,7 +2,21 @@
   "homepage": {
     "data": {
       "homepage": {
+        "_sys": {
+          "filename": "index",
+          "basename": "index.json",
+          "hasReferences": false,
+          "breadcrumbs": [
+            "index"
+          ],
+          "path": "content/homepage/index.json",
+          "relativePath": "index.json",
+          "extension": ".json"
+        },
+        "id": "content/homepage/index.json",
+        "__typename": "Homepage",
         "hero": {
+          "__typename": "HomepageHero",
           "location": "Sardegna · Turismo d'avventura",
           "title": "Non visitare la Sardegna.",
           "accent": "Vivila.",
@@ -11,12 +25,14 @@
           "logoAlt": "Sardegna Trail Avventura"
         },
         "experiences": {
+          "__typename": "HomepageExperiences",
           "eyebrow": "Le esperienze",
           "title": "Scegli la tua",
           "accent": "avventura",
           "intro": "Tour ed esperienze per vivere la Sardegna, più corsi dedicati a chi vuole migliorare la propria tecnica off-road. Scegli il percorso che fa per te."
         },
         "featuredTours": {
+          "__typename": "HomepageFeaturedTours",
           "eyebrow": "Il calendario",
           "title": "Prossime",
           "accent": "partenze",
@@ -28,47 +44,56 @@
           ]
         },
         "journey": {
+          "__typename": "HomepageJourney",
           "eyebrow": "Il Percorso",
           "title": "COSA",
           "accent": "VIVRAI",
           "intro": "Dalla Barbagia al Supramonte, dall'Ogliastra alla Costa Verde: percorsi fuoristrada, soste culturali e gastronomiche, ospitalità locale e assistenza professionale per vivere la Sardegna nella sua dimensione più autentica e selvaggia.",
           "items": [
             {
+              "__typename": "HomepageJourneyItems",
               "icon": "route",
               "label": "Strade panoramiche",
               "description": "Curve e crinali con vista infinita, tra asfalto dimenticato e orizzonti aperti."
             },
             {
+              "__typename": "HomepageJourneyItems",
               "icon": "bike",
               "label": "Sterrati mozzafiato",
               "description": "Piste e mulattiere tra roccia e macchia mediterranea, il vero cuore dell'enduro."
             },
             {
+              "__typename": "HomepageJourneyItems",
               "icon": "castle",
               "label": "Architettura storica",
               "description": "Nuraghi, torri e villaggi di pietra che raccontano millenni di storia sarda."
             },
             {
+              "__typename": "HomepageJourneyItems",
               "icon": "trees",
               "label": "Boschi rigogliosi e tagliafuoco",
               "description": "Foreste secolari di lecci e sentieri ombrosi tra silenzio e natura selvaggia."
             },
             {
+              "__typename": "HomepageJourneyItems",
               "icon": "mountain",
               "label": "Montagne incontaminate",
               "description": "Altipiani e vette del Gennargentu e del Supramonte, lontani da ogni folla."
             },
             {
+              "__typename": "HomepageJourneyItems",
               "icon": "waves",
               "label": "Spiagge selvagge",
               "description": "Calette isolate raggiungibili solo fuoristrada, con acque cristalline."
             },
             {
+              "__typename": "HomepageJourneyItems",
               "icon": "building",
               "label": "Borghi autentici",
               "description": "Paesi dell'entroterra dove tradizioni e ospitalità sarda sono ancora vive."
             },
             {
+              "__typename": "HomepageJourneyItems",
               "icon": "food",
               "label": "Sapori della tradizione",
               "description": "Soste tra prodotti tipici, pane carasau, porceddu e vino locale."
@@ -76,11 +101,13 @@
           ]
         },
         "guides": {
+          "__typename": "HomepageGuides",
           "eyebrow": "Le Nostre Guide",
           "title": "CHI TI",
           "accent": "ACCOMPAGNA",
           "items": [
             {
+              "__typename": "HomepageGuidesItems",
               "name": "Gianluca Serra",
               "role": "Istruttore qualificato · Guida esperta",
               "description": "Da oltre 15 anni esplora i sentieri della Sardegna. Come istruttore qualificato, affianca chi vuole migliorare tecnica, controllo e sicurezza in fuoristrada.",
@@ -88,6 +115,7 @@
               "imageAlt": "Gianluca Serra, istruttore e guida di Sardegna Trail Avventura"
             },
             {
+              "__typename": "HomepageGuidesItems",
               "name": "Vittorio Guaitoli",
               "role": "Guida Esperta",
               "description": "Specialista in navigazione e gestione del gruppo, garantisce un'avventura sicura ad ogni tappa del tour.",
@@ -97,6 +125,7 @@
           ]
         },
         "about": {
+          "__typename": "HomepageAbout",
           "eyebrow": "Chi Siamo",
           "titleLine1": "Passione.",
           "titleLine2": "Esperienza.",
@@ -112,62 +141,74 @@
           "badgeText": "Sardegna autentica, fuori dai sentieri turistici"
         },
         "gallery": {
+          "__typename": "HomepageGallery",
           "eyebrow": "Gallery",
           "title": "L'avventura",
           "accent": "in immagini",
           "intro": "Momenti scattati durante i nostri tour. Nessuna posa, nessuno stock: solo la Sardegna come la trovi tu.",
           "images": [
             {
+              "__typename": "HomepageGalleryImages",
               "image": "/media/cms/media/reali/hero-maxienduro-panorama-1800.webp",
               "alt": "Due maxienduro su uno sterrato panoramico tra le montagne sarde",
               "layout": "featured"
             },
             {
+              "__typename": "HomepageGalleryImages",
               "image": "/media/cms/media/reali/hero-ssv-guado-1200.webp",
               "alt": "SSV durante il guado di un torrente",
               "layout": "normal"
             },
             {
+              "__typename": "HomepageGalleryImages",
               "image": "/media/cms/media/reali/4x4-guado-1200.webp",
               "alt": "Fuoristrada 4x4 durante il guado di un fiume",
               "layout": "normal"
             },
             {
+              "__typename": "HomepageGalleryImages",
               "image": "/media/cms/media/reali/hero-quad-convoglio-1200.webp",
               "alt": "Convoglio di quad su una pista sterrata",
               "layout": "normal"
             },
             {
+              "__typename": "HomepageGalleryImages",
               "image": "/media/cms/media/reali/enduro-vetta-768.webp",
               "alt": "Rider enduro in cima a un percorso panoramico",
               "layout": "normal"
             },
             {
+              "__typename": "HomepageGalleryImages",
               "image": "/media/cms/media/reali/pranzo-tavolata-1200.webp",
               "alt": "Tavolata con prodotti tipici sardi durante il tour",
               "layout": "wide"
             },
             {
+              "__typename": "HomepageGalleryImages",
               "image": "/media/cms/media/reali/pinnetta-sosta-1200.webp",
               "alt": "Sosta del gruppo accanto alle pinnette tradizionali",
               "layout": "normal"
             },
             {
+              "__typename": "HomepageGalleryImages",
               "image": "/media/cms/media/reali/guida-sentiero-1200.webp",
               "alt": "Guida lungo un sentiero roccioso",
               "layout": "normal"
             },
             {
+              "__typename": "HomepageGalleryImages",
               "image": "/media/cms/media/reali/ssv-spiaggia-flotta-1200.webp",
               "alt": "Flotta di SSV schierata su una spiaggia sarda",
               "layout": "wide"
             },
             {
+              "__typename": "HomepageGalleryImages",
               "image": "/media/cms/media/reali/grotta-mineraria-1200.webp",
               "alt": "Ingresso di una vecchia cava lungo il percorso",
               "layout": "normal"
             },
             {
+              "__typename": "HomepageGalleryImages",
               "image": "/media/cms/media/reali/4x4-crinale-1200.webp",
               "alt": "Fuoristrada 4x4 su una pista di crinale",
               "layout": "normal"
@@ -175,31 +216,38 @@
           ]
         },
         "included": {
+          "__typename": "HomepageIncluded",
           "title": "COSA",
           "accent": "COMPRENDE",
           "intro": "In base alla tipologia di tour, la proposta può comprendere i seguenti servizi. Tutti i dettagli vengono confermati prima della prenotazione.",
           "items": [
             {
+              "__typename": "HomepageIncludedItems",
               "icon": "navigation",
               "label": "Guida locale esperta"
             },
             {
+              "__typename": "HomepageIncludedItems",
               "icon": "luggage",
               "label": "Trasporto bagagli"
             },
             {
+              "__typename": "HomepageIncludedItems",
               "icon": "wrench",
               "label": "Assistenza tecnica"
             },
             {
+              "__typename": "HomepageIncludedItems",
               "icon": "satellite",
               "label": "Dispositivo GPS Live Tracking"
             },
             {
+              "__typename": "HomepageIncludedItems",
               "icon": "home",
               "label": "Agriturismo mezza pensione"
             },
             {
+              "__typename": "HomepageIncludedItems",
               "icon": "gift",
               "label": "Gadget esclusivi"
             }
@@ -207,40 +255,49 @@
           "note": "Quando previsto, il dispositivo GPS Live Tracking viene fornito dall'organizzazione, che può così verificare in ogni momento che il gruppo rimanga compatto e che nessun partecipante resti isolato o si disperda lungo il percorso. Non viene utilizzato come navigatore e non fornisce indicazioni di percorso ai partecipanti."
         },
         "faq": {
+          "__typename": "HomepageFaq",
           "eyebrow": "Domande Frequenti",
           "title": "FAQ",
           "items": [
             {
+              "__typename": "HomepageFaqItems",
               "question": "Che differenza c'è tra Maxienduro ed Enduro?",
               "answer": "Sono due mondi diversi. La Maxienduro è la grande moto da viaggio: alta, potente, pensata per macinare chilometri e affrontare lo sterrato senza rinunciare al comfort. L'Enduro è leggera e maneggevole, nata per i sentieri stretti e i passaggi tecnici dove la maxienduro non passa. In più proponiamo Quad, SSV e 4x4. Se non sai quale fa per te, scrivici: ti consigliamo in base alla tua esperienza."
             },
             {
+              "__typename": "HomepageFaqItems",
               "question": "Che differenza c'è tra Weekend Adventure e Sardegna Trail Week?",
               "answer": "I Weekend Adventure comprendono itinerari brevi da 2 a 4 giorni, pensati per chi vuole vivere un'esperienza intensa senza affrontare un'intera settimana. Durata e difficoltà sono indicate nella scheda di ogni tour. La Sardegna Trail Week è invece un'immersione di 7 giorni tra i percorsi più suggestivi dell'isola. Offriamo anche tour personalizzati su misura per gruppi e moto club."
             },
             {
+              "__typename": "HomepageFaqItems",
               "question": "Che livello è richiesto?",
               "answer": "Offriamo tour per tutti i livelli: da principiante fino a esperto. Ogni scheda tecnica indica il livello richiesto. Se non sei sicuro, contattaci e ti consiglieremo l'itinerario giusto per te."
             },
             {
+              "__typename": "HomepageFaqItems",
               "question": "Quante persone partecipano a ogni tour?",
               "answer": "I tour sono organizzati per gruppi da 5 a 10 partecipanti. Questo ci permette di seguire il gruppo con attenzione e mantenere l'esperienza coinvolgente, sicura e ben organizzata."
             },
             {
+              "__typename": "HomepageFaqItems",
               "question": "Cosa è incluso nel prezzo del tour?",
               "answer": "In base alla tipologia di tour, la proposta può comprendere guida locale esperta, trasporto bagagli, assistenza tecnica, mezza pensione in agriturismo, gadget esclusivi e un dispositivo GPS Live Tracking fornito dall'organizzazione. Tutti i servizi inclusi vengono confermati prima della prenotazione."
             },
             {
+              "__typename": "HomepageFaqItems",
               "question": "È possibile noleggiare la moto?",
               "answer": "Sì, collaboriamo con partner locali per il noleggio di moto Maxienduro, Enduro e Quad. Possiamo organizzare il noleggio insieme al tour. Contattaci in anticipo per verificare la disponibilità e prenotare il mezzo più adatto."
             },
             {
+              "__typename": "HomepageFaqItems",
               "question": "Cosa succede in caso di pioggia?",
               "answer": "La sicurezza viene prima di tutto. In caso di condizioni meteo avverse valutiamo insieme se posticipare il tour o modificare l'itinerario con percorsi alternativi più sicuri. Il tour può essere riprogrammato senza costi aggiuntivi entro la stagione."
             }
           ]
         },
         "contact": {
+          "__typename": "HomepageContact",
           "eyebrow": "Contatti",
           "title": "INIZIA DA QUI",
           "accent": "LA TUA AVVENTURA",
@@ -248,7 +305,8 @@
         }
       }
     },
-    "query": "query homepageFallback { __typename }",
+    "errors": null,
+    "query": "\n    query homepage($relativePath: String!) {\n  homepage(relativePath: $relativePath) {\n    ... on Document {\n      _sys {\n        filename\n        basename\n        hasReferences\n        breadcrumbs\n        path\n        relativePath\n        extension\n      }\n      id\n    }\n    ...HomepageParts\n  }\n}\n    \n    fragment HomepageParts on Homepage {\n  __typename\n  hero {\n    __typename\n    location\n    title\n    accent\n    description\n    logo\n    logoAlt\n  }\n  experiences {\n    __typename\n    eyebrow\n    title\n    accent\n    intro\n  }\n  featuredTours {\n    __typename\n    eyebrow\n    title\n    accent\n    intro\n    tourNames\n  }\n  journey {\n    __typename\n    eyebrow\n    title\n    accent\n    intro\n    items {\n      __typename\n      icon\n      label\n      description\n    }\n  }\n  guides {\n    __typename\n    eyebrow\n    title\n    accent\n    items {\n      __typename\n      name\n      role\n      description\n      image\n      imageAlt\n    }\n  }\n  about {\n    __typename\n    eyebrow\n    titleLine1\n    titleLine2\n    titleAccent\n    paragraphs\n    quote\n    image\n    imageAlt\n    badgeValue\n    badgeText\n  }\n  gallery {\n    __typename\n    eyebrow\n    title\n    accent\n    intro\n    images {\n      __typename\n      image\n      alt\n      layout\n    }\n  }\n  included {\n    __typename\n    title\n    accent\n    intro\n    items {\n      __typename\n      icon\n      label\n    }\n    note\n  }\n  faq {\n    __typename\n    eyebrow\n    title\n    items {\n      __typename\n      question\n      answer\n    }\n  }\n  contact {\n    __typename\n    eyebrow\n    title\n    accent\n    intro\n  }\n}\n    ",
     "variables": {
       "relativePath": "index.json"
     }
@@ -256,8 +314,22 @@
   "tourCatalog": {
     "data": {
       "tourCatalog": {
+        "_sys": {
+          "filename": "index",
+          "basename": "index.json",
+          "hasReferences": false,
+          "breadcrumbs": [
+            "index"
+          ],
+          "path": "content/tours/index.json",
+          "relativePath": "index.json",
+          "extension": ".json"
+        },
+        "id": "content/tours/index.json",
+        "__typename": "TourCatalog",
         "tours": [
           {
+            "__typename": "TourCatalogTours",
             "name": "Supramonte Extreme",
             "slug": "supramonte-extreme",
             "updatedAt": "2026-07-31T00:00:00.000Z",
@@ -272,23 +344,27 @@
             "date": "2026-10-17T00:00:00.000Z",
             "price": "Su richiesta",
             "description": "Tre giorni nel cuore del Supramonte, dai nuraghi d'altura alle gole calcaree.",
+            "exclusions": null,
             "groups": [
               "weekend"
             ],
             "stages": [
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Verso Tiscali",
                 "description": "Si parte alla volta dell'altopiano di Tiscali, tra doline e villaggi nuragici nascosti nella roccia.",
                 "image": "/media/reali/maxienduro-tenere-1200.webp",
                 "imageAlt": "Maxienduro da viaggio parcheggiata su uno sterrato sotto il cielo sardo"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Golgo e i canyon",
                 "description": "Attraversiamo l'altopiano del Golgo fino ai bordi del canyon, con soste panoramiche mozzafiato.",
                 "image": "/media/reali/hero-maxienduro-panorama-1800.webp",
                 "imageAlt": "Due maxienduro parcheggiate su uno sterrato panoramico con le montagne sarde sullo sfondo"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Cala Luna e Baunei",
                 "description": "Discesa verso la costa, tra sentieri stretti e la vista finale sulla splendida Cala Luna.",
                 "image": "/media/reali/maxienduro-sosta-bosco-1200.webp",
@@ -297,6 +373,7 @@
             ]
           },
           {
+            "__typename": "TourCatalogTours",
             "name": "Barbagia Trail",
             "slug": "barbagia-trail",
             "updatedAt": "2026-07-31T00:00:00.000Z",
@@ -311,17 +388,20 @@
             "date": "2026-10-03T00:00:00.000Z",
             "price": "Su richiesta",
             "description": "Due giorni di sentieri tecnici nella Barbagia più selvaggia, tra borghi di pietra e passaggi da enduro puro.",
+            "exclusions": null,
             "groups": [
               "weekend"
             ],
             "stages": [
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Borghi antichi",
                 "description": "Attraversiamo i borghi di pietra della Barbagia, tra vicoli, murales e antiche tradizioni pastorali.",
                 "image": "/media/reali/enduro-sentiero-1200.webp",
                 "imageAlt": "Rider su moto da enduro lungo un sentiero sterrato tra le montagne"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Canyon di Gorropu e foreste",
                 "description": "Sentieri tecnici tra le foreste secolari fino al bordo del canyon di Gorropu, uno dei più profondi d'Europa.",
                 "image": "/media/reali/hero-enduro-gruppo-1200.webp",
@@ -330,6 +410,7 @@
             ]
           },
           {
+            "__typename": "TourCatalogTours",
             "name": "Costa & Dune Expedition",
             "slug": "costa-dune-expedition",
             "updatedAt": "2026-07-31T00:00:00.000Z",
@@ -344,17 +425,20 @@
             "date": "2026-07-25T00:00:00.000Z",
             "price": "Su richiesta",
             "description": "Due giorni tra dune dorate e coste incontaminate, con pernottamento e mezzi quad accessibili a tutti.",
+            "exclusions": null,
             "groups": [
               "weekend"
             ],
             "stages": [
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Dune di Piscinas",
                 "description": "Prime evoluzioni tra le dune dorate più alte d'Europa, con soste fotografiche e pranzo tipico.",
                 "image": "/media/reali/hero-quad-convoglio-1200.webp",
                 "imageAlt": "Convoglio di quad su una pista sterrata immersa nella macchia mediterranea"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Costa Verde e miniere",
                 "description": "Costeggiamo la Costa Verde tra spiagge selvagge e le suggestive miniere abbandonate del Sulcis.",
                 "image": "/media/reali/quad-pietraia-1200.webp",
@@ -363,6 +447,7 @@
             ]
           },
           {
+            "__typename": "TourCatalogTours",
             "name": "Sardegna 4x4 Explorer",
             "slug": "sardegna-4x4-explorer",
             "updatedAt": "2026-07-31T00:00:00.000Z",
@@ -377,29 +462,34 @@
             "date": "2026-08-22T00:00:00.000Z",
             "price": "Su richiesta",
             "description": "Quattro giorni a bordo di mezzi 4x4 tra altipiani, miniere abbandonate e coste remote.",
+            "exclusions": null,
             "groups": [
               "weekend"
             ],
             "stages": [
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Altipiani del Gennargentu",
                 "description": "Saliamo verso gli altipiani più alti della Sardegna, tra panorami infiniti e strade sterrate.",
                 "image": "/media/reali/4x4-crinale-1200.webp",
                 "imageAlt": "Fuoristrada 4x4 attrezzato su una pista di crinale tra le montagne sarde"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Miniere del Sulcis",
                 "description": "Visita ai suggestivi villaggi minerari abbandonati, testimonianza della storia mineraria dell'isola.",
                 "image": "/media/reali/4x4-guado-1800.webp",
                 "imageAlt": "Fuoristrada 4x4 durante il guado di un fiume in Sardegna"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Coste selvagge",
                 "description": "Discesa verso coste remote e incontaminate, lontane dai percorsi turistici classici.",
                 "image": "/media/reali/4x4-borgo-pietra-1800.webp",
                 "imageAlt": "Fuoristrada 4x4 in sosta accanto a una costruzione in pietra dell'entroterra"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Rientro panoramico",
                 "description": "Ultimo giorno tra borghi dell'entroterra e soste panoramiche prima del rientro.",
                 "image": "/media/reali/hero-4x4-costa-1200.webp",
@@ -408,6 +498,7 @@
             ]
           },
           {
+            "__typename": "TourCatalogTours",
             "name": "Gennargentu Wild",
             "slug": "gennargentu-wild",
             "updatedAt": "2026-07-31T00:00:00.000Z",
@@ -422,29 +513,34 @@
             "date": "2026-09-19T00:00:00.000Z",
             "price": "Su richiesta",
             "description": "Quattro giorni tra le creste del Gennargentu, sterrati panoramici e discese verso valli incontaminate.",
+            "exclusions": null,
             "groups": [
               "weekend"
             ],
             "stages": [
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Nuraghi e primi sentieri",
                 "description": "Partiamo tra antichi nuraghi e i primi sterrati panoramici che introducono al massiccio.",
                 "image": "/media/reali/maxienduro-tenere-1200.webp",
                 "imageAlt": "Maxienduro da viaggio parcheggiata su uno sterrato sotto il cielo sardo"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Boschi secolari",
                 "description": "Attraversiamo foreste di lecci secolari lungo sentieri tecnici immersi nella natura.",
                 "image": "/media/reali/hero-maxienduro-panorama-1800.webp",
                 "imageAlt": "Due maxienduro parcheggiate su uno sterrato panoramico con le montagne sarde sullo sfondo"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Panorami sul Supramonte",
                 "description": "Saliamo verso i crinali più alti con vista sul Supramonte e le valli circostanti.",
                 "image": "/media/reali/maxienduro-sosta-bosco-1200.webp",
                 "imageAlt": "Rider in sosta con le maxienduro lungo un sentiero nel bosco"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Discesa finale",
                 "description": "Ultima tappa tra valli incontaminate e borghi dell'entroterra prima del rientro.",
                 "image": "/media/reali/gruppo-altopiano-1800.webp",
@@ -453,6 +549,7 @@
             ]
           },
           {
+            "__typename": "TourCatalogTours",
             "name": "Sardegna Enduro Week",
             "slug": "sardegna-enduro-week",
             "updatedAt": "2026-07-31T00:00:00.000Z",
@@ -467,47 +564,55 @@
             "date": "2026-08-29T00:00:00.000Z",
             "price": "Su richiesta",
             "description": "Una settimana immersiva tra i sentieri enduro più suggestivi dell'isola.",
+            "exclusions": null,
             "groups": [
               "week"
             ],
             "stages": [
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Nuraghi e primi sterrati",
                 "description": "Prime uscite tra antichi nuraghi e sterrati di livello progressivo per prendere confidenza.",
                 "image": "/media/reali/enduro-sentiero-1200.webp",
                 "imageAlt": "Rider su moto da enduro lungo un sentiero sterrato tra le montagne"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Barbagia profonda",
                 "description": "Ci addentriamo nella Barbagia più autentica, tra borghi di pietra e tradizioni pastorali.",
                 "image": "/media/reali/hero-enduro-gruppo-1200.webp",
                 "imageAlt": "Moto da enduro e rider su un sentiero fiorito tra le montagne della Sardegna"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Supramonte tecnico",
                 "description": "Giornata impegnativa tra i sentieri più tecnici del Supramonte, con vista su Tiscali.",
                 "image": "/media/reali/enduro-vetta-768.webp",
                 "imageAlt": "Rider esulta accanto alla moto da enduro in cima a un percorso panoramico"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Golfo di Orosei",
                 "description": "Discesa verso il Golfo di Orosei, tra calette e sterrati a picco sul mare.",
                 "image": "/media/reali/cat-enduro-1800.webp",
                 "imageAlt": "Rider in sosta con le moto da enduro su un crinale panoramico"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Canyon e altipiani",
                 "description": "Esplorazione dei canyon interni e degli altipiani che dividono le due coste dell'isola.",
                 "image": "/media/reali/grotta-mineraria-1200.webp",
                 "imageAlt": "Ingresso di una vecchia cava scavata nella roccia lungo il percorso"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Tramonto in sella",
                 "description": "Tappa panoramica pensata per godersi il tramonto sardo dai punti più suggestivi del percorso.",
                 "image": "/media/reali/gruppo-altopiano-1800.webp",
                 "imageAlt": "Gruppo di rider in sosta con le moto su un altopiano verde della Sardegna"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Rientro e saluti",
                 "description": "Ultima giornata leggera tra i borghi vicino alla base, per chiudere la settimana in bellezza.",
                 "image": "/media/reali/moto-costa-1200.webp",
@@ -516,6 +621,7 @@
             ]
           },
           {
+            "__typename": "TourCatalogTours",
             "name": "Isola in Quad Week",
             "slug": "isola-in-quad-week",
             "updatedAt": "2026-07-31T00:00:00.000Z",
@@ -530,47 +636,55 @@
             "date": "2026-08-08T00:00:00.000Z",
             "price": "Su richiesta",
             "description": "Sette giorni in quad per esplorare l'isola da costa a costa, tra dune e altipiani.",
+            "exclusions": null,
             "groups": [
               "week"
             ],
             "stages": [
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Dune di Piscinas",
                 "description": "Si parte tra le dune dorate più alte d'Europa, prendendo confidenza con il mezzo.",
                 "image": "/media/reali/hero-quad-convoglio-1200.webp",
                 "imageAlt": "Convoglio di quad su una pista sterrata immersa nella macchia mediterranea"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Costa Verde",
                 "description": "Percorriamo la costa selvaggia tra spiagge nascoste e falesie a picco sul mare.",
                 "image": "/media/reali/quad-pietraia-1200.webp",
                 "imageAlt": "Quad affronta un tratto roccioso in salita in un bosco"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Miniere abbandonate",
                 "description": "Visita ai villaggi minerari del Sulcis, tra archeologia industriale e paesaggi lunari.",
                 "image": "/media/reali/cat-quad-1200.webp",
                 "imageAlt": "Quad in marcia su una pista sterrata accanto a pale eoliche"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Altipiani centrali",
                 "description": "Saliamo verso gli altipiani interni, con lunghi tratti panoramici in quota.",
                 "image": "/media/reali/moto-costa-1200.webp",
                 "imageAlt": "Rider in sosta con la moto lungo un tratto costiero sterrato"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Borghi storici",
                 "description": "Tappa culturale tra borghi dell'entroterra, tradizioni locali e prodotti tipici.",
                 "image": "/media/reali/gruppo-altopiano-1800.webp",
                 "imageAlt": "Gruppo di rider in sosta con le moto su un altopiano verde della Sardegna"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Coste opposte",
                 "description": "Attraversata da costa a costa, per scoprire i contrasti paesaggistici dell'isola.",
                 "image": "/media/reali/grotta-mineraria-1200.webp",
                 "imageAlt": "Ingresso di una vecchia cava scavata nella roccia lungo il percorso"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Rientro finale",
                 "description": "Ultima tappa rilassata verso la base, tra soste fotografiche e saluti finali.",
                 "image": "/media/reali/pinnetta-sosta-1200.webp",
@@ -579,6 +693,7 @@
             ]
           },
           {
+            "__typename": "TourCatalogTours",
             "name": "Sardegna E-Bike Experience",
             "slug": "sardegna-e-bike-experience",
             "updatedAt": "2026-07-31T00:00:00.000Z",
@@ -593,17 +708,20 @@
             "date": null,
             "price": "Su richiesta",
             "description": "Itinerario tipo su e-bike a pedalata assistita: due giorni tra sterrati facili, nuraghi e borghi dell'entroterra. Personalizzabile per ogni gruppo.",
+            "exclusions": null,
             "groups": [
               "weekend"
             ],
             "stages": [
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Sterrati e nuraghi",
                 "description": "Prima giornata tra sterrati facili e siti nuragici: la pedalata assistita rende ogni salita accessibile, senza fretta e a contatto con la natura.",
                 "image": "/media/reali/ebike-costa-1200.webp",
                 "imageAlt": "Ciclista in mountain bike su una spiaggia sarda, con il mare cristallino sullo sfondo"
               },
               {
+                "__typename": "TourCatalogToursStages",
                 "title": "Borghi e costa",
                 "description": "Seconda giornata verso i borghi dell'entroterra e uno scorcio di costa, tra soste panoramiche, prodotti tipici e sentieri silenziosi.",
                 "image": "/media/reali/ebike-pineta-1200.webp",
@@ -612,6 +730,7 @@
             ]
           },
           {
+            "__typename": "TourCatalogTours",
             "name": "Custom Moto Club",
             "slug": "custom-moto-club",
             "updatedAt": "2026-07-31T00:00:00.000Z",
@@ -626,6 +745,7 @@
             "date": null,
             "price": "Su richiesta",
             "description": "Itinerario cucito su misura per il tuo gruppo o moto club: territorio, difficoltà e durata scelti da voi.",
+            "exclusions": null,
             "groups": [
               "custom"
             ],
@@ -634,7 +754,8 @@
         ]
       }
     },
-    "query": "query tourCatalogFallback { __typename }",
+    "errors": null,
+    "query": "\n    query tourCatalog($relativePath: String!) {\n  tourCatalog(relativePath: $relativePath) {\n    ... on Document {\n      _sys {\n        filename\n        basename\n        hasReferences\n        breadcrumbs\n        path\n        relativePath\n        extension\n      }\n      id\n    }\n    ...TourCatalogParts\n  }\n}\n    \n    fragment TourCatalogParts on TourCatalog {\n  __typename\n  tours {\n    __typename\n    name\n    slug\n    updatedAt\n    type\n    duration\n    distance\n    level\n    offroad\n    interest\n    lunchIncluded\n    period\n    date\n    price\n    description\n    exclusions\n    groups\n    stages {\n      __typename\n      title\n      description\n      image\n      imageAlt\n    }\n  }\n}\n    ",
     "variables": {
       "relativePath": "index.json"
     }
@@ -642,8 +763,22 @@
   "eventCatalog": {
     "data": {
       "eventCatalog": {
+        "_sys": {
+          "filename": "index",
+          "basename": "index.json",
+          "hasReferences": false,
+          "breadcrumbs": [
+            "index"
+          ],
+          "path": "content/events/index.json",
+          "relativePath": "index.json",
+          "extension": ".json"
+        },
+        "id": "content/events/index.json",
+        "__typename": "EventCatalog",
         "events": [
           {
+            "__typename": "EventCatalogEvents",
             "name": "Wild Camp di Ferragosto",
             "slug": "wild-camp-ferragosto-2026",
             "updatedAt": "2026-07-31T00:00:00.000Z",
@@ -683,29 +818,45 @@
             ],
             "stages": [
               {
+                "__typename": "EventCatalogEventsStages",
                 "title": "Tappa 1: Nuoro > Jerzu",
-                "description": "Ritrovo dei partecipanti a Nuoro, registrazione, briefing tecnico e partenza.\nL'itinerario si sviluppa lungo spettacolari percorsi off-road fino a raggiungere Jerzu, attraversando alcuni dei paesaggi più suggestivi dell'entroterra sardo.\n"
+                "description": "Ritrovo dei partecipanti a Nuoro, registrazione, briefing tecnico e partenza.\nL'itinerario si sviluppa lungo spettacolari percorsi off-road fino a raggiungere Jerzu, attraversando alcuni dei paesaggi più suggestivi dell'entroterra sardo.\n",
+                "image": null,
+                "imageAlt": null
               },
               {
+                "__typename": "EventCatalogEventsStages",
                 "title": "Tappa 2: Esplorazione dell'Ogliastra",
-                "description": "Intera giornata dedicata ai percorsi più panoramici dell'Ogliastra, tra boschi, vallate, piste storiche e scenari naturali di straordinaria bellezza.\nRientro a Jerzu.\n"
+                "description": "Intera giornata dedicata ai percorsi più panoramici dell'Ogliastra, tra boschi, vallate, piste storiche e scenari naturali di straordinaria bellezza.\nRientro a Jerzu.\n",
+                "image": null,
+                "imageAlt": null
               },
               {
+                "__typename": "EventCatalogEventsStages",
                 "title": "Tappa 3: Jerzu > Orgosolo",
-                "description": "Partenza verso il Supramonte attraverso un itinerario off-road di grande fascino fino a raggiungere Orgosolo, nel cuore della Barbagia.\n"
+                "description": "Partenza verso il Supramonte attraverso un itinerario off-road di grande fascino fino a raggiungere Orgosolo, nel cuore della Barbagia.\n",
+                "image": null,
+                "imageAlt": null
               },
               {
+                "__typename": "EventCatalogEventsStages",
                 "title": "Tappa 4: Il Supramonte di Orgosolo",
-                "description": "Intera giornata dedicata all'esplorazione del Supramonte di Orgosolo, tra boschi secolari, altopiani calcarei e antichi sentieri pastorali.\nLa serata sarà uno dei momenti più suggestivi dell'intero viaggio:\nCena tipica con il pastore, preparata secondo la tradizione locale con prodotti genuini del territorio.\nA seguire...\nPernottamento sotto le stelle nel cuore del Supramonte di Orgosolo, per vivere un'esperienza unica immersi nella natura incontaminata.\n"
+                "description": "Intera giornata dedicata all'esplorazione del Supramonte di Orgosolo, tra boschi secolari, altopiani calcarei e antichi sentieri pastorali.\nLa serata sarà uno dei momenti più suggestivi dell'intero viaggio:\nCena tipica con il pastore, preparata secondo la tradizione locale con prodotti genuini del territorio.\nA seguire...\nPernottamento sotto le stelle nel cuore del Supramonte di Orgosolo, per vivere un'esperienza unica immersi nella natura incontaminata.\n",
+                "image": null,
+                "imageAlt": null
               },
               {
+                "__typename": "EventCatalogEventsStages",
                 "title": "Tappa 5: Orgosolo > Nuoro",
-                "description": "Ultima giornata di viaggio con rientro verso Nuoro lungo nuovi percorsi off-road, attraversando gli ultimi spettacolari paesaggi della Barbagia.\nConclusione del tour e saluti finali."
+                "description": "Ultima giornata di viaggio con rientro verso Nuoro lungo nuovi percorsi off-road, attraversando gli ultimi spettacolari paesaggi della Barbagia.\nConclusione del tour e saluti finali.",
+                "image": null,
+                "imageAlt": null
               }
             ],
             "sourceUrl": "https://www.instagram.com/p/DbAsuekIjk3/"
           },
           {
+            "__typename": "EventCatalogEvents",
             "name": "Maxienduro Sardegna",
             "slug": "maxienduro-sardegna-ottobre-2026",
             "updatedAt": "2026-07-31T00:00:00.000Z",
@@ -743,24 +894,28 @@
             ],
             "stages": [
               {
+                "__typename": "EventCatalogEventsStages",
                 "title": "Olbia → Dorgali",
                 "description": "Partenza da Olbia e prima tappa off-road verso Dorgali.",
                 "image": "/media/cms/media/reali/maxienduro-tenere-1200.webp",
                 "imageAlt": "Maxienduro da viaggio parcheggiata su uno sterrato sotto il cielo sardo"
               },
               {
+                "__typename": "EventCatalogEventsStages",
                 "title": "Tour nei dintorni di Dorgali",
                 "description": "Giornata dedicata agli sterrati e ai paesaggi intorno a Dorgali.",
                 "image": "/media/cms/media/reali/hero-maxienduro-panorama-1800.webp",
                 "imageAlt": "Due maxienduro parcheggiate su uno sterrato panoramico con le montagne sarde sullo sfondo"
               },
               {
+                "__typename": "EventCatalogEventsStages",
                 "title": "Nuovo itinerario off-road",
                 "description": "Partenza e rientro a Dorgali lungo un nuovo itinerario fuoristrada.",
                 "image": "/media/cms/media/reali/maxienduro-sosta-bosco-1200.webp",
                 "imageAlt": "Rider in sosta con le maxienduro lungo un sentiero nel bosco"
               },
               {
+                "__typename": "EventCatalogEventsStages",
                 "title": "Dorgali → Olbia",
                 "description": "Ultima tappa da Dorgali a Olbia e conclusione del tour.",
                 "image": "/media/cms/media/reali/gruppo-altopiano-1800.webp",
@@ -770,6 +925,7 @@
             "sourceUrl": "https://www.instagram.com/p/DahyVLriP0q/"
           },
           {
+            "__typename": "EventCatalogEvents",
             "name": "Tour dei Santi 4x4 – Sardegna senza confini",
             "slug": "tour-dei-santi-4x4-2026",
             "updatedAt": "2026-07-31T00:00:00.000Z",
@@ -798,36 +954,42 @@
             ],
             "stages": [
               {
+                "__typename": "EventCatalogEventsStages",
                 "title": "Tappa 1: Olbia > Tempio Pausania",
                 "description": "Si parte dalla Gallura tra graniti e panorami mozzafiato.",
                 "image": "/media/cms/media/reali/hero-4x4-costa-1200.webp",
                 "imageAlt": "Fuoristrada 4x4 su una pista in quota con il mare della Sardegna sullo sfondo"
               },
               {
+                "__typename": "EventCatalogEventsStages",
                 "title": "Tappa 2: Tempio Pausania > Dorgali",
                 "description": "Attraversiamo l'entroterra gallurese e la Barbagia.",
                 "image": "/media/cms/media/reali/4x4-borgo-pietra-1200.webp",
                 "imageAlt": "Fuoristrada 4x4 in sosta accanto a una costruzione in pietra dell'entroterra"
               },
               {
+                "__typename": "EventCatalogEventsStages",
                 "title": "Tappa 3: Dorgali > Tortolì",
                 "description": "Dalle montagne al mare, attraverso paesaggi selvaggi.",
                 "image": "/media/cms/media/reali/4x4-crinale-1200.webp",
                 "imageAlt": "Fuoristrada 4x4 attrezzato su una pista di crinale tra le montagne sarde"
               },
               {
+                "__typename": "EventCatalogEventsStages",
                 "title": "Tappa 4: Tortolì > Jerzu",
                 "description": "Entriamo nel cuore dell'Ogliastra tra sterrati e panorami unici.",
                 "image": "/media/cms/media/reali/4x4exp-crinale-1200.webp",
                 "imageAlt": "Convoglio di fuoristrada 4x4 in fila su un crinale panoramico tra le montagne sarde"
               },
               {
+                "__typename": "EventCatalogEventsStages",
                 "title": "Tappa 5: Jerzu > Gavoi",
                 "description": "Verso il cuore della Sardegna, tra montagne e altipiani.",
                 "image": "/media/cms/media/reali/4x4exp-nuvole-1200.webp",
                 "imageAlt": "Fuoristrada 4x4 su un crinale sopra il mare di nuvole tra le montagne della Sardegna"
               },
               {
+                "__typename": "EventCatalogEventsStages",
                 "title": "Tappa 6: Gavoi > Orgosolo > Supramonte > Olbia",
                 "description": "Orgosolo, il Supramonte e l'esperienza tipica dal pastore prima del rientro.",
                 "image": "/media/cms/media/reali/4x4-guado-1200.webp",
@@ -837,6 +999,7 @@
             "sourceUrl": "https://www.facebook.com/61587909898685/posts/122121869037263663/"
           },
           {
+            "__typename": "EventCatalogEvents",
             "name": "Honda XR Tour – Tour dedicato alle Honda XR",
             "slug": "honda-xr-tour-2026",
             "updatedAt": "2026-08-02T00:00:00.000Z",
@@ -872,12 +1035,14 @@
               "Honda XR in perfette condizioni meccaniche",
               "È richiesta una minima esperienza in guida fuoristrada"
             ],
-            "stages": []
+            "stages": [],
+            "sourceUrl": null
           }
         ]
       }
     },
-    "query": "query eventCatalogFallback { __typename }",
+    "errors": null,
+    "query": "\n    query eventCatalog($relativePath: String!) {\n  eventCatalog(relativePath: $relativePath) {\n    ... on Document {\n      _sys {\n        filename\n        basename\n        hasReferences\n        breadcrumbs\n        path\n        relativePath\n        extension\n      }\n      id\n    }\n    ...EventCatalogParts\n  }\n}\n    \n    fragment EventCatalogParts on EventCatalog {\n  __typename\n  events {\n    __typename\n    name\n    slug\n    updatedAt\n    type\n    duration\n    distance\n    level\n    offroad\n    interest\n    startLocation\n    lunchIncluded\n    accommodation\n    period\n    startDate\n    endDate\n    price\n    description\n    programNote\n    included\n    exclusions\n    equipment\n    stages {\n      __typename\n      title\n      description\n      image\n      imageAlt\n    }\n    sourceUrl\n  }\n}\n    ",
     "variables": {
       "relativePath": "index.json"
     }
@@ -885,7 +1050,21 @@
   "rentalPage": {
     "data": {
       "rentalPage": {
+        "_sys": {
+          "filename": "index",
+          "basename": "index.json",
+          "hasReferences": false,
+          "breadcrumbs": [
+            "index"
+          ],
+          "path": "content/rental/index.json",
+          "relativePath": "index.json",
+          "extension": ".json"
+        },
+        "id": "content/rental/index.json",
+        "__typename": "RentalPage",
         "hero": {
+          "__typename": "RentalPageHero",
           "claim": "Non hai il mezzo. Hai già l'avventura.",
           "title": "Noleggio",
           "intro": "Vuoi partecipare a uno dei nostri tour ma non puoi portare il tuo mezzo in Sardegna? Puoi noleggiare direttamente Quad, Enduro o Maxienduro, scegliendo il mezzo più adatto all’itinerario e alla tua esperienza di guida.",
@@ -893,6 +1072,7 @@
           "audience": "A tutti coloro che vogliono vivere un tour Sardegna Trail Avventura senza possedere o trasportare il proprio mezzo."
         },
         "offer": {
+          "__typename": "RentalPageOffer",
           "eyebrow": "Parti senza pensieri",
           "title": "Il mezzo giusto. La Sardegna",
           "accent": "davanti",
@@ -900,6 +1080,7 @@
           "description": "Il noleggio viene coordinato con le date e il percorso del tour. Tu scegli l'esperienza e ci racconti come guidi: noi verifichiamo la disponibilità e il trasporto al punto di partenza.\nZero pensieri, full gas."
         },
         "process": {
+          "__typename": "RentalPageProcess",
           "title": "Come funziona il",
           "accent": "noleggio",
           "items": [
@@ -911,6 +1092,7 @@
           "note": "Disponibilità, tariffa, deposito, documenti, coperture e condizioni dipendono dal partner e dal mezzo scelto e vengono comunicati prima della conferma."
         },
         "finalCta": {
+          "__typename": "RentalPageFinalCta",
           "title": "La Sardegna è pronta. Ti manca solo il",
           "accent": "mezzo",
           "suffix": ".",
@@ -919,7 +1101,8 @@
         }
       }
     },
-    "query": "query rentalPageFallback { __typename }",
+    "errors": null,
+    "query": "\n    query rentalPage($relativePath: String!) {\n  rentalPage(relativePath: $relativePath) {\n    ... on Document {\n      _sys {\n        filename\n        basename\n        hasReferences\n        breadcrumbs\n        path\n        relativePath\n        extension\n      }\n      id\n    }\n    ...RentalPageParts\n  }\n}\n    \n    fragment RentalPageParts on RentalPage {\n  __typename\n  hero {\n    __typename\n    claim\n    title\n    intro\n    audienceLabel\n    audience\n  }\n  offer {\n    __typename\n    eyebrow\n    title\n    accent\n    suffix\n    description\n  }\n  process {\n    __typename\n    title\n    accent\n    items\n    note\n  }\n  finalCta {\n    __typename\n    title\n    accent\n    suffix\n    description\n    whatsappMessage\n  }\n}\n    ",
     "variables": {
       "relativePath": "index.json"
     }
@@ -927,6 +1110,19 @@
   "siteSettings": {
     "data": {
       "siteSettings": {
+        "_sys": {
+          "filename": "index",
+          "basename": "index.json",
+          "hasReferences": false,
+          "breadcrumbs": [
+            "index"
+          ],
+          "path": "content/settings/index.json",
+          "relativePath": "index.json",
+          "extension": ".json"
+        },
+        "id": "content/settings/index.json",
+        "__typename": "SiteSettings",
         "name": "Sardegna Trail Avventura",
         "tagline": "Tour e corsi off-road in Sardegna",
         "email": "sardegnatrailavventura@gmail.com",
@@ -940,14 +1136,17 @@
         "region": "Sardegna, Italia",
         "mapsUrl": "https://maps.google.com/?q=Sardegna",
         "cta": {
+          "__typename": "SiteSettingsCta",
           "primary": "Verifica disponibilità",
           "whatsapp": "Scrivici su WhatsApp"
         },
         "tourGroup": {
+          "__typename": "SiteSettingsTourGroup",
           "label": "Da 5 a 10 partecipanti",
           "sentence": "I tour sono organizzati per gruppi da 5 a 10 partecipanti."
         },
         "legal": {
+          "__typename": "SiteSettingsLegal",
           "ownerName": "Gianluca Serra",
           "businessName": "Sardegna Trail Avventura",
           "legalForm": "Ditta individuale",
@@ -956,7 +1155,8 @@
         }
       }
     },
-    "query": "query siteSettingsFallback { __typename }",
+    "errors": null,
+    "query": "\n    query siteSettings($relativePath: String!) {\n  siteSettings(relativePath: $relativePath) {\n    ... on Document {\n      _sys {\n        filename\n        basename\n        hasReferences\n        breadcrumbs\n        path\n        relativePath\n        extension\n      }\n      id\n    }\n    ...SiteSettingsParts\n  }\n}\n    \n    fragment SiteSettingsParts on SiteSettings {\n  __typename\n  name\n  tagline\n  email\n  phoneE164\n  phoneDisplay\n  whatsappMessage\n  contactsVerified\n  instagram\n  facebook\n  socialHandle\n  region\n  mapsUrl\n  cta {\n    __typename\n    primary\n    whatsapp\n  }\n  tourGroup {\n    __typename\n    label\n    sentence\n  }\n  legal {\n    __typename\n    ownerName\n    businessName\n    legalForm\n    vatNumber\n    address\n  }\n}\n    ",
     "variables": {
       "relativePath": "index.json"
     }
