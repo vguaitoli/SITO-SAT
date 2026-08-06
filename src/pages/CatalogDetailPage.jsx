@@ -52,7 +52,11 @@ function Stat({ icon: Icon, label, value, color }) {
   if (!value) return null;
   return (
     <div className="border-b border-[var(--obsidian)]/10 px-5 py-5 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0">
-      <span className="font-button flex items-center gap-2 text-[10px] uppercase tracking-[0.17em] text-[var(--obsidian)]/55">
+      {/* Il colore va scritto con un token già trasparente: la forma
+          text-[var(--obsidian)]/55 produce un colore non valido, la regola
+          viene scartata e la dicitura eredita il chiaro del tema scuro,
+          risultando illeggibile sul fondo chiaro. */}
+      <span className="font-button flex items-center gap-2 text-[10px] uppercase tracking-[0.17em] text-[var(--text-on-light-muted)]">
         <Icon size={14} style={{ color }} aria-hidden="true" />
         {label}
       </span>
