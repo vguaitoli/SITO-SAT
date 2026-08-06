@@ -120,7 +120,9 @@ export default function Hero() {
       className="relative flex min-h-[100svh] w-full flex-col overflow-hidden bg-[var(--obsidian)]"
     >
       {/* Il logo appare subito e resta come fallback mentre i video vengono
-          caricati in differita. */}
+          caricati in differita. È anche l'elemento LCP della home: decoding
+          sincrono, così il browser non ne rimanda la decodifica dipingendo
+          prima il resto della pagina. */}
       <div className="absolute inset-0 flex items-center justify-center bg-[var(--obsidian)]">
         <img
           src={hero.logo}
@@ -128,7 +130,7 @@ export default function Hero() {
           width={512}
           height={512}
           {...{ fetchpriority: "high" }}
-          decoding="async"
+          decoding="sync"
           data-tina-field={tinaField(hero, "logo")}
           className="h-auto w-[min(76vw,28rem)] object-contain opacity-90 drop-shadow-2xl lg:translate-x-[28vw] lg:w-[min(36vw,32rem)]"
         />
