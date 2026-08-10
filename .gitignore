@@ -42,3 +42,10 @@ tina/__generated__/
 
 # Config MCP locale (tooling, non parte del sito)
 .mcp.json
+
+# Config di altri strumenti locali
+.codex/
+
+# Archivio fotografico di lavoro: centinaia di MB di originali da cui si
+# ricavano le immagini ottimizzate in public/media. Non va nel repository.
+foto per sito/

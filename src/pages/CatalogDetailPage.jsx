@@ -23,6 +23,7 @@ import Footer from "@/components/Footer";
 import MobileCta from "@/components/MobileCta";
 import PageNotFound from "@/lib/PageNotFound";
 import { typeColors } from "@/components/TourDetails";
+import { HERO_IMAGES } from "@/data/hero-images";
 import { useSiteContent } from "@/content/TinaContentProvider";
 import { useI18n } from "@/i18n/I18nProvider";
 
@@ -88,9 +89,13 @@ export default function CatalogDetailPage({ kind }) {
   if (!item) return <PageNotFound />;
 
   const color = typeColors[item.type] || "#A0612A";
+  // Ordine: apertura scelta a mano, poi la foto della prima tappa, poi
+  // l'immagine generica della categoria.
+  const chosenHero = HERO_IMAGES[item.slug];
   const firstStageWithImage = item.tappe?.find((stage) => stage.foto);
-  const heroImage = firstStageWithImage?.foto || FALLBACK_IMAGES[item.type] || FALLBACK_IMAGES["Su Misura"];
-  const heroAlt = firstStageWithImage?.fotoAlt || `${item.name} — ${item.interesse}`;
+  const heroImage =
+    chosenHero?.src || firstStageWithImage?.foto || FALLBACK_IMAGES[item.type] || FALLBACK_IMAGES["Su Misura"];
+  const heroAlt = chosenHero?.alt || firstStageWithImage?.fotoAlt || `${item.name} — ${item.interesse}`;
   const backRoute = isEvent ? "events" : "tours";
   const concluded = isEvent && isConcluded(item);
   const includedItems = isEvent
