@@ -63,6 +63,43 @@
       "sourceUrl": "https://www.instagram.com/p/DbAsuekIjk3/"
     },
     {
+      "name": "Sardinia Into The Wild – Un viaggio nel cuore selvaggio della Sardegna",
+      "slug": "sardinia-into-the-wild-2026",
+      "updatedAt": "2026-08-10T00:00:00.000Z",
+      "type": "4x4",
+      "duration": "5 Giorni",
+      "distance": "580 km",
+      "level": "Facile-Medio",
+      "offroad": "80%",
+      "interest": "Gola di Gorroppu, Sorgente di Su Gologone, villaggio nuragico di Tiscali",
+      "startLocation": "Olbia",
+      "lunchIncluded": true,
+      "accommodation": "Mezza pensione in agriturismi selezionati",
+      "period": "23–27 settembre 2026",
+      "startDate": "2026-09-23T00:00:00.000Z",
+      "endDate": "2026-09-27T00:00:00.000Z",
+      "price": "750 € pilota + 4x4 · 600 € passeggero",
+      "description": "Cinque giorni per vivere la Sardegna più autentica, tra Barbagia e Ogliastra, lontano dalle strade più battute.\nUn'avventura in 4x4 tra montagne, foreste, panorami mozzafiato, antichi borghi e territori dove la Sardegna conserva ancora tutta la sua anima.",
+      "programNote": "",
+      "included": [
+        "Pranzo tipico dal Pastore nel territorio di Orgosolo",
+        "Mezza pensione in strutture selezionate",
+        "Guida esperta sarda",
+        "Permessi e autorizzazioni al transito",
+        "Gadget esclusivo"
+      ],
+      "exclusions": [
+        "Trasporto marittimo",
+        "Pranzi (ad esclusione del pranzo dal Pastore)",
+        "Supplemento camera singola (€30)",
+        "Tutto quanto non espressamente indicato"
+      ],
+      "equipment": [
+        "Mezzi 4x4 in perfette condizioni meccaniche"
+      ],
+      "stages": []
+    },
+    {
       "name": "Maxienduro Sardegna",
       "slug": "maxienduro-sardegna-ottobre-2026",
       "updatedAt": "2026-07-31T00:00:00.000Z",
