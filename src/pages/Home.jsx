@@ -25,7 +25,7 @@ const Footer = lazy(() => import("@/components/Footer"));
 function SectionFallback() {
   return (
     <div className="flex items-center justify-center py-24">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--granite-mist)]/20 border-t-[var(--accent)]" />
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-granite-mist/20 border-t-[var(--accent)]" />
     </div>
   );
 }

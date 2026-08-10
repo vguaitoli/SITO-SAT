@@ -89,17 +89,17 @@ export default function CategoriaPage() {
         ) : (
           // Nessuna foto reale ancora disponibile per questa categoria: un'icona
           // al posto di una foto inventata o non pertinente.
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--surface-dark-alt)] to-[var(--obsidian)]">
-            <Route size={160} className="text-[var(--accent)]/15" aria-hidden="true" strokeWidth={1} />
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--surface-dark-alt)] to-obsidian">
+            <Route size={160} className="text-oxblood/15" aria-hidden="true" strokeWidth={1} />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[var(--obsidian)] via-[var(--obsidian)]/60 to-[var(--obsidian)]/45" />
+        <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-obsidian/60 to-obsidian/45" />
         {/* Scrim superiore: tiene leggibile la navigazione sopra le foto chiare. */}
-        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[var(--obsidian)]/90 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-obsidian/90 to-transparent" />
         <div className="absolute inset-0 topo-dark opacity-50" />
 
         <div className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-14 lg:px-8">
-          <nav aria-label={t("Percorso")} className="mb-5 font-button text-xs uppercase tracking-[0.2em] text-[var(--granite-mist)]/60">
+          <nav aria-label={t("Percorso")} className="mb-5 font-button text-xs uppercase tracking-[0.2em] text-granite-mist/60">
             <Link to={href("/#esperienze")} className="hover:text-[var(--accent)]">
               {t("Esperienze")}
             </Link>
@@ -128,7 +128,7 @@ export default function CategoriaPage() {
         <div className="mx-auto grid max-w-7xl gap-10 px-5 lg:grid-cols-3 lg:px-8">
           <Reveal className="lg:col-span-2">
             <p
-              className="font-body text-xl leading-relaxed text-[var(--granite-mist)]/85 lg:text-2xl"
+              className="font-body text-xl leading-relaxed text-granite-mist/85 lg:text-2xl"
               data-tina-field={isRental ? tinaField(rentalHero, "intro") : undefined}
             >
               {rentalHero?.intro || c.intro}
@@ -142,7 +142,7 @@ export default function CategoriaPage() {
               {rentalHero?.audienceLabel || t("A chi è adatto")}
             </p>
             <p
-              className="font-body leading-relaxed text-[var(--granite-mist)]/75"
+              className="font-body leading-relaxed text-granite-mist/75"
               data-tina-field={isRental ? tinaField(rentalHero, "audience") : undefined}
             >
               {rentalHero?.audience || c.adatto}
@@ -235,7 +235,7 @@ export default function CategoriaPage() {
                   decoding="async"
                   className="absolute inset-0 h-full w-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[var(--obsidian)] via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-transparent to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-7">
                   <p className="font-button text-xs uppercase tracking-[0.24em] text-[var(--accent-soft)]">
                     {t("Istruttore qualificato")}
@@ -243,7 +243,7 @@ export default function CategoriaPage() {
                   <h3 className="mt-2 font-heading text-4xl text-[var(--granite-mist)]">
                     Gianluca Serra
                   </h3>
-                  <p className="mt-2 font-body text-sm leading-relaxed text-[var(--granite-mist)]/75">
+                  <p className="mt-2 font-body text-sm leading-relaxed text-granite-mist/75">
                     {t("Esperienza sul territorio e attenzione alla progressione tecnica e alla sicurezza in fuoristrada.")}
                   </p>
                 </div>
@@ -357,18 +357,18 @@ export default function CategoriaPage() {
                 data-tina-field={isRental ? tinaField(rentalProcess, "items", index) : undefined}
               >
                 <Check size={16} className="flex-shrink-0 text-[var(--wild-sage-bright)]" aria-hidden="true" />
-                <span className="font-body text-[var(--granite-mist)]/85">{item}</span>
+                <span className="font-body text-granite-mist/85">{item}</span>
               </li>
             ))}
           </ul>
           {!isCourse && !isRental && (
-            <p className="mt-6 font-body text-sm leading-relaxed text-[var(--granite-mist)]/60">
+            <p className="mt-6 font-body text-sm leading-relaxed text-granite-mist/60">
               {t("Quando previsto, il dispositivo GPS Live Tracking viene fornito dall'organizzazione, che può così verificare in ogni momento che il gruppo rimanga compatto e che nessun partecipante resti isolato o si disperda lungo il percorso. Non viene utilizzato come navigatore e non fornisce indicazioni di percorso ai partecipanti. Servizi e dotazioni vengono confermati prima della prenotazione.")}
             </p>
           )}
           {isRental && (
             <p
-              className="mt-6 font-body text-sm leading-relaxed text-[var(--granite-mist)]/55"
+              className="mt-6 font-body text-sm leading-relaxed text-granite-mist/55"
               data-tina-field={tinaField(rentalProcess, "note")}
             >
               {rentalProcess.note}
@@ -399,11 +399,11 @@ export default function CategoriaPage() {
                     imgClassName="opacity-70 transition-all duration-500 group-hover:scale-105 group-hover:opacity-95"
                   />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--surface-dark-alt)] to-[var(--obsidian)]">
-                    <Route size={40} className="text-[var(--accent)]/20" aria-hidden="true" strokeWidth={1.25} />
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--surface-dark-alt)] to-obsidian">
+                    <Route size={40} className="text-oxblood/20" aria-hidden="true" strokeWidth={1.25} />
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-[var(--obsidian)] to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-obsidian to-transparent" />
                 <span className="absolute bottom-4 left-4 font-heading text-2xl text-[var(--granite-mist)] transition-colors group-hover:text-[var(--accent-soft)]">
                   {o.nome}
                 </span>
@@ -414,7 +414,7 @@ export default function CategoriaPage() {
       </section>
 
       {/* CTA finale */}
-      <section className="border-t border-[var(--accent)]/20 bg-[var(--obsidian)] py-20 text-center">
+      <section className="border-t border-oxblood/20 bg-[var(--obsidian)] py-20 text-center">
         <div className="mx-auto max-w-3xl px-5">
           <h2 className="font-heading text-4xl leading-tight text-[var(--granite-mist)] lg:text-6xl">
             {isCourse ? (
@@ -436,7 +436,7 @@ export default function CategoriaPage() {
             )}
           </h2>
           <p
-            className="mt-5 font-body text-lg text-[var(--granite-mist)]/70"
+            className="mt-5 font-body text-lg text-granite-mist/70"
             data-tina-field={isRental ? tinaField(rentalFinalCta, "description") : undefined}
           >
             {isCourse

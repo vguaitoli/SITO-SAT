@@ -28,7 +28,7 @@ function RouteFallback() {
       role="status"
       aria-label={t("Caricamento pagina")}
     >
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--granite-mist)]/20 border-t-[var(--accent)]" />
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-granite-mist/20 border-t-[var(--accent)]" />
     </div>
   );
 }

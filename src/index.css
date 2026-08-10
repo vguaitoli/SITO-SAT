@@ -62,6 +62,14 @@
     --carbon: #252019;        /* superficie scura alternativa */
     --graphite: #2F2A22;      /* bordi/superfici su fondo scuro */
 
+    /* Gli stessi colori in canali RGB separati. Servono a Tailwind per
+       generare le varianti trasparenti (obsidian/40): con il colore in
+       esadecimale la utility produce un valore non valido e il browser
+       scarta la regola. Vanno tenuti allineati ai valori qui sopra. */
+    --obsidian-rgb: 28 24 20;
+    --granite-mist-rgb: 245 235 217;
+    --oxblood-rgb: 160 97 42;
+
     /* ---- Token semantici: riferirsi a questi nei componenti ---- */
     --surface-dark: var(--obsidian);
     --surface-dark-alt: var(--carbon);

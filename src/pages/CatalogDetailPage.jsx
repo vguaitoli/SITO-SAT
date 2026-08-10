@@ -51,11 +51,9 @@ function isConcluded(item) {
 function Stat({ icon: Icon, label, value, color }) {
   if (!value) return null;
   return (
-    <div className="border-b border-[var(--obsidian)]/10 px-5 py-5 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0">
-      {/* Il colore va scritto con un token già trasparente: la forma
-          text-[var(--obsidian)]/55 produce un colore non valido, la regola
-          viene scartata e la dicitura eredita il chiaro del tema scuro,
-          risultando illeggibile sul fondo chiaro. */}
+    <div className="border-b border-obsidian/10 px-5 py-5 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0">
+      {/* Testo piccolo su fondo chiaro: il token al 70% tiene il contrasto
+          sopra la soglia AA, cosa che il 55% di prima non faceva. */}
       <span className="font-button flex items-center gap-2 text-[10px] uppercase tracking-[0.17em] text-[var(--text-on-light-muted)]">
         <Icon size={14} style={{ color }} aria-hidden="true" />
         {label}
@@ -71,7 +69,7 @@ function BulletList({ items, color }) {
   return (
     <ul className="space-y-3">
       {items.map((item) => (
-        <li key={item} className="flex gap-3 font-body text-sm leading-relaxed text-[var(--granite-mist)]/75">
+        <li key={item} className="flex gap-3 font-body text-sm leading-relaxed text-granite-mist/75">
           <span className="mt-2 h-1.5 w-1.5 flex-none rounded-full" style={{ backgroundColor: color }} />
           <span>{item}</span>
         </li>
@@ -135,13 +133,15 @@ export default function CatalogDetailPage({ kind }) {
             {...{ fetchpriority: "high" }}
             className="absolute inset-0 h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[var(--obsidian)] via-[var(--obsidian)]/82 to-[var(--obsidian)]/20" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[var(--obsidian)] via-transparent to-[var(--obsidian)]/45" />
+          {/* 80 e non 82: la scala di opacità di Tailwind procede a passi di
+              cinque e un valore fuori scala non genera alcuna regola. */}
+          <div className="absolute inset-0 bg-gradient-to-r from-obsidian via-obsidian/80 to-obsidian/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-transparent to-obsidian/45" />
 
           <div className="relative mx-auto flex min-h-[680px] max-w-7xl flex-col justify-end px-5 pb-16 pt-36 lg:px-8 lg:pb-24">
             <Link
               to={route(backRoute)}
-              className="font-button mb-10 inline-flex w-fit items-center gap-2 text-xs uppercase tracking-[0.16em] text-[var(--granite-mist)]/75 transition-colors hover:text-[var(--accent-soft)]"
+              className="font-button mb-10 inline-flex w-fit items-center gap-2 text-xs uppercase tracking-[0.16em] text-granite-mist/75 transition-colors hover:text-[var(--accent-soft)]"
             >
               <ArrowLeft size={16} aria-hidden="true" />
               {t(isEvent ? "Torna agli eventi" : "Torna agli itinerari")}
@@ -155,7 +155,7 @@ export default function CatalogDetailPage({ kind }) {
                 >
                   {item.type}
                 </span>
-                <span className="font-button text-xs uppercase tracking-[0.2em] text-[var(--granite-mist)]/70">
+                <span className="font-button text-xs uppercase tracking-[0.2em] text-granite-mist/70">
                   {isEvent ? t(concluded ? "Evento concluso" : "Evento programmato") : t("Tour guidato")}
                 </span>
               </div>
@@ -175,7 +175,7 @@ export default function CatalogDetailPage({ kind }) {
                 </p>
               )}
               <p
-                className="mt-7 max-w-3xl whitespace-pre-line font-body text-base leading-relaxed text-[var(--granite-mist)]/85 sm:text-lg lg:text-xl"
+                className="mt-7 max-w-3xl whitespace-pre-line font-body text-base leading-relaxed text-granite-mist/85 sm:text-lg lg:text-xl"
                 data-tina-field={tinaField(item, "description")}
               >
                 {item.descrizione}
@@ -210,7 +210,7 @@ export default function CatalogDetailPage({ kind }) {
             <p className="font-button text-xs uppercase tracking-[0.3em] text-[var(--accent)]">
               {t("Informazioni essenziali")}
             </p>
-            <div className="mt-7 grid overflow-hidden border border-[var(--obsidian)]/15 bg-white/30 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-7 grid overflow-hidden border border-obsidian/15 bg-white/30 sm:grid-cols-2 lg:grid-cols-3">
               {stats.map((stat) => (
                 <Stat key={stat.label} {...stat} color={color} />
               ))}
@@ -238,7 +238,7 @@ export default function CatalogDetailPage({ kind }) {
                     {stages.map((stage, index) => (
                       <section
                         key={`${stage.title}-${index}`}
-                        className="grid gap-5 border-t border-[var(--obsidian)]/15 pt-8 first:border-t-0 first:pt-0 sm:grid-cols-[180px_1fr]"
+                        className="grid gap-5 border-t border-obsidian/15 pt-8 first:border-t-0 first:pt-0 sm:grid-cols-[180px_1fr]"
                         data-tina-field={tinaField(stage)}
                       >
                         {stage.foto ? (
@@ -252,7 +252,7 @@ export default function CatalogDetailPage({ kind }) {
                             className="aspect-[4/3] h-auto w-full object-cover"
                           />
                         ) : (
-                          <div className="flex aspect-[4/3] items-center justify-center bg-[var(--obsidian)]/5">
+                          <div className="flex aspect-[4/3] items-center justify-center bg-obsidian/5">
                             <span className="font-heading text-5xl" style={{ color }}>
                               {String(index + 1).padStart(2, "0")}
                             </span>
@@ -288,24 +288,24 @@ export default function CatalogDetailPage({ kind }) {
               </article>
 
               <aside className="space-y-6 lg:sticky lg:top-28 lg:self-start">
-                <div className="border border-[var(--obsidian)]/15 bg-[var(--obsidian)] px-6 py-7 text-[var(--granite-mist)]">
+                <div className="border border-obsidian/15 bg-[var(--obsidian)] px-6 py-7 text-[var(--granite-mist)]">
                   <h2 className="font-heading text-3xl leading-none">{t("Scheda Tecnica")}</h2>
                   <dl className="mt-6 space-y-4">
                     <div>
-                      <dt className="font-button text-[10px] uppercase tracking-[0.17em] text-[var(--granite-mist)]/45">
+                      <dt className="font-button text-[10px] uppercase tracking-[0.17em] text-granite-mist/45">
                         {t("Punti di interesse")}
                       </dt>
-                      <dd className="mt-1 flex gap-2 font-body text-sm leading-relaxed text-[var(--granite-mist)]/80">
+                      <dd className="mt-1 flex gap-2 font-body text-sm leading-relaxed text-granite-mist/80">
                         <MapPin size={15} className="mt-0.5 flex-none" style={{ color }} aria-hidden="true" />
                         {item.interesse}
                       </dd>
                     </div>
                     {item.soggiorno && (
                       <div>
-                        <dt className="font-button text-[10px] uppercase tracking-[0.17em] text-[var(--granite-mist)]/45">
+                        <dt className="font-button text-[10px] uppercase tracking-[0.17em] text-granite-mist/45">
                           {t("Pernottamento")}
                         </dt>
-                        <dd className="mt-1 flex gap-2 font-body text-sm leading-relaxed text-[var(--granite-mist)]/80">
+                        <dd className="mt-1 flex gap-2 font-body text-sm leading-relaxed text-granite-mist/80">
                           <BedDouble size={15} className="mt-0.5 flex-none" style={{ color }} aria-hidden="true" />
                           {item.soggiorno}
                         </dd>
@@ -313,10 +313,10 @@ export default function CatalogDetailPage({ kind }) {
                     )}
                     {item.price && (
                       <div>
-                        <dt className="font-button text-[10px] uppercase tracking-[0.17em] text-[var(--granite-mist)]/45">
+                        <dt className="font-button text-[10px] uppercase tracking-[0.17em] text-granite-mist/45">
                           {t("Prezzo")}
                         </dt>
-                        <dd className="mt-1 flex gap-2 font-body text-sm leading-relaxed text-[var(--granite-mist)]/80">
+                        <dd className="mt-1 flex gap-2 font-body text-sm leading-relaxed text-granite-mist/80">
                           <BadgeEuro size={15} className="mt-0.5 flex-none" style={{ color }} aria-hidden="true" />
                           {item.price}
                         </dd>
@@ -325,7 +325,7 @@ export default function CatalogDetailPage({ kind }) {
                   </dl>
                 </div>
 
-                <div className="border border-[var(--obsidian)]/15 px-6 py-7">
+                <div className="border border-obsidian/15 px-6 py-7">
                   <h2 className="flex items-center gap-2 font-heading text-2xl text-[var(--obsidian)]">
                     <ShieldCheck size={20} style={{ color }} aria-hidden="true" />
                     {t("Preparazione e sicurezza")}
@@ -347,7 +347,7 @@ export default function CatalogDetailPage({ kind }) {
                 {t("Cosa comprende")}
               </h2>
               {includedIntro && (
-                <p className="mt-5 font-body text-sm leading-relaxed text-[var(--granite-mist)]/65 sm:text-base">
+                <p className="mt-5 font-body text-sm leading-relaxed text-granite-mist/65 sm:text-base">
                   {includedIntro}
                 </p>
               )}
@@ -357,7 +357,7 @@ export default function CatalogDetailPage({ kind }) {
                 </div>
               )}
               {includedNote && (
-                <p className="mt-7 border-l-2 pl-5 font-body text-sm leading-relaxed text-[var(--granite-mist)]/60" style={{ borderColor: color }}>
+                <p className="mt-7 border-l-2 pl-5 font-body text-sm leading-relaxed text-granite-mist/60" style={{ borderColor: color }}>
                   {includedNote}
                 </p>
               )}
@@ -389,8 +389,8 @@ export default function CatalogDetailPage({ kind }) {
               )}
 
               {!item.esclusioni?.length && !equipment.length && (
-                <div className="border border-[var(--granite-mist)]/15 px-6 py-7">
-                  <p className="font-body text-sm leading-relaxed text-[var(--granite-mist)]/65 sm:text-base">
+                <div className="border border-granite-mist/15 px-6 py-7">
+                  <p className="font-body text-sm leading-relaxed text-granite-mist/65 sm:text-base">
                     {t("Dicci quando vorresti venire: verifichiamo la disponibilità e ti diciamo qual è il percorso giusto per te.")}
                   </p>
                 </div>
@@ -399,7 +399,7 @@ export default function CatalogDetailPage({ kind }) {
           </div>
         </section>
 
-        <section className="border-t border-[var(--granite-mist)]/10 bg-[var(--obsidian)] pb-24 pt-4 lg:pb-32">
+        <section className="border-t border-granite-mist/10 bg-[var(--obsidian)] pb-24 pt-4 lg:pb-32">
           <div className="mx-auto max-w-5xl px-5 text-center lg:px-8">
             <p className="font-button text-xs uppercase tracking-[0.3em]" style={{ color }}>
               {item.type} · Sardegna
@@ -407,7 +407,7 @@ export default function CatalogDetailPage({ kind }) {
             <h2 className="mt-5 font-heading text-4xl leading-none text-[var(--granite-mist)] sm:text-6xl">
               {t("Pronto a partire in")} {item.type}?
             </h2>
-            <p className="mx-auto mt-6 max-w-2xl font-body text-base leading-relaxed text-[var(--granite-mist)]/65">
+            <p className="mx-auto mt-6 max-w-2xl font-body text-base leading-relaxed text-granite-mist/65">
               {t("Dicci quando vorresti venire: verifichiamo la disponibilità e ti diciamo qual è il percorso giusto per te.")}
             </p>
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">

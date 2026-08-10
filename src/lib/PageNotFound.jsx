@@ -15,7 +15,7 @@ export default function PageNotFound() {
         <h1 className="mt-5 font-heading text-8xl leading-none text-[var(--granite-mist)] sm:text-9xl">
           404
         </h1>
-        <p className="mt-6 font-body text-lg leading-relaxed text-[var(--granite-mist)]/70">
+        <p className="mt-6 font-body text-lg leading-relaxed text-granite-mist/70">
           La pagina <span className="text-[var(--granite-mist)]">{location.pathname}</span> non è
           {t("non è disponibile. Torna alla base e riparti da un itinerario conosciuto.")}
         </p>

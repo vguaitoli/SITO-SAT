@@ -90,7 +90,7 @@ export default function Events() {
         <h1 className="font-heading text-5xl leading-none text-[var(--granite-mist)] lg:text-7xl">
           {t("CALENDARIO")} <span className="text-[var(--accent)]">{t("EVENTI")}</span>
         </h1>
-        <p className="mt-6 max-w-2xl font-body text-lg text-[var(--granite-mist)]/70">
+        <p className="mt-6 max-w-2xl font-body text-lg text-granite-mist/70">
           {t("Date indicative, da confermare in base alla disponibilità.")} {TOUR_GROUP.sentence} {t("Contattaci per verificare i prossimi posti liberi.")}
         </p>
       </header>

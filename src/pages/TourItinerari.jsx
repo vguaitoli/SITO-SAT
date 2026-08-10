@@ -36,7 +36,7 @@ export default function TourItinerari() {
         <h1 className="font-heading text-5xl leading-none text-[var(--granite-mist)] lg:text-7xl">
           {t("Tutti gli")} <span className="text-[var(--accent)]">{t("itinerari")}</span>
         </h1>
-        <p className="mt-6 max-w-2xl font-body text-lg text-[var(--granite-mist)]/70">
+        <p className="mt-6 max-w-2xl font-body text-lg text-granite-mist/70">
           {t("Ogni tour con scheda tecnica completa: durata, chilometri, livello, percentuale di sterrato, punti di interesse e periodo consigliato. Filtra per formato o scegli il mezzo dalle esperienze.")} {TOUR_GROUP.sentence}
         </p>
 
@@ -53,7 +53,7 @@ export default function TourItinerari() {
                 className={`font-button text-xs uppercase tracking-[0.15em] px-4 py-2.5 transition-colors ${
                   attivo
                     ? "bg-[var(--cta)] text-[var(--cta-text)]"
-                    : "border border-[var(--border-on-dark)] text-[var(--granite-mist)]/80 hover:border-[var(--accent)] hover:text-[var(--accent-soft)]"
+                    : "border border-[var(--border-on-dark)] text-granite-mist/80 hover:border-[var(--accent)] hover:text-[var(--accent-soft)]"
                 }`}
               >
                 {f.label}

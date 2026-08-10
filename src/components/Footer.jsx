@@ -35,7 +35,7 @@ export default function Footer() {
   const { t, href, localize } = useI18n();
   const categories = localize(CATEGORIE);
   return (
-    <footer className="border-t border-[var(--accent)]/30 bg-[var(--obsidian)]">
+    <footer className="border-t border-oxblood/30 bg-[var(--obsidian)]">
       {/* Nastro fotografico scorrevole */}
       <div className="border-b border-[var(--border-on-dark)] py-4">
         <PhotoRibbon slugs={ribbonSlugs} className="h-20 w-32" />
@@ -62,7 +62,7 @@ export default function Footer() {
             <p className="max-w-sm font-heading text-2xl leading-tight tracking-wide text-[var(--accent)]">
               {t("La Sardegna che non ti aspetti.")}
             </p>
-            <p className="mt-4 max-w-sm font-body text-sm leading-relaxed text-[var(--granite-mist)]/60">
+            <p className="mt-4 max-w-sm font-body text-sm leading-relaxed text-granite-mist/60">
               {t("Tour off-road guidati in Maxienduro, Enduro, Quad, SSV, 4x4 ed e-bike, oltre a corsi di guida con istruttore qualificato.")}
             </p>
           </div>
@@ -77,7 +77,7 @@ export default function Footer() {
                 <li key={l.href}>
                   <Link
                     to={href(toTarget(l.href))}
-                    className="font-body text-sm text-[var(--granite-mist)]/70 transition-colors hover:text-[var(--accent)]"
+                    className="font-body text-sm text-granite-mist/70 transition-colors hover:text-[var(--accent)]"
                   >
                     {t(l.label)}
                   </Link>
@@ -92,7 +92,7 @@ export default function Footer() {
                 <li key={c.id}>
                   <Link
                     to={href(`/esperienze/${c.id}`)}
-                    className="font-body text-sm text-[var(--granite-mist)]/70 transition-colors hover:text-[var(--accent)]"
+                    className="font-body text-sm text-granite-mist/70 transition-colors hover:text-[var(--accent)]"
                   >
                     {c.nome}
                   </Link>
@@ -109,21 +109,21 @@ export default function Footer() {
             {SITE.contattiVerificati ? (
               <ul className="space-y-4">
                 <li>
-                  <a href={SITE.telefono.href} className="flex items-center gap-3 font-body text-sm text-[var(--granite-mist)]/70 transition-colors hover:text-[var(--accent)]">
+                  <a href={SITE.telefono.href} className="flex items-center gap-3 font-body text-sm text-granite-mist/70 transition-colors hover:text-[var(--accent)]">
                     <Phone size={16} aria-hidden="true" /> {SITE.telefono.display}
                   </a>
                 </li>
                 <li>
-                  <a href={`mailto:${SITE.email}`} className="flex items-center gap-3 font-body text-sm text-[var(--granite-mist)]/70 transition-colors hover:text-[var(--accent)]">
+                  <a href={`mailto:${SITE.email}`} className="flex items-center gap-3 font-body text-sm text-granite-mist/70 transition-colors hover:text-[var(--accent)]">
                     <Mail size={16} aria-hidden="true" /> {SITE.email}
                   </a>
                 </li>
                 <li>
-                  <a href={SITE.whatsapp.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 font-body text-sm text-[var(--granite-mist)]/70 transition-colors hover:text-[var(--accent)]">
+                  <a href={SITE.whatsapp.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 font-body text-sm text-granite-mist/70 transition-colors hover:text-[var(--accent)]">
                     <MessageCircle size={16} aria-hidden="true" /> {CTA_LABELS.whatsapp}
                   </a>
                 </li>
-                <li className="flex items-center gap-3 font-body text-sm text-[var(--granite-mist)]/70">
+                <li className="flex items-center gap-3 font-body text-sm text-granite-mist/70">
                   <span className="flex items-center gap-2">
                     <a href={SITE.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="transition-colors hover:text-[var(--accent)]">
                       <Instagram size={16} aria-hidden="true" />
@@ -136,7 +136,7 @@ export default function Footer() {
                 </li>
               </ul>
             ) : (
-              <p className="font-body text-sm leading-relaxed text-[var(--granite-mist)]/60">
+              <p className="font-body text-sm leading-relaxed text-granite-mist/60">
                 {t("Recapiti in aggiornamento.")}{" "}
                 <Link to={href("/#contatti")} className="text-[var(--accent-soft)] underline transition-colors hover:text-[var(--accent)]">
                   {t("Scrivici dal modulo di contatto")}
@@ -151,7 +151,7 @@ export default function Footer() {
 
         {/* Dati legali del Titolare + informative */}
         <div className="mb-6 flex flex-col items-center gap-4 md:flex-row md:justify-between">
-          <p className="text-center font-body text-xs leading-relaxed text-[var(--granite-mist)]/40 md:text-left">
+          <p className="text-center font-body text-xs leading-relaxed text-granite-mist/55 md:text-left">
             {SITE.legale.ragioneSociale} · {SITE.legale.formaGiuridica} · P.IVA {SITE.legale.partitaIva}
             <br className="hidden md:block" />
             <span className="md:hidden"> · </span>
@@ -160,13 +160,13 @@ export default function Footer() {
           <nav className="flex items-center gap-4" aria-label={t("Informative legali")}>
             <Link
               to={href("/privacy")}
-              className="font-body text-xs text-[var(--granite-mist)]/60 underline transition-colors hover:text-[var(--accent)]"
+              className="font-body text-xs text-granite-mist/60 underline transition-colors hover:text-[var(--accent)]"
             >
               Privacy Policy
             </Link>
             <Link
               to={href("/cookie-policy")}
-              className="font-body text-xs text-[var(--granite-mist)]/60 underline transition-colors hover:text-[var(--accent)]"
+              className="font-body text-xs text-granite-mist/60 underline transition-colors hover:text-[var(--accent)]"
             >
               Cookie Policy
             </Link>
@@ -174,10 +174,10 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col items-center justify-between gap-4 pb-16 md:flex-row md:pb-0">
-          <p className="text-center font-body text-xs text-[var(--granite-mist)]/40 md:text-left">
+          <p className="text-center font-body text-xs text-granite-mist/55 md:text-left">
             © {new Date().getFullYear()} {SITE.nome}. {t("Tutti i diritti riservati.")}
           </p>
-          <p className="font-body text-xs text-[var(--granite-mist)]/40">
+          <p className="font-body text-xs text-granite-mist/55">
             Maxienduro · Enduro · Quad · SSV · 4x4 · E-Bike — Sardegna
           </p>
         </div>

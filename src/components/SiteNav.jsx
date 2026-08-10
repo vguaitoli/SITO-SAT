@@ -52,9 +52,9 @@ export default function SiteNav() {
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "border-b border-[var(--accent)]/30 bg-[var(--obsidian)] py-3 shadow-lg"
+          ? "border-b border-oxblood/30 bg-[var(--obsidian)] py-3 shadow-lg"
           : // Gradiente robusto: garantisce il contrasto del menu anche sopra foto molto chiare.
-            "bg-gradient-to-b from-[var(--obsidian)] via-[var(--obsidian)]/75 to-transparent pb-10 pt-5"
+            "bg-gradient-to-b from-obsidian via-obsidian/75 to-transparent pb-10 pt-5"
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 lg:px-8">
@@ -78,7 +78,7 @@ export default function SiteNav() {
             <Link
               key={l.href}
               to={href(l.href)}
-              className="group relative font-button text-xs uppercase tracking-wider text-[var(--granite-mist)]/85 transition-colors hover:text-[var(--accent)] 2xl:text-sm"
+              className="group relative font-button text-xs uppercase tracking-wider text-granite-mist/85 transition-colors hover:text-[var(--accent)] 2xl:text-sm"
             >
               {t(l.label)}
               <span className="absolute -bottom-1 left-0 h-px w-0 bg-[var(--accent)] transition-all duration-300 group-hover:w-full" />
@@ -132,21 +132,21 @@ export default function SiteNav() {
 
       {/* Menu mobile */}
       {open && (
-        <div className="max-h-[calc(100svh-4rem)] overflow-y-auto border-t border-[var(--accent)]/30 bg-[var(--obsidian)] xl:hidden">
+        <div className="max-h-[calc(100svh-4rem)] overflow-y-auto border-t border-oxblood/30 bg-[var(--obsidian)] xl:hidden">
           <nav aria-label={t("Navigazione mobile")} className="flex flex-col px-5 py-4">
             {navLinks.map((l) => (
               <Link
                 key={l.href}
                 to={href(l.href)}
                 onClick={() => setOpen(false)}
-                className="border-b border-[var(--border-on-dark)] py-3.5 font-button text-base uppercase tracking-wider text-[var(--granite-mist)]/90 hover:text-[var(--accent)]"
+                className="border-b border-[var(--border-on-dark)] py-3.5 font-button text-base uppercase tracking-wider text-granite-mist/90 hover:text-[var(--accent)]"
               >
                 {t(l.label)}
               </Link>
             ))}
 
             {/* Accesso rapido alle categorie */}
-            <p className="mt-5 font-button text-[10px] uppercase tracking-[0.25em] text-[var(--granite-mist)]/50">
+            <p className="mt-5 font-button text-[10px] uppercase tracking-[0.25em] text-granite-mist/50">
               {t("Le esperienze")}
             </p>
             <div className="mt-3 grid grid-cols-2 gap-2">

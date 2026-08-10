@@ -23,7 +23,7 @@ export default function About() {
               data-tina-field={tinaField(content, "image")}
               className="aspect-[4/3] w-full object-cover"
             />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--obsidian)]/40 to-transparent" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-obsidian/40 to-transparent" />
             <div className="absolute -bottom-5 -right-5 max-w-[200px] bg-[var(--cta)] px-8 py-6 lg:-right-8">
               <p
                 className="font-heading text-5xl leading-none text-[var(--granite-mist)]"
@@ -32,7 +32,7 @@ export default function About() {
                 {content.badgeValue}
               </p>
               <p
-                className="mt-2 font-body text-xs leading-tight text-[var(--granite-mist)]/80"
+                className="mt-2 font-body text-xs leading-tight text-granite-mist/80"
                 data-tina-field={tinaField(content, "badgeText")}
               >
                 {content.badgeText}
@@ -58,7 +58,7 @@ export default function About() {
             </Reveal>
             <div className="fissure-light mb-8" />
             <Reveal delay={0.1}>
-              <div className="space-y-5 font-body text-lg leading-relaxed text-[var(--granite-mist)]/80">
+              <div className="space-y-5 font-body text-lg leading-relaxed text-granite-mist/80">
                 {content.paragraphs.map((paragraph, index) => (
                   <p key={index} data-tina-field={tinaField(content, "paragraphs")}>
                     {paragraph}

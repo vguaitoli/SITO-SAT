@@ -194,7 +194,7 @@ export default function BackgroundMusic() {
           onClick={handleAudioControl}
           aria-label={audioOff ? t("Attiva la musica di sottofondo") : t("Disattiva la musica di sottofondo")}
           title={audioOff ? t("Attiva musica") : t("Disattiva musica")}
-          className="fixed right-4 top-24 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--granite-mist)]/40 bg-[var(--obsidian)]/80 text-[var(--granite-mist)] shadow-lg backdrop-blur-sm transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-soft)] lg:bottom-5 lg:right-5 lg:top-auto"
+          className="fixed right-4 top-24 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-granite-mist/40 bg-obsidian/80 text-[var(--granite-mist)] shadow-lg backdrop-blur-sm transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-soft)] lg:bottom-5 lg:right-5 lg:top-auto"
         >
           {audioOff ? (
             <VolumeX size={18} aria-hidden="true" />

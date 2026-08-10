@@ -10,6 +10,14 @@ module.exports = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
+  			/* Colori del brand registrati qui perché la forma
+  			   [var(--obsidian)]/55 non funziona: Tailwind non conosce i canali
+  			   del colore e non sa inserirvi la trasparenza. Con <alpha-value>
+  			   le varianti obsidian/55, granite-mist/70 ecc. sono valide.
+  			   Nomi distinti da 'accent', che appartiene già a shadcn. */
+  			obsidian: 'rgb(var(--obsidian-rgb) / <alpha-value>)',
+  			'granite-mist': 'rgb(var(--granite-mist-rgb) / <alpha-value>)',
+  			oxblood: 'rgb(var(--oxblood-rgb) / <alpha-value>)',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

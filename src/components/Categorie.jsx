@@ -45,11 +45,11 @@ function Card({ cat, featuredMobile = false }) {
       ) : (
         // Nessuna foto reale ancora disponibile per questa categoria: un'icona
         // al posto di una foto inventata o non pertinente.
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--surface-dark-alt)] to-[var(--obsidian)]">
-          <Route size={72} className="text-[var(--accent)]/25" aria-hidden="true" strokeWidth={1.25} />
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--surface-dark-alt)] to-obsidian">
+          <Route size={72} className="text-oxblood/25" aria-hidden="true" strokeWidth={1.25} />
         </div>
       )}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--obsidian)] via-[var(--obsidian)]/45 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-obsidian via-obsidian/45 to-transparent" />
 
       <div className="absolute inset-x-0 bottom-0 p-4 transition-transform duration-500 ease-out group-hover:-translate-y-1 sm:p-6 lg:p-7">
         <p className="font-button text-[10px] uppercase tracking-[0.25em] text-[var(--accent-soft)]">
@@ -58,7 +58,7 @@ function Card({ cat, featuredMobile = false }) {
         <h3 className="mt-2 font-heading text-3xl tracking-wide text-[var(--granite-mist)]">
           {cat.nome}
         </h3>
-        <p className="mt-2 hidden font-body text-[var(--granite-mist)]/75 sm:line-clamp-3 sm:text-sm sm:leading-relaxed">
+        <p className="mt-2 hidden font-body text-granite-mist/75 sm:line-clamp-3 sm:text-sm sm:leading-relaxed">
           {cat.cardIntro || cat.intro}
         </p>
         <span className="mt-4 inline-flex items-center gap-2 font-button text-xs uppercase tracking-[0.2em] text-[var(--accent-soft)]">

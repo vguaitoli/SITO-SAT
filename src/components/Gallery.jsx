@@ -34,7 +34,7 @@ export default function Gallery() {
             />
           </div>
           <p
-            className="max-w-md font-body text-base leading-relaxed text-[var(--granite-mist)]/60"
+            className="max-w-md font-body text-base leading-relaxed text-granite-mist/60"
             data-tina-field={tinaField(content, "intro")}
           >
             {content.intro}

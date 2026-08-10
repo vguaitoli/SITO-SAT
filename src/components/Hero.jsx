@@ -176,8 +176,8 @@ export default function Hero() {
           </>
         )}
         {/* Gradienti per la leggibilità del testo. */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[var(--obsidian)] via-[var(--obsidian)]/55 to-[var(--obsidian)]/40" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[var(--obsidian)]/85 via-[var(--obsidian)]/35 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-obsidian/55 to-obsidian/40" />
+        <div className="absolute inset-0 bg-gradient-to-r from-obsidian/85 via-obsidian/35 to-transparent" />
         <div className="absolute inset-0 topo-dark opacity-50" />
       </div>
 
@@ -209,7 +209,7 @@ export default function Hero() {
           <motion.p
             {...child}
             data-tina-field={tinaField(hero, "description")}
-            className="mb-6 max-w-2xl font-body text-base leading-relaxed text-[var(--granite-mist)]/90 drop-shadow sm:mb-9 sm:text-lg lg:text-xl"
+            className="mb-6 max-w-2xl font-body text-base leading-relaxed text-granite-mist/90 drop-shadow sm:mb-9 sm:text-lg lg:text-xl"
           >
             {hero.description}
           </motion.p>
@@ -236,7 +236,7 @@ export default function Hero() {
           </motion.div>
           <motion.p
             {...child}
-            className="mt-4 font-body text-sm text-[var(--granite-mist)]/65"
+            className="mt-4 font-body text-sm text-granite-mist/65"
           >
             {TOUR_GROUP.sentence}
           </motion.p>
@@ -249,19 +249,19 @@ export default function Hero() {
         {...(reduce
           ? {}
           : { variants: item, initial: "hidden", animate: "visible", transition: { delay: 0.6 } })}
-        className="relative z-10 border-t border-[var(--border-on-dark)] bg-[var(--obsidian)]/40 backdrop-blur-sm"
+        className="relative z-10 border-t border-[var(--border-on-dark)] bg-obsidian/40 backdrop-blur-sm"
       >
         <ul className="mx-auto grid max-w-7xl grid-cols-3 divide-x divide-y divide-[var(--border-on-dark)] px-2 sm:grid-cols-9 sm:divide-y-0 sm:px-5 lg:px-8">
           {esperienze.map((c) => (
             <li key={c.id}>
               <Link
                 to={href(`/esperienze/${c.id}`)}
-                className="group flex h-full flex-col items-center justify-center gap-1 px-1 py-3 text-center transition-colors hover:bg-[var(--accent)]/15 sm:py-4"
+                className="group flex h-full flex-col items-center justify-center gap-1 px-1 py-3 text-center transition-colors hover:bg-oxblood/15 sm:py-4"
               >
                 <span className="font-heading text-lg leading-none text-[var(--granite-mist)] transition-colors group-hover:text-[var(--accent-soft)] sm:text-xl lg:text-2xl">
                   {c.nome}
                 </span>
-                <span className="hidden font-button text-[10px] uppercase tracking-[0.15em] text-[var(--granite-mist)]/50 sm:block">
+                <span className="hidden font-button text-[10px] uppercase tracking-[0.15em] text-granite-mist/50 sm:block">
                   {t("Scopri")}
                 </span>
               </Link>

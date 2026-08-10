@@ -22,7 +22,7 @@ export default function MobileCta() {
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-0 z-40 flex gap-px border-t border-[var(--border-on-dark)] bg-[var(--obsidian)]/95 backdrop-blur-md transition-transform duration-300 lg:hidden ${
+      className={`fixed inset-x-0 bottom-0 z-40 flex gap-px border-t border-[var(--border-on-dark)] bg-obsidian/95 backdrop-blur-md transition-transform duration-300 lg:hidden ${
         visible ? "translate-y-0" : "translate-y-full"
       }`}
       aria-hidden={!visible}
