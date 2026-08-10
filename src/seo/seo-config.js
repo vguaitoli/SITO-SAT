@@ -23,6 +23,29 @@ const NOINDEX_ROBOTS = "noindex, nofollow";
 const TOUR_PAGES = normalizeTours(tourCatalogContent);
 const EVENT_PAGES = normalizeEvents(eventCatalogContent);
 
+/**
+ * Le pagine indice non hanno una data propria: la ricavano dal contenuto che
+ * elencano. Così lastmod resta un segnale veritiero e stabile, invece di
+ * cambiare a ogni build come farebbe una data di compilazione — che
+ * dichiarerebbe a Google modifiche mai avvenute.
+ */
+const soloGiorno = (value) => (value ? String(value).slice(0, 10) : null);
+const giornoPiuRecente = (...giorni) => giorni.filter(Boolean).sort().at(-1) || null;
+
+const TOURS_LASTMOD = giornoPiuRecente(...TOUR_PAGES.map((tour) => soloGiorno(tour.updatedAt)));
+const EVENTS_LASTMOD = giornoPiuRecente(...EVENT_PAGES.map((event) => soloGiorno(event.updatedAt)));
+const BLOG_LASTMOD = giornoPiuRecente(...blogPosts.map((post) => soloGiorno(post.published_date)));
+const HOME_LASTMOD = giornoPiuRecente(TOURS_LASTMOD, EVENTS_LASTMOD, BLOG_LASTMOD);
+
+// Le categorie collegate al catalogo da tourType seguono i propri tour; quelle
+// senza (SSV, corsi, noleggio…) hanno solo testo redazionale e seguono il
+// catalogo nel suo insieme.
+function categoryLastmod(category) {
+  if (!category.tourType) return TOURS_LASTMOD;
+  const suoi = TOUR_PAGES.filter((tour) => tour.type === category.tourType);
+  return giornoPiuRecente(...suoi.map((tour) => soloGiorno(tour.updatedAt))) || TOURS_LASTMOD;
+}
+
 const catalogFallbackImages = {
   Maxienduro: "/media/reali/hero-maxienduro-panorama-1800.webp",
   Enduro: "/media/reali/hero-enduro-gruppo-1200.webp",
@@ -111,10 +134,10 @@ const categorySeo = {
 };
 
 const staticImages = {
-  home: { image: HOME_IMAGE, preloadImage: HOME_HERO_IMAGE },
-  tours: { image: "/media/reali/guida-sentiero-1200.webp" },
-  events: { image: "/media/reali/gruppo-altopiano-1200.webp", lastmod: "2026-07-29" },
-  blog: { image: HOME_IMAGE },
+  home: { image: HOME_IMAGE, preloadImage: HOME_HERO_IMAGE, lastmod: HOME_LASTMOD },
+  tours: { image: "/media/reali/guida-sentiero-1200.webp", lastmod: TOURS_LASTMOD },
+  events: { image: "/media/reali/gruppo-altopiano-1200.webp", lastmod: EVENTS_LASTMOD },
+  blog: { image: HOME_IMAGE, lastmod: BLOG_LASTMOD },
   privacy: { robots: NOINDEX_ROBOTS },
   cookies: { robots: NOINDEX_ROBOTS },
 };
@@ -424,6 +447,7 @@ export function getSeoForPath(pathname) {
         image: category.fotoHero ? `/media/reali/${category.fotoHero}-1200.webp` : DEFAULT_IMAGE,
         imageAlt: `${category.nome} — ${copy.area}`,
         structuredData: categoryStructuredData(locale, category, path, title, description),
+        lastmod: categoryLastmod(sourceCategory),
       });
     }
   }

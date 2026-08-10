@@ -5,6 +5,7 @@ import { CATEGORIE } from "@/data/categorie";
 import PhotoRibbon from "@/components/PhotoRibbon";
 import { useSiteContent } from "@/content/TinaContentProvider";
 import { useI18n } from "@/i18n/I18nProvider";
+import { LOCALE_META, SUPPORTED_LOCALES } from "@/i18n/routes";
 
 // Nastro fotografico dal materiale reale, senza ripetizioni ravvicinate.
 const ribbonSlugs = [
@@ -32,7 +33,7 @@ const toTarget = (href) => (href.startsWith("#") ? `/${href}` : href);
 
 export default function Footer() {
   const { CTA_LABELS, SITE } = useSiteContent();
-  const { t, href, localize } = useI18n();
+  const { t, href, localize, locale, switchTo } = useI18n();
   const categories = localize(CATEGORIE);
   return (
     <footer className="border-t border-oxblood/30 bg-[var(--obsidian)]">
@@ -148,6 +149,33 @@ export default function Footer() {
         </div>
 
         <div className="fissure-light mb-8" />
+
+        {/* Le versioni tradotte raggiungibili con link veri: il selettore nel
+            menu è un <select> che naviga via JavaScript, quindi i motori di
+            ricerca non possono seguirlo e le pagine en/fr restavano senza
+            alcun collegamento interno. I link puntano alla pagina corrente
+            nelle altre lingue. */}
+        <nav className="mb-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 md:justify-start" aria-label={t("Lingue del sito")}>
+          <span className="font-button text-[10px] uppercase tracking-[0.2em] text-granite-mist/55">
+            {t("Lingua")}
+          </span>
+          {SUPPORTED_LOCALES.map((language) => {
+            const attivo = language === locale;
+            return (
+              <Link
+                key={language}
+                to={switchTo(language)}
+                hrefLang={language}
+                aria-current={attivo ? "page" : undefined}
+                className={`font-body text-xs transition-colors hover:text-[var(--accent)] ${
+                  attivo ? "text-[var(--accent-soft)]" : "text-granite-mist/60 underline"
+                }`}
+              >
+                {LOCALE_META[language].label}
+              </Link>
+            );
+          })}
+        </nav>
 
         {/* Dati legali del Titolare + informative */}
         <div className="mb-6 flex flex-col items-center gap-4 md:flex-row md:justify-between">
