@@ -158,36 +158,46 @@ function breadcrumb(locale, items) {
   };
 }
 
-function homeStructuredData(locale) {
+/**
+ * Il nodo dell'attività. Va incluso nel grafo di ogni pagina che lo richiama
+ * come organizer, provider, publisher o author: un @id che punta a un nodo
+ * definito altrove resta irrisolto, e i validatori lo leggono come un Thing
+ * privo di nome e di url.
+ */
+function businessNode(locale) {
   const copy = seoCopy[locale];
+  return {
+    "@type": "TravelAgency",
+    "@id": `${SITE_ORIGIN}/#business`,
+    name: SITE_NAME,
+    url: absoluteUrl(routePath(locale, "home")),
+    logo: absoluteUrl("/media/logo-sardegna-trail-avventura.png"),
+    image: absoluteUrl(HOME_IMAGE),
+    description: copy.home[1],
+    telephone: "+39 348 79 81 591",
+    email: "sardegnatrailavventura@gmail.com",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Strada Vicinale Zinziodda Li Buttagari, 111",
+      postalCode: "07100",
+      addressLocality: "Sassari",
+      addressRegion: "SS",
+      addressCountry: "IT",
+    },
+    areaServed: { "@type": "AdministrativeArea", name: copy.area },
+    sameAs: [
+      "https://instagram.com/sardegnatrailavventura",
+      "https://facebook.com/sardegnatrailavventura",
+    ],
+  };
+}
+
+function homeStructuredData(locale) {
   const home = routePath(locale, "home");
   return {
     "@context": "https://schema.org",
     "@graph": [
-      {
-        "@type": "TravelAgency",
-        "@id": `${SITE_ORIGIN}/#business`,
-        name: SITE_NAME,
-        url: absoluteUrl(home),
-        logo: absoluteUrl("/media/logo-sardegna-trail-avventura.png"),
-        image: absoluteUrl(HOME_IMAGE),
-        description: copy.home[1],
-        telephone: "+39 348 79 81 591",
-        email: "sardegnatrailavventura@gmail.com",
-        address: {
-          "@type": "PostalAddress",
-          streetAddress: "Strada Vicinale Zinziodda Li Buttagari, 111",
-          postalCode: "07100",
-          addressLocality: "Sassari",
-          addressRegion: "SS",
-          addressCountry: "IT",
-        },
-        areaServed: { "@type": "AdministrativeArea", name: copy.area },
-        sameAs: [
-          "https://instagram.com/sardegnatrailavventura",
-          "https://facebook.com/sardegnatrailavventura",
-        ],
-      },
+      businessNode(locale),
       {
         "@type": "WebSite",
         "@id": `${SITE_ORIGIN}/#website`,
@@ -223,6 +233,7 @@ function categoryStructuredData(locale, category, path, title, description) {
   return {
     "@context": "https://schema.org",
     "@graph": [
+      businessNode(locale),
       breadcrumb(locale, [
         { name: "Home", path: routePath(locale, "home") },
         { name: category.nome, path },
@@ -243,6 +254,7 @@ function blogStructuredData(locale, post, path) {
   return {
     "@context": "https://schema.org",
     "@graph": [
+      businessNode(locale),
       breadcrumb(locale, [
         { name: "Home", path: routePath(locale, "home") },
         { name: "Blog", path: routePath(locale, "blog") },
@@ -307,6 +319,7 @@ function tourStructuredData(locale, item, path, title, description) {
   return {
     "@context": "https://schema.org",
     "@graph": [
+      businessNode(locale),
       breadcrumb(locale, [
         { name: "Home", path: routePath(locale, "home") },
         { name: seoCopy[locale].routes.tours, path: routePath(locale, "tours") },
@@ -343,6 +356,7 @@ function eventStructuredData(locale, item, path, description) {
   return {
     "@context": "https://schema.org",
     "@graph": [
+      businessNode(locale),
       breadcrumb(locale, [
         { name: "Home", path: routePath(locale, "home") },
         { name: seoCopy[locale].routes.events, path: routePath(locale, "events") },
