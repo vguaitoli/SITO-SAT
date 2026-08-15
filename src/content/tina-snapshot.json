@@ -21,7 +21,7 @@
           "title": "Non visitare la Sardegna.",
           "accent": "Vivila.",
           "description": "Scopri la Sardegna più autentica con tour, spedizioni e corsi off-road guidati. Itinerari selezionati tra natura, cultura e tradizioni locali, lontano dalle rotte del turismo di massa.",
-          "logo": "/media/cms/media/logo-sardegna-trail-avventura.png",
+          "logo": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/logo-sardegna-trail-avventura.png",
           "logoAlt": "Sardegna Trail Avventura"
         },
         "experiences": {
@@ -111,7 +111,7 @@
               "name": "Gianluca Serra",
               "role": "Istruttore qualificato · Guida esperta",
               "description": "Da oltre 15 anni esplora i sentieri della Sardegna. Come istruttore qualificato, affianca chi vuole migliorare tecnica, controllo e sicurezza in fuoristrada.",
-              "image": "/media/cms/guide-gianluca-serra.webp",
+              "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/guide-gianluca-serra.webp",
               "imageAlt": "Gianluca Serra, istruttore e guida di Sardegna Trail Avventura"
             },
             {
@@ -119,7 +119,7 @@
               "name": "Vittorio Guaitoli",
               "role": "Guida Esperta",
               "description": "Specialista in navigazione e gestione del gruppo, garantisce un'avventura sicura ad ogni tappa del tour.",
-              "image": "/media/cms/guide-vittorio-guaitoli.webp",
+              "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/guide-vittorio-guaitoli.webp",
               "imageAlt": "Vittorio Guaitoli, guida di Sardegna Trail Avventura"
             }
           ]
@@ -135,7 +135,7 @@
             "Collaboriamo con agriturismi, strutture ricettive, guide, pastori, artigiani e produttori locali, contribuendo a un turismo responsabile che valorizza le comunità e le aree interne anche nei periodi di bassa stagione."
           ],
           "quote": "Non semplici escursioni, ma esperienze autentiche tra natura, cultura e tradizioni sarde.",
-          "image": "/media/cms/media/reali/chi-siamo-gruppo-1200.webp",
+          "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/chi-siamo-gruppo-1200.webp",
           "imageAlt": "Gruppo di rider enduro schierati con le moto lungo la costa sarda",
           "badgeValue": "100%",
           "badgeText": "Sardegna autentica, fuori dai sentieri turistici"
@@ -149,67 +149,67 @@
           "images": [
             {
               "__typename": "HomepageGalleryImages",
-              "image": "/media/cms/media/reali/hero-maxienduro-panorama-1800.webp",
+              "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/hero-maxienduro-panorama-1800.webp",
               "alt": "Due maxienduro su uno sterrato panoramico tra le montagne sarde",
               "layout": "featured"
             },
             {
               "__typename": "HomepageGalleryImages",
-              "image": "/media/cms/media/reali/hero-ssv-guado-1200.webp",
+              "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/hero-ssv-guado-1200.webp",
               "alt": "SSV durante il guado di un torrente",
               "layout": "normal"
             },
             {
               "__typename": "HomepageGalleryImages",
-              "image": "/media/cms/media/reali/4x4-guado-1200.webp",
+              "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/4x4-guado-1200.webp",
               "alt": "Fuoristrada 4x4 durante il guado di un fiume",
               "layout": "normal"
             },
             {
               "__typename": "HomepageGalleryImages",
-              "image": "/media/cms/media/reali/hero-quad-convoglio-1200.webp",
+              "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/hero-quad-convoglio-1200.webp",
               "alt": "Convoglio di quad su una pista sterrata",
               "layout": "normal"
             },
             {
               "__typename": "HomepageGalleryImages",
-              "image": "/media/cms/media/reali/enduro-vetta-768.webp",
+              "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/enduro-vetta-768.webp",
               "alt": "Rider enduro in cima a un percorso panoramico",
               "layout": "normal"
             },
             {
               "__typename": "HomepageGalleryImages",
-              "image": "/media/cms/media/reali/pranzo-tavolata-1200.webp",
+              "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/pranzo-tavolata-1200.webp",
               "alt": "Tavolata con prodotti tipici sardi durante il tour",
               "layout": "wide"
             },
             {
               "__typename": "HomepageGalleryImages",
-              "image": "/media/cms/media/reali/pinnetta-sosta-1200.webp",
+              "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/pinnetta-sosta-1200.webp",
               "alt": "Sosta del gruppo accanto alle pinnette tradizionali",
               "layout": "normal"
             },
             {
               "__typename": "HomepageGalleryImages",
-              "image": "/media/cms/media/reali/guida-sentiero-1200.webp",
+              "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/guida-sentiero-1200.webp",
               "alt": "Guida lungo un sentiero roccioso",
               "layout": "normal"
             },
             {
               "__typename": "HomepageGalleryImages",
-              "image": "/media/cms/media/reali/ssv-spiaggia-flotta-1200.webp",
+              "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/ssv-spiaggia-flotta-1200.webp",
               "alt": "Flotta di SSV schierata su una spiaggia sarda",
               "layout": "wide"
             },
             {
               "__typename": "HomepageGalleryImages",
-              "image": "/media/cms/media/reali/grotta-mineraria-1200.webp",
+              "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/grotta-mineraria-1200.webp",
               "alt": "Ingresso di una vecchia cava lungo il percorso",
               "layout": "normal"
             },
             {
               "__typename": "HomepageGalleryImages",
-              "image": "/media/cms/media/reali/4x4-crinale-1200.webp",
+              "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/4x4-crinale-1200.webp",
               "alt": "Fuoristrada 4x4 su una pista di crinale",
               "layout": "normal"
             }
@@ -353,21 +353,21 @@
                 "__typename": "TourCatalogToursStages",
                 "title": "Verso Tiscali",
                 "description": "Si parte alla volta dell'altopiano di Tiscali, tra doline e villaggi nuragici nascosti nella roccia.",
-                "image": "/media/reali/maxienduro-tenere-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/maxienduro-tenere-1200.webp",
                 "imageAlt": "Maxienduro da viaggio parcheggiata su uno sterrato sotto il cielo sardo"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Golgo e i canyon",
                 "description": "Attraversiamo l'altopiano del Golgo fino ai bordi del canyon, con soste panoramiche mozzafiato.",
-                "image": "/media/reali/hero-maxienduro-panorama-1800.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/hero-maxienduro-panorama-1800.webp",
                 "imageAlt": "Due maxienduro parcheggiate su uno sterrato panoramico con le montagne sarde sullo sfondo"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Cala Luna e Baunei",
                 "description": "Discesa verso la costa, tra sentieri stretti e la vista finale sulla splendida Cala Luna.",
-                "image": "/media/reali/maxienduro-sosta-bosco-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/maxienduro-sosta-bosco-1200.webp",
                 "imageAlt": "Rider in sosta con le maxienduro lungo un sentiero nel bosco"
               }
             ]
@@ -397,14 +397,14 @@
                 "__typename": "TourCatalogToursStages",
                 "title": "Borghi antichi",
                 "description": "Attraversiamo i borghi di pietra della Barbagia, tra vicoli, murales e antiche tradizioni pastorali.",
-                "image": "/media/reali/enduro-sentiero-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/enduro-sentiero-1200.webp",
                 "imageAlt": "Rider su moto da enduro lungo un sentiero sterrato tra le montagne"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Canyon di Gorropu e foreste",
                 "description": "Sentieri tecnici tra le foreste secolari fino al bordo del canyon di Gorropu, uno dei più profondi d'Europa.",
-                "image": "/media/reali/hero-enduro-gruppo-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/hero-enduro-gruppo-1200.webp",
                 "imageAlt": "Moto da enduro e rider su un sentiero fiorito tra le montagne della Sardegna"
               }
             ]
@@ -434,14 +434,14 @@
                 "__typename": "TourCatalogToursStages",
                 "title": "Dune di Piscinas",
                 "description": "Prime evoluzioni tra le dune dorate più alte d'Europa, con soste fotografiche e pranzo tipico.",
-                "image": "/media/reali/hero-quad-convoglio-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/hero-quad-convoglio-1200.webp",
                 "imageAlt": "Convoglio di quad su una pista sterrata immersa nella macchia mediterranea"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Costa Verde e miniere",
                 "description": "Costeggiamo la Costa Verde tra spiagge selvagge e le suggestive miniere abbandonate del Sulcis.",
-                "image": "/media/reali/quad-pietraia-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/quad-pietraia-1200.webp",
                 "imageAlt": "Quad affronta un tratto roccioso in salita in un bosco"
               }
             ]
@@ -471,28 +471,28 @@
                 "__typename": "TourCatalogToursStages",
                 "title": "Altipiani del Gennargentu",
                 "description": "Saliamo verso gli altipiani più alti della Sardegna, tra panorami infiniti e strade sterrate.",
-                "image": "/media/reali/4x4-crinale-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/4x4-crinale-1200.webp",
                 "imageAlt": "Fuoristrada 4x4 attrezzato su una pista di crinale tra le montagne sarde"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Miniere del Sulcis",
                 "description": "Visita ai suggestivi villaggi minerari abbandonati, testimonianza della storia mineraria dell'isola.",
-                "image": "/media/reali/4x4-guado-1800.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/4x4-guado-1800.webp",
                 "imageAlt": "Fuoristrada 4x4 durante il guado di un fiume in Sardegna"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Coste selvagge",
                 "description": "Discesa verso coste remote e incontaminate, lontane dai percorsi turistici classici.",
-                "image": "/media/reali/4x4-borgo-pietra-1800.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/4x4-borgo-pietra-1800.webp",
                 "imageAlt": "Fuoristrada 4x4 in sosta accanto a una costruzione in pietra dell'entroterra"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Rientro panoramico",
                 "description": "Ultimo giorno tra borghi dell'entroterra e soste panoramiche prima del rientro.",
-                "image": "/media/reali/hero-4x4-costa-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/hero-4x4-costa-1200.webp",
                 "imageAlt": "Fuoristrada 4x4 su una pista in quota con il mare della Sardegna sullo sfondo"
               }
             ]
@@ -522,28 +522,28 @@
                 "__typename": "TourCatalogToursStages",
                 "title": "Nuraghi e primi sentieri",
                 "description": "Partiamo tra antichi nuraghi e i primi sterrati panoramici che introducono al massiccio.",
-                "image": "/media/reali/maxienduro-tenere-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/maxienduro-tenere-1200.webp",
                 "imageAlt": "Maxienduro da viaggio parcheggiata su uno sterrato sotto il cielo sardo"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Boschi secolari",
                 "description": "Attraversiamo foreste di lecci secolari lungo sentieri tecnici immersi nella natura.",
-                "image": "/media/reali/hero-maxienduro-panorama-1800.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/hero-maxienduro-panorama-1800.webp",
                 "imageAlt": "Due maxienduro parcheggiate su uno sterrato panoramico con le montagne sarde sullo sfondo"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Panorami sul Supramonte",
                 "description": "Saliamo verso i crinali più alti con vista sul Supramonte e le valli circostanti.",
-                "image": "/media/reali/maxienduro-sosta-bosco-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/maxienduro-sosta-bosco-1200.webp",
                 "imageAlt": "Rider in sosta con le maxienduro lungo un sentiero nel bosco"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Discesa finale",
                 "description": "Ultima tappa tra valli incontaminate e borghi dell'entroterra prima del rientro.",
-                "image": "/media/reali/gruppo-altopiano-1800.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/gruppo-altopiano-1800.webp",
                 "imageAlt": "Gruppo di rider in sosta con le moto su un altopiano verde della Sardegna"
               }
             ]
@@ -573,49 +573,49 @@
                 "__typename": "TourCatalogToursStages",
                 "title": "Nuraghi e primi sterrati",
                 "description": "Prime uscite tra antichi nuraghi e sterrati di livello progressivo per prendere confidenza.",
-                "image": "/media/reali/enduro-sentiero-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/enduro-sentiero-1200.webp",
                 "imageAlt": "Rider su moto da enduro lungo un sentiero sterrato tra le montagne"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Barbagia profonda",
                 "description": "Ci addentriamo nella Barbagia più autentica, tra borghi di pietra e tradizioni pastorali.",
-                "image": "/media/reali/hero-enduro-gruppo-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/hero-enduro-gruppo-1200.webp",
                 "imageAlt": "Moto da enduro e rider su un sentiero fiorito tra le montagne della Sardegna"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Supramonte tecnico",
                 "description": "Giornata impegnativa tra i sentieri più tecnici del Supramonte, con vista su Tiscali.",
-                "image": "/media/reali/enduro-vetta-768.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/enduro-vetta-768.webp",
                 "imageAlt": "Rider esulta accanto alla moto da enduro in cima a un percorso panoramico"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Golfo di Orosei",
                 "description": "Discesa verso il Golfo di Orosei, tra calette e sterrati a picco sul mare.",
-                "image": "/media/reali/cat-enduro-1800.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/cat-enduro-1800.webp",
                 "imageAlt": "Rider in sosta con le moto da enduro su un crinale panoramico"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Canyon e altipiani",
                 "description": "Esplorazione dei canyon interni e degli altipiani che dividono le due coste dell'isola.",
-                "image": "/media/reali/grotta-mineraria-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/grotta-mineraria-1200.webp",
                 "imageAlt": "Ingresso di una vecchia cava scavata nella roccia lungo il percorso"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Tramonto in sella",
                 "description": "Tappa panoramica pensata per godersi il tramonto sardo dai punti più suggestivi del percorso.",
-                "image": "/media/reali/gruppo-altopiano-1800.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/gruppo-altopiano-1800.webp",
                 "imageAlt": "Gruppo di rider in sosta con le moto su un altopiano verde della Sardegna"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Rientro e saluti",
                 "description": "Ultima giornata leggera tra i borghi vicino alla base, per chiudere la settimana in bellezza.",
-                "image": "/media/reali/moto-costa-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/moto-costa-1200.webp",
                 "imageAlt": "Rider in sosta con la moto lungo un tratto costiero sterrato"
               }
             ]
@@ -645,49 +645,49 @@
                 "__typename": "TourCatalogToursStages",
                 "title": "Dune di Piscinas",
                 "description": "Si parte tra le dune dorate più alte d'Europa, prendendo confidenza con il mezzo.",
-                "image": "/media/reali/hero-quad-convoglio-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/hero-quad-convoglio-1200.webp",
                 "imageAlt": "Convoglio di quad su una pista sterrata immersa nella macchia mediterranea"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Costa Verde",
                 "description": "Percorriamo la costa selvaggia tra spiagge nascoste e falesie a picco sul mare.",
-                "image": "/media/reali/quad-pietraia-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/quad-pietraia-1200.webp",
                 "imageAlt": "Quad affronta un tratto roccioso in salita in un bosco"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Miniere abbandonate",
                 "description": "Visita ai villaggi minerari del Sulcis, tra archeologia industriale e paesaggi lunari.",
-                "image": "/media/reali/cat-quad-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/cat-quad-1200.webp",
                 "imageAlt": "Quad in marcia su una pista sterrata accanto a pale eoliche"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Altipiani centrali",
                 "description": "Saliamo verso gli altipiani interni, con lunghi tratti panoramici in quota.",
-                "image": "/media/reali/moto-costa-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/moto-costa-1200.webp",
                 "imageAlt": "Rider in sosta con la moto lungo un tratto costiero sterrato"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Borghi storici",
                 "description": "Tappa culturale tra borghi dell'entroterra, tradizioni locali e prodotti tipici.",
-                "image": "/media/reali/gruppo-altopiano-1800.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/gruppo-altopiano-1800.webp",
                 "imageAlt": "Gruppo di rider in sosta con le moto su un altopiano verde della Sardegna"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Coste opposte",
                 "description": "Attraversata da costa a costa, per scoprire i contrasti paesaggistici dell'isola.",
-                "image": "/media/reali/grotta-mineraria-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/grotta-mineraria-1200.webp",
                 "imageAlt": "Ingresso di una vecchia cava scavata nella roccia lungo il percorso"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Rientro finale",
                 "description": "Ultima tappa rilassata verso la base, tra soste fotografiche e saluti finali.",
-                "image": "/media/reali/pinnetta-sosta-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/pinnetta-sosta-1200.webp",
                 "imageAlt": "Sosta del gruppo accanto alle pinnette, le capanne tradizionali dei pastori sardi"
               }
             ]
@@ -717,14 +717,14 @@
                 "__typename": "TourCatalogToursStages",
                 "title": "Sterrati e nuraghi",
                 "description": "Prima giornata tra sterrati facili e siti nuragici: la pedalata assistita rende ogni salita accessibile, senza fretta e a contatto con la natura.",
-                "image": "/media/reali/ebike-costa-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/ebike-costa-1200.webp",
                 "imageAlt": "Ciclista in mountain bike su una spiaggia sarda, con il mare cristallino sullo sfondo"
               },
               {
                 "__typename": "TourCatalogToursStages",
                 "title": "Borghi e costa",
                 "description": "Seconda giornata verso i borghi dell'entroterra e uno scorcio di costa, tra soste panoramiche, prodotti tipici e sentieri silenziosi.",
-                "image": "/media/reali/ebike-pineta-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/ebike-pineta-1200.webp",
                 "imageAlt": "Mountain bike appoggiata a un pino su una caletta turchese della Sardegna"
               }
             ]
@@ -936,28 +936,28 @@
                 "__typename": "EventCatalogEventsStages",
                 "title": "Olbia → Dorgali",
                 "description": "Partenza da Olbia e prima tappa off-road verso Dorgali.",
-                "image": "/media/cms/media/reali/maxienduro-tenere-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/maxienduro-tenere-1200.webp",
                 "imageAlt": "Maxienduro da viaggio parcheggiata su uno sterrato sotto il cielo sardo"
               },
               {
                 "__typename": "EventCatalogEventsStages",
                 "title": "Tour nei dintorni di Dorgali",
                 "description": "Giornata dedicata agli sterrati e ai paesaggi intorno a Dorgali.",
-                "image": "/media/cms/media/reali/hero-maxienduro-panorama-1800.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/hero-maxienduro-panorama-1800.webp",
                 "imageAlt": "Due maxienduro parcheggiate su uno sterrato panoramico con le montagne sarde sullo sfondo"
               },
               {
                 "__typename": "EventCatalogEventsStages",
                 "title": "Nuovo itinerario off-road",
                 "description": "Partenza e rientro a Dorgali lungo un nuovo itinerario fuoristrada.",
-                "image": "/media/cms/media/reali/maxienduro-sosta-bosco-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/maxienduro-sosta-bosco-1200.webp",
                 "imageAlt": "Rider in sosta con le maxienduro lungo un sentiero nel bosco"
               },
               {
                 "__typename": "EventCatalogEventsStages",
                 "title": "Dorgali → Olbia",
                 "description": "Ultima tappa da Dorgali a Olbia e conclusione del tour.",
-                "image": "/media/cms/media/reali/gruppo-altopiano-1800.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/gruppo-altopiano-1800.webp",
                 "imageAlt": "Gruppo di rider in sosta con le moto su un altopiano verde della Sardegna"
               }
             ],
@@ -1003,7 +1003,7 @@
                 "__typename": "EventCatalogEventsStages",
                 "title": "Olbia – Tempio",
                 "description": "Lasceremo Olbia per attraversare la Gallura tra mare, rocce di granito e profumi di macchia mediterranea, fino al cuore storico di Tempio.",
-                "image": "/media/reali/maxienduro-gallura-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/maxienduro-gallura-1200.webp",
                 "imageAlt": "Gruppo di maxienduro in sosta su una pista sterrata della Gallura con il mare sullo sfondo"
               },
               {
@@ -1065,42 +1065,42 @@
                 "__typename": "EventCatalogEventsStages",
                 "title": "Tappa 1: Olbia > Tempio Pausania",
                 "description": "Si parte dalla Gallura tra graniti e panorami mozzafiato.",
-                "image": "/media/cms/media/reali/hero-4x4-costa-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/hero-4x4-costa-1200.webp",
                 "imageAlt": "Fuoristrada 4x4 su una pista in quota con il mare della Sardegna sullo sfondo"
               },
               {
                 "__typename": "EventCatalogEventsStages",
                 "title": "Tappa 2: Tempio Pausania > Dorgali",
                 "description": "Attraversiamo l'entroterra gallurese e la Barbagia.",
-                "image": "/media/cms/media/reali/4x4-borgo-pietra-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/4x4-borgo-pietra-1200.webp",
                 "imageAlt": "Fuoristrada 4x4 in sosta accanto a una costruzione in pietra dell'entroterra"
               },
               {
                 "__typename": "EventCatalogEventsStages",
                 "title": "Tappa 3: Dorgali > Tortolì",
                 "description": "Dalle montagne al mare, attraverso paesaggi selvaggi.",
-                "image": "/media/cms/media/reali/4x4-crinale-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/4x4-crinale-1200.webp",
                 "imageAlt": "Fuoristrada 4x4 attrezzato su una pista di crinale tra le montagne sarde"
               },
               {
                 "__typename": "EventCatalogEventsStages",
                 "title": "Tappa 4: Tortolì > Jerzu",
                 "description": "Entriamo nel cuore dell'Ogliastra tra sterrati e panorami unici.",
-                "image": "/media/cms/media/reali/4x4exp-crinale-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/4x4exp-crinale-1200.webp",
                 "imageAlt": "Convoglio di fuoristrada 4x4 in fila su un crinale panoramico tra le montagne sarde"
               },
               {
                 "__typename": "EventCatalogEventsStages",
                 "title": "Tappa 5: Jerzu > Gavoi",
                 "description": "Verso il cuore della Sardegna, tra montagne e altipiani.",
-                "image": "/media/cms/media/reali/4x4exp-nuvole-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/4x4exp-nuvole-1200.webp",
                 "imageAlt": "Fuoristrada 4x4 su un crinale sopra il mare di nuvole tra le montagne della Sardegna"
               },
               {
                 "__typename": "EventCatalogEventsStages",
                 "title": "Tappa 6: Gavoi > Orgosolo > Supramonte > Olbia",
                 "description": "Orgosolo, il Supramonte e l'esperienza tipica dal pastore prima del rientro.",
-                "image": "/media/cms/media/reali/4x4-guado-1200.webp",
+                "image": "https://assets.tina.io/bcd309c4-6f3b-4c93-8c8c-fe96d68eb076/__staging/main/__file/media/reali/4x4-guado-1200.webp",
                 "imageAlt": "Fuoristrada 4x4 durante il guado di un fiume in Sardegna"
               }
             ],
