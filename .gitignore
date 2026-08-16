@@ -49,3 +49,13 @@ tina/__generated__/
 # Archivio fotografico di lavoro: centinaia di MB di originali da cui si
 # ricavano le immagini ottimizzate in public/media. Non va nel repository.
 foto per sito/
+
+# ---- Social Studio: materiale privato ----
+# Le tracce GPX sono un asset dell'attività e non devono finire nel
+# repository, né nel bundle, né sotto public/. Social Studio le tiene in
+# IndexedDB, quindi normalmente non toccano il disco del progetto: questa
+# regola serve contro il file lasciato lì per sbaglio.
+*.gpx
+# Cartella di lavoro per materiale che non deve essere versionato
+# (esportazioni, backup dello studio, foto originali in lavorazione).
+privato/

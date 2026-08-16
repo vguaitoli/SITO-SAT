@@ -10,6 +10,10 @@ import { TinaContentProvider } from '@/content/TinaContentProvider';
 import { I18nProvider, useI18n } from '@/i18n/I18nProvider';
 
 const PageNotFound = lazy(() => import('./lib/PageNotFound'));
+// STA Social Studio: strumento interno, protetto lato server dal middleware su
+// /admin/social. Caricato in lazy, quindi non pesa sul bundle del sito
+// pubblico, ed escluso da sitemap e prerendering (non è in seo-config).
+const SocialStudio = lazy(() => import('./social-studio/app/Studio'));
 const Home = lazy(() => import('./pages/Home'));
 const TourItinerari = lazy(() => import('./pages/TourItinerari'));
 const CatalogDetailPage = lazy(() => import('./pages/CatalogDetailPage'));
@@ -67,6 +71,7 @@ const SiteRoutes = () => {
         <Route path="/fr/blog/:id" element={<BlogDetail />} />
         <Route path="/fr/confidentialite" element={<PrivacyPolicy />} />
         <Route path="/fr/politique-cookies" element={<CookiePolicy />} />
+        <Route path="/admin/social" element={<SocialStudio />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </Suspense>

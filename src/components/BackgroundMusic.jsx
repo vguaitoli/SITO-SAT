@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Volume2, VolumeX } from "lucide-react";
 import { useI18n } from "@/i18n/I18nProvider";
 
@@ -19,6 +20,7 @@ const FADE_IN_MS = 1800;
  */
 export default function BackgroundMusic() {
   const { t } = useI18n();
+  const { pathname } = useLocation();
   const audioRef = useRef(null);
   const playRef = useRef(null);
   const fadeInRafRef = useRef(null);
@@ -183,6 +185,11 @@ export default function BackgroundMusic() {
 
   const showControl = status === "playing" || status === "blocked";
   const audioOff = muted || status === "blocked";
+
+  // Gli strumenti interni non sono il sito: niente musica dentro Social Studio.
+  // Il controllo sta dopo gli hook, così l'ordine non cambia mai fra un render
+  // e l'altro quando si passa da una rotta all'altra.
+  if (pathname.startsWith("/admin/")) return null;
 
   return (
     <>
