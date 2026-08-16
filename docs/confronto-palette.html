@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<title>Confronto palette — post evento</title>
+<!--
+  Confronto per la decisione sulla palette della rubrica EVENTI di Social Studio.
+  Stessa impaginazione (ricavata dalla locandina La Via dei Giganti), stessi dati,
+  stessi font del sito: cambia solo il colore. Serve a scegliere guardando, non
+  leggendo codici esadecimali.
+
+  Si apre nel browser con il dev server attivo: http://localhost:PORTA/docs/confronto-palette.html
+-->
+<style>
+  @font-face { font-family:"Bebas Neue"; src:url("/fonts/bebas-neue.woff2") format("woff2"); font-display:block; }
+  @font-face { font-family:"Oswald";     src:url("/fonts/oswald.woff2")     format("woff2"); font-weight:400 700; font-display:block; }
+  @font-face { font-family:"Montserrat"; src:url("/fonts/montserrat.woff2") format("woff2"); font-weight:300 700; font-display:block; }
+
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:#2a2a2a; font-family:"Montserrat",sans-serif; padding:28px; }
+
+  .fila { display:flex; gap:26px; align-items:flex-start; }
+  .colonna { width:380px; }
+  .didascalia { color:#eee; font-size:13px; line-height:1.5; margin-bottom:10px; }
+  .didascalia b { font-family:"Oswald"; letter-spacing:.12em; text-transform:uppercase; font-size:14px; display:block; margin-bottom:3px; }
+  .didascalia code { font-size:11px; color:#aaa; }
+
+  /* La slide è disegnata a misura reale e poi rimpicciolita: le proporzioni
+     tipografiche restano esattamente quelle dell'export. */
+  .scatola { width:380px; height:475px; overflow:hidden; }
+  .slide {
+    width:1080px; height:1350px; transform:scale(.35185); transform-origin:top left;
+    position:relative; display:flex; flex-direction:column;
+    padding:84px; background:var(--fondo); color:var(--avorio);
+  }
+
+  .testa { display:flex; justify-content:space-between; align-items:flex-start; }
+  .marchio { font-family:"Oswald"; font-weight:600; font-size:30px; line-height:1.2; letter-spacing:.04em; text-transform:uppercase; }
+  .motto { font-family:"Oswald"; font-size:15px; letter-spacing:.28em; text-transform:uppercase; color:var(--tenue); margin-top:10px; }
+  .badge { border:2px solid var(--accento); color:var(--accento); font-family:"Oswald"; font-weight:500;
+           font-size:26px; letter-spacing:.22em; text-transform:uppercase; padding:14px 26px; }
+  .posti { font-family:"Oswald"; font-size:15px; letter-spacing:.24em; text-transform:uppercase;
+           color:var(--tenue); text-align:right; margin-top:12px; }
+
+  .centro { margin-top:150px; }
+  .eyebrow { display:flex; align-items:center; gap:22px; margin-bottom:26px; }
+  .filetto { width:74px; height:5px; background:var(--accento); }
+  .eyebrow span { font-family:"Oswald"; font-size:24px; letter-spacing:.3em; text-transform:uppercase; color:var(--avorio); }
+
+  h1 { font-family:"Oswald"; font-weight:700; font-size:132px; line-height:.92; text-transform:uppercase; letter-spacing:-.005em; }
+  h1 .b { color:var(--accento); display:block; }
+
+  .claim { font-family:"Montserrat"; font-weight:300; font-size:34px; line-height:1.45; color:var(--tenue); margin-top:44px; max-width:640px; }
+
+  .dati { margin-top:auto; border-top:1px solid var(--filo); border-bottom:1px solid var(--filo);
+          padding:34px 0; display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+  .k { font-family:"Oswald"; font-size:17px; letter-spacing:.22em; text-transform:uppercase; color:var(--tenue); }
+  .v { font-family:"Oswald"; font-weight:600; font-size:38px; letter-spacing:.02em; text-transform:uppercase; margin-top:12px; }
+
+  .basso { display:flex; gap:40px; padding-top:34px; }
+  .basso > div { flex:1; }
+  .tappe { font-family:"Oswald"; font-weight:600; font-size:30px; line-height:1.35; text-transform:uppercase; margin-top:14px; }
+  .inclusi { font-family:"Montserrat"; font-weight:300; font-size:24px; line-height:1.7; color:var(--tenue); }
+  .inclusi li { list-style:none; }
+  .inclusi li::before { content:"•"; color:var(--accento); margin-right:12px; }
+
+  .piede { margin-top:34px; padding-top:26px; border-top:1px solid var(--filo);
+           display:flex; justify-content:space-between; font-family:"Oswald"; font-size:20px;
+           letter-spacing:.1em; color:var(--tenue); }
+  .piede .sito { color:var(--avorio); }
+
+  /* --- le tre palette --- */
+  .a { --fondo:#1C1814; --accento:#A0612A; --avorio:#F5EBD9; --tenue:rgba(245,235,217,.62); --filo:rgba(245,235,217,.18); }
+  .b { --fondo:#14120F; --accento:#E18A3C; --avorio:#F7F0E6; --tenue:rgba(247,240,230,.60); --filo:rgba(247,240,230,.16); }
+  .c { --fondo:#1C1814; --accento:#E18A3C; --avorio:#F5EBD9; --tenue:rgba(245,235,217,.62); --filo:rgba(245,235,217,.18); }
+</style>
+</head>
+<body>
+<div class="fila">
+
+  <div class="colonna">
+    <p class="didascalia"><b>A · Token del sito</b><code>#1C1814 · #A0612A · #F5EBD9</code></p>
+    <div class="scatola"><div class="slide a" id="a"></div></div>
+  </div>
+
+  <div class="colonna">
+    <p class="didascalia"><b>B · Palette locandina</b><code>#14120F · #E18A3C · #F7F0E6</code></p>
+    <div class="scatola"><div class="slide b" id="b"></div></div>
+  </div>
+
+  <div class="colonna">
+    <p class="didascalia"><b>C · Ibrido</b><code>#1C1814 · #E18A3C · #F5EBD9</code></p>
+    <div class="scatola"><div class="slide c" id="c"></div></div>
+  </div>
+
+</div>
+
+<script>
+  // Un solo contenuto per tutte e tre: l'unica variabile è il colore.
+  const contenuto = `
+    <div class="testa">
+      <div>
+        <div class="marchio">Sardegna Trail<br>Avventura</div>
+        <div class="motto">La Sardegna che non ti aspetti</div>
+      </div>
+      <div>
+        <div class="badge">Maxienduro</div>
+        <div class="posti">Posti limitati</div>
+      </div>
+    </div>
+
+    <div class="centro">
+      <div class="eyebrow"><span class="filetto"></span><span>Nord Sardegna · Gallura</span></div>
+      <h1>La Via dei<span class="b">Giganti</span></h1>
+      <p class="claim">Quattro giorni di sterrato, granito e mare.<br>La Sardegna che non si lascia addomesticare.</p>
+    </div>
+
+    <div class="dati">
+      <div><div class="k">Date</div><div class="v">29 Ott — 1 Nov</div></div>
+      <div><div class="k">Partenza</div><div class="v">Olbia</div></div>
+      <div><div class="k">Sterrato</div><div class="v">85%</div></div>
+      <div><div class="k">Livello</div><div class="v">Medio-Avanzato</div></div>
+    </div>
+
+    <div class="basso">
+      <div>
+        <div class="k">L'anello in quattro tappe</div>
+        <div class="tappe">Olbia · Tempio · Buddusò<br>Siniscola · Olbia</div>
+      </div>
+      <div>
+        <ul class="inclusi">
+          <li>Mezza pensione in agriturismo</li>
+          <li>Trasporto bagagli</li>
+          <li>Assistenza tecnica</li>
+          <li>Guida esperta</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="piede">
+      <span>+39 348 79 81 591 · @sardegnatrailavventura</span>
+      <span class="sito">www.sardegnatrailavventura.it</span>
+    </div>
+  `;
+  for (const id of ["a", "b", "c"]) document.getElementById(id).innerHTML = contenuto;
+
+  // Seconda riga: solo il blocco titolo, a grandezza doppia. L'arancio si
+  // giudica sul titolo e sul badge, non sulla miniatura intera.
+  const dettaglio = `
+    <div class="eyebrow"><span class="filetto"></span><span>Nord Sardegna · Gallura</span></div>
+    <h1>La Via dei<span class="b">Giganti</span></h1>
+    <div style="margin-top:40px"><span class="badge">Maxienduro</span></div>
+  `;
+  const riga = document.createElement("div");
+  riga.className = "fila";
+  riga.style.marginTop = "34px";
+  for (const [cls, nome] of [["a", "A · sito"], ["b", "B · locandina"], ["c", "C · ibrido"]]) {
+    const col = document.createElement("div");
+    col.className = "colonna";
+    col.innerHTML = `
+      <p class="didascalia"><b>${nome}</b></p>
+      <div style="width:380px;height:250px;overflow:hidden">
+        <div class="slide ${cls}" style="height:710px;padding:60px 84px;transform:scale(.35185);justify-content:center">
+          ${dettaglio}
+        </div>
+      </div>`;
+    riga.appendChild(col);
+  }
+  document.body.appendChild(riga);
+</script>
+</body>
+</html>
