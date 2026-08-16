@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<title>Spike — fedeltà export html2canvas</title>
+<!--
+  Verifica tecnica per la Fase 2 di Social Studio.
+
+  Il requisito "preview = export" regge solo se html2canvas riproduce
+  fedelmente ciò che serve alle slide: webfont self-hosted, SVG inline con
+  path e testo, gradienti, filtri CSS sulle immagini. Qui si disegna un
+  campione con tutti questi elementi e lo si fotografa: a sinistra il DOM
+  originale, a destra il PNG prodotto. Le due metà devono coincidere.
+
+  File temporaneo di verifica: si elimina a decisione presa.
+-->
+<style>
+  @font-face { font-family:"Bebas Neue"; src:url("/fonts/bebas-neue.woff2") format("woff2"); font-display:block; }
+  @font-face { font-family:"Oswald";     src:url("/fonts/oswald.woff2")     format("woff2"); font-weight:400 700; font-display:block; }
+  @font-face { font-family:"Montserrat"; src:url("/fonts/montserrat.woff2") format("woff2"); font-weight:300 700; font-display:block; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:#2a2a2a; color:#eee; font-family:"Montserrat",sans-serif; padding:20px; }
+  h2 { font-family:"Oswald"; font-size:14px; letter-spacing:.2em; text-transform:uppercase; margin-bottom:8px; }
+  .fila { display:flex; gap:20px; align-items:flex-start; }
+  .campione {
+    width:540px; height:675px; background:#1C1814; color:#F5EBD9; position:relative;
+    padding:42px; overflow:hidden;
+  }
+  .micro { font-family:"Oswald"; font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:#E18A3C; }
+  .titolo { font-family:"Bebas Neue"; font-size:66px; line-height:.88; letter-spacing:.01em; margin-top:14px; }
+  .titolo em { font-style:normal; color:#E18A3C; display:block; }
+  .corpo { font-family:"Montserrat"; font-weight:300; font-size:14px; line-height:1.55; color:rgba(245,235,217,.72); margin-top:16px; }
+  .grad { height:60px; margin-top:16px; background:linear-gradient(90deg,#A0612A 0%,#6B7A3E 50%,transparent 100%); }
+  .esito { margin-top:14px; font-size:13px; line-height:1.6; }
+  .esito b { font-family:"Oswald"; letter-spacing:.1em; }
+</style>
+</head>
+<body>
+<div class="fila">
+  <div>
+    <h2>DOM originale</h2>
+    <div class="campione" id="campione">
+      <div class="micro">Evento / Maxienduro · 01 / 08</div>
+      <div class="titolo">La Via dei<em>Giganti</em></div>
+      <div class="corpo">Quattro giorni di sterrato, granito e mare. Verifica di legature, accenti à è ì ò ù e crenatura.</div>
+
+      <!-- SVG inline: è il caso critico, la slide mappa è tutta SVG -->
+      <svg width="456" height="240" viewBox="0 0 456 240" style="margin-top:16px;display:block">
+        <rect width="456" height="240" fill="#191510"/>
+        <polygon points="40,210 120,60 200,150 280,40 360,170 420,90 420,210"
+                 fill="#E8DCC2" fill-opacity="0.9" stroke="#F5EBD9" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M40 190 C120 120, 200 200, 280 110 S400 150, 420 120"
+              fill="none" stroke="#1C1814" stroke-width="12" stroke-linecap="round" opacity="0.55"/>
+        <path d="M40 190 C120 120, 200 200, 280 110 S400 150, 420 120"
+              fill="none" stroke="#E18A3C" stroke-width="6" stroke-linecap="round"/>
+        <circle cx="40" cy="190" r="9" fill="#6B7A3E" stroke="#F5EBD9" stroke-width="2.5"/>
+        <text x="56" y="196" font-family="Oswald" font-size="14" letter-spacing="1.6" fill="#1C1814">OLBIA</text>
+      </svg>
+
+      <div class="grad"></div>
+    </div>
+  </div>
+
+  <div>
+    <h2>PNG da html2canvas</h2>
+    <div id="uscita" style="width:540px;height:675px;background:#111"></div>
+  </div>
+
+  <div style="width:320px">
+    <h2>Esito</h2>
+    <div class="esito" id="esito">In corso…</div>
+  </div>
+</div>
+
+<script type="module">
+  import html2canvas from "html2canvas";
+
+  const esito = document.getElementById("esito");
+  const righe = [];
+  const nota = (t) => { righe.push(t); esito.innerHTML = righe.join("<br>"); };
+
+  // I font devono essere pronti PRIMA della cattura, altrimenti html2canvas
+  // fotografa il fallback di sistema senza dire nulla.
+  await document.fonts.ready;
+  const caricati = ["Bebas Neue", "Oswald", "Montserrat"].map(
+    (f) => `${f}: ${document.fonts.check(`16px "${f}"`) ? "ok" : "NON CARICATO"}`,
+  );
+  nota(`<b>Font</b><br>${caricati.join("<br>")}`);
+
+  const t0 = performance.now();
+  const canvas = await html2canvas(document.getElementById("campione"), {
+    width: 540, height: 675, scale: 1, backgroundColor: null, useCORS: true, logging: false,
+  });
+  const ms = Math.round(performance.now() - t0);
+
+  document.getElementById("uscita").appendChild(canvas);
+  nota(`<b>Cattura</b><br>${canvas.width}×${canvas.height} px in ${ms} ms`);
+
+  // Campionamento di controllo: i colori chiave devono esserci davvero.
+  const ctx = canvas.getContext("2d");
+  const hex = (x, y) => {
+    const d = ctx.getImageData(x, y, 1, 1).data;
+    return "#" + [d[0], d[1], d[2]].map((v) => v.toString(16).padStart(2, "0")).join("");
+  };
+  nota(`<b>Campioni</b><br>fondo ${hex(10, 10)}<br>titolo arancio ${hex(60, 165)}<br>mappa terra ${hex(120, 330)}<br>traccia ${hex(150, 395)}`);
+
+  window.__spike = { ok: true, ms, font: caricati };
+</script>
+</body>
+</html>
