@@ -17,7 +17,7 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
-    include: ["src/social-studio/**/*.test.{js,jsx}", "scripts/**/*.test.mjs"],
+    include: ["src/social-studio/**/*.test.{js,jsx}", "scripts/**/*.test.mjs", "api/**/*.test.mjs"],
     globals: false,
     restoreMocks: true,
   },

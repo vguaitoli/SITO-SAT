@@ -253,26 +253,50 @@ alla slide arrivano coordinate già trasformate.
 Per ogni GPX l'utente sceglie **conserva** oppure **elimina dopo l'export**.
 Il backup lo include solo con una spunta esplicita e separata.
 
-### 6.4 Endpoint AI
+### 6.4 Endpoint AI — come si autentica il frontend
 
-Requisito: non utilizzabile in forma anonima, nessuna chiave lato client.
+Il primo disegno prevedeva un token Bearer permanente per il client. **Era
+sbagliato:** qualunque segreto consegnato al browser è un segreto pubblico, sia
+che stia nel bundle sia in `localStorage`. Corretto così:
+
+**Lo studio non possiede alcun segreto.** Chiama
+`/admin/social/api/caption`, che sta sotto il prefisso già protetto dal
+middleware. Il browser, avendo autenticato `/admin/social`, rimanda da sé le
+credenziali Basic alle risorse dello stesso spazio di protezione: la `fetch`
+parte con `credentials: "same-origin"` e nient'altro.
 
 ```
-POST /api/caption            (Vercel Function, runtime edge)
-  ├─ verifica autenticazione   token condiviso in variabile d'ambiente,
-  │                            confrontato a tempo costante
-  ├─ rate limiting             finestra scorrevole per IP e per token
-  ├─ validazione zod           rifiuta payload fuori schema
-  ├─ chiama il provider        chiave solo lato server
-  └─ risposta                  solo testo, nessun dato fattuale riscritto
+POST /admin/social/api/caption   → riscritto su /api/caption (Vercel Function, edge)
+  ├─ middleware                    stessa autenticazione dello studio
+  ├─ la funzione riverifica        stessa implementazione: api/_autenticazione.js
+  ├─ limite di frequenza           finestra scorrevole in memoria
+  ├─ validazione zod .strict()     un campo imprevisto fa fallire la richiesta
+  ├─ tetto di 32 KB                controllato prima e dopo la lettura
+  ├─ chiama il provider            CAPTION_API_KEY solo lato server
+  └─ risposta                      solo testo; il nome del fornitore non esce
 ```
 
-Il corpo della richiesta contiene i dati fattuali **come contesto in sola
-lettura** e le istruzioni di rubrica. Non contiene mai fotografie né GPX.
+Studio e API condividono **una sola implementazione** dell'autenticazione: due
+copie divergerebbero, ed è sulla divergenza che si aprono i buchi. La funzione
+riverifica per conto proprio, così una chiamata diretta a `/api/caption` che
+scavalcasse il routing troverebbe lo stesso controllo.
 
-Finché l'autenticazione e il rate limiting non sono in piedi, l'endpoint non va
-in produzione: Social Studio funziona senza AI, con il motore caption in modalità
-manuale.
+Fotografie, GPX e coordinate non possono attraversare l'endpoint per
+costruzione: lo schema accetta solo stringhe brevi, e un campo `gpx` fa
+rispondere 400.
+
+### 6.5 Il filtro delle rotte sta nel codice, non nel matcher
+
+Questo è un progetto Vite, non Next.js. Con `config.matcher` la CLI di Vercel
+non riesce a interpretare i percorsi con parametri (`Unhandled type:
+"ColonToken"`) e il middleware va in errore su **ogni** richiesta: provato con
+`vercel dev`, e il risultato è l'intero sito pubblico a 500.
+
+Il filtro è quindi una funzione esportata e verificata dai test,
+`eProtetta(percorso)`, che confronta segmenti interi — `/admin/socialmente` non
+è `/admin/social`. In caso di errore imprevisto il middleware chiude sulle
+rotte riservate e prosegue su quelle pubbliche: sbagliare in direzione opposta
+significherebbe, nel primo caso, lasciare entrare; nel secondo, rompere il sito.
 
 ---
 
