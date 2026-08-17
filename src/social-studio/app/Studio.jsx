@@ -11,6 +11,7 @@ import { daEvento } from "../fondamenta/adapter-sito";
 import { preflight } from "../motori/preflight";
 import { FornitoreProblemi, useFontPronti } from "../template/primitivi";
 import PostEvento from "../template/rubriche/eventi/PostEvento";
+import StressTest from "./StressTest";
 import { COLORI } from "../design/tokens";
 
 /**
@@ -38,6 +39,7 @@ export default function Studio() {
           <StatoArchivio />
           <Rubriche />
           <BancoDiProva />
+          <StressTest />
         </main>
       </div>
     </FornitoreArchivio>
