@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { rispostaChiediCredenziali, rispostaNonConfigurato, verifica } from "./_autenticazione.js";
+import { byteUtf8, contentTypeAmmesso, stessaOrigine } from "./_richiesta.js";
 
 /**
  * Endpoint per la generazione delle caption.
@@ -98,16 +99,36 @@ export default async function handler(request) {
     return risposta({ errore: `Limite di ${limite} richieste all'ora superato.` }, 429);
   }
 
-  // 3. Dimensione del corpo, controllata prima e dopo la lettura.
+  // 3. Tipo di contenuto: solo JSON. text/plain e multipart sono i vettori
+  //    classici per aggirare i controlli d'origine, perché il browser li manda
+  //    senza preflight CORS.
+  if (!contentTypeAmmesso(request.headers.get("content-type"))) {
+    return risposta({ errore: "Content-Type non ammesso: usare application/json." }, 415);
+  }
+
+  // 4. Stessa origine: impedisce che una pagina di terzi faccia partire
+  //    richieste dal browser di chi è già autenticato.
+  const origine = stessaOrigine({
+    origin: request.headers.get("origin"),
+    host: request.headers.get("host"),
+    secFetchSite: request.headers.get("sec-fetch-site"),
+  });
+  if (!origine.ok) {
+    return risposta({ errore: "Richiesta di origine non consentita." }, 403);
+  }
+
+  // 5. Dimensione del corpo. Il primo controllo è sull'intestazione dichiarata,
+  //    il secondo sui byte UTF-8 effettivi: `length` conta unità UTF-16, quindi
+  //    un tetto misurato sui caratteri si aggira con testo accentato o emoji.
   if (Number(request.headers.get("content-length") || 0) > BYTE_MASSIMI) {
     return risposta({ errore: "Richiesta troppo grande." }, 413);
   }
   const testo = await request.text();
-  if (testo.length > BYTE_MASSIMI) {
+  if (byteUtf8(testo) > BYTE_MASSIMI) {
     return risposta({ errore: "Richiesta troppo grande." }, 413);
   }
 
-  // 4. Validazione.
+  // 6. Validazione.
   let dati;
   try {
     dati = richiestaSchema.parse(JSON.parse(testo));
@@ -118,7 +139,7 @@ export default async function handler(request) {
     );
   }
 
-  // 5. Fornitore. Finché non c'è, l'endpoint lo dichiara apertamente.
+  // 7. Fornitore. Finché non c'è, l'endpoint lo dichiara apertamente.
   if (!process.env.CAPTION_PROVIDER || !process.env.CAPTION_API_KEY) {
     return risposta(
       {
