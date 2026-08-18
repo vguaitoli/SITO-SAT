@@ -1,4 +1,4 @@
-import { convalidaContenuto, VERSIONE_SCHEMA } from "./schema";
+import { convalidaContenuto, convalidaTagMedia, VERSIONE_SCHEMA } from "./schema";
 import { migra } from "./migrazioni";
 
 /**
@@ -207,6 +207,40 @@ export function creaArchivioLocale() {
       await transazione([DEPOSITI.blob, DEPOSITI.media], "readwrite", async (tx) => {
         await attendi(tx.objectStore(DEPOSITI.blob).delete(idBlob));
         await attendi(tx.objectStore(DEPOSITI.media).delete(idBlob));
+      });
+    },
+
+    /**
+     * Elenco dei metadati delle fotografie.
+     *
+     * È il metodo con cui la Media Library legge il suo contenuto. Il backup
+     * non serve a questo: produrlo a ogni ridisegno significherebbe
+     * serializzare contenuti e impostazioni per mostrare una griglia.
+     */
+    async elencaMedia({ tipo = "immagine" } = {}) {
+      const tutti = await transazione([DEPOSITI.media], "readonly", (tx) =>
+        attendi(tx.objectStore(DEPOSITI.media).getAll()),
+      );
+      return tutti
+        .filter((m) => !tipo || m.tipo === tipo)
+        .sort((a, b) => String(b.aggiunto).localeCompare(String(a.aggiunto)));
+    },
+
+    /**
+     * Aggiorna i tag di una fotografia.
+     *
+     * I tag passano dalla convalida come qualsiasi altro dato: un campo
+     * malformato viene rifiutato con un messaggio, non salvato in silenzio.
+     * Il binario non viene toccato — cambiano solo i metadati.
+     */
+    async aggiornaTagMedia(id, tag) {
+      return transazione([DEPOSITI.media], "readwrite", async (tx) => {
+        const deposito = tx.objectStore(DEPOSITI.media);
+        const voce = await attendi(deposito.get(id));
+        if (!voce) throw new Error(`Immagine ${id} inesistente.`);
+        const aggiornata = { ...voce, tag: convalidaTagMedia({ ...voce.tag, ...tag }) };
+        await attendi(deposito.put(aggiornata));
+        return aggiornata;
       });
     },
 

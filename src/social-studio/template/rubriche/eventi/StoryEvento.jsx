@@ -7,6 +7,7 @@ import {
   ACCENTO, BadgeData, BadgeDisciplina, FasciaFoto, MarchioSuFoto, Prezzo, SOFT, Stats, StatoPosti,
 } from "./parti";
 import { periodoBreve } from "./date";
+import { FASCIA } from "./zone";
 
 /**
  * Story evento — 1080×1920.
@@ -26,7 +27,7 @@ export default function StoryEvento({ contenuto, immagini = {}, riferimento }) {
   const testi = contenuto.editoriale || {};
 
   const GUTTER = f.margine.sinistro; // 90
-  const ALTEZZA_FOTO = 1040; // 54%: la fotografia domina più che nel Post
+  const ALTEZZA_FOTO = FASCIA.story; // 54%: la fotografia domina più che nel Post
   const BASSO_LIBERO = f.zonaSticker.dalBasso; // 340: sticker e «rispondi»
 
   // Tre dati, non quattro: nel 9:16 le colonne diventerebbero troppo strette.
@@ -108,9 +109,35 @@ export default function StoryEvento({ contenuto, immagini = {}, riferimento }) {
         <div style={{ marginTop: "auto", paddingBottom: 34 }}>
           <Stats colonne={colonne} scala={1.15} corpoValore={40} />
 
-          <div style={{ marginTop: 30, display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24 }}>
-            <Prezzo valore={dati.prezzo} scala={1.15} corpo={92} />
+          <div style={{ marginTop: 26, display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24 }}>
+            <Prezzo valore={dati.prezzo} scala={1.15} corpo={82} />
           </div>
+
+          {/*
+            La CTA sta nel flusso, non in posizione assoluta.
+            Prima era ancorata al fondo e finiva sopra il prezzo: la fascia
+            verde copriva «580 €». Qui la collisione non è corretta, è
+            impossibile — i due elementi si spingono a vicenda.
+          */}
+          {testi.cta && (
+            <div style={{ marginTop: 24 }}>
+              <span
+                style={{
+                  display: "block",
+                  textAlign: "center",
+                  fontFamily: FONT.etichetta,
+                  fontSize: 30,
+                  letterSpacing: "0.14em",
+                  textTransform: "uppercase",
+                  color: COLORI.testo,
+                  background: COLORI.verde,
+                  padding: "20px 28px",
+                }}
+              >
+                {testi.cta}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -141,27 +168,6 @@ export default function StoryEvento({ contenuto, immagini = {}, riferimento }) {
           Spazio per lo sticker del link
         </span>
       </div>
-
-      {/* La CTA sta sopra la zona sticker, dentro l'area sicura. */}
-      {testi.cta && (
-        <div style={{ position: "absolute", left: GUTTER, right: GUTTER, bottom: BASSO_LIBERO + 30 }}>
-          <span
-            style={{
-              display: "block",
-              textAlign: "center",
-              fontFamily: FONT.etichetta,
-              fontSize: 30,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              color: COLORI.testo,
-              background: COLORI.verde,
-              padding: "22px 28px",
-            }}
-          >
-            {testi.cta}
-          </span>
-        </div>
-      )}
 
       <div
         style={{

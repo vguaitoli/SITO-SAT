@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useState } from "react";
 import { Maximize2, RotateCcw } from "lucide-react";
+import { FOTO } from "../design/tokens";
 
 /**
  * Editor di ritaglio non distruttivo.
@@ -10,15 +11,28 @@ import { Maximize2, RotateCcw } from "lucide-react";
  *
  * Il punto focale si sposta trascinando: è il gesto che corrisponde a ciò che
  * si vede, invece di due campi numerici da indovinare.
+ *
+ * **Le zone sono quelle vere.** Un riquadro 4:5 generico non rappresenta nulla:
+ * la stessa fotografia finisce in una fascia da 1080×700 nel Post, 1080×1040
+ * nella Story e 1080×560 nella slide CTA, e lo stesso punto focale dà tre
+ * inquadrature diverse. Qui si vedono tutte, con le misure che i template
+ * dichiarano in `template/rubriche/eventi/zone.js`.
  */
-export default function Ritaglio({ sorgente, valore, onCambia, rapporto = 4 / 5 }) {
+export default function Ritaglio({ sorgente, valore, onCambia, zone = [] }) {
   const [trascina, setTrascina] = useState(false);
   const riquadro = useRef(null);
   const zoom = valore?.zoom ?? 1;
   const x = valore?.x ?? 0.5;
   const y = valore?.y ?? 0.5;
 
-  const aggiorna = useCallback((patch) => onCambia({ ...valore, zoom, x, y, ...patch }), [onCambia, valore, zoom, x, y]);
+  // La zona su cui si trascina è la prima: è quella dominante dello slot.
+  const principale = zone[0] || { nome: "Ritaglio", larghezza: 1080, altezza: 1350 };
+  const secondarie = zone.slice(1);
+
+  const aggiorna = useCallback(
+    (patch) => onCambia({ ...valore, zoom, x, y, ...patch }),
+    [onCambia, valore, zoom, x, y],
+  );
 
   const daEvento = (e) => {
     const r = riquadro.current?.getBoundingClientRect();
@@ -56,29 +70,22 @@ export default function Ritaglio({ sorgente, valore, onCambia, rapporto = 4 / 5 
         onPointerMove={muovi}
         onPointerUp={() => setTrascina(false)}
         onPointerCancel={() => setTrascina(false)}
-        style={{ aspectRatio: String(rapporto), cursor: trascina ? "grabbing" : "grab" }}
+        style={{
+          aspectRatio: `${principale.larghezza} / ${principale.altezza}`,
+          cursor: trascina ? "grabbing" : "grab",
+        }}
         className="relative w-full select-none overflow-hidden border border-[var(--border-on-dark)]"
       >
-        <img
-          src={sorgente}
-          alt=""
-          draggable={false}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            objectPosition: `${x * 100}% ${y * 100}%`,
-            transform: `scale(${zoom})`,
-            transformOrigin: `${x * 100}% ${y * 100}%`,
-            filter: "saturate(0.82) contrast(1.06) brightness(0.9)",
-          }}
-        />
+        <ImmagineInquadrata sorgente={sorgente} zoom={zoom} x={x} y={y} />
         {/* Il mirino mostra dove cade il punto focale. */}
         <span
           aria-hidden="true"
           style={{ left: `${x * 100}%`, top: `${y * 100}%` }}
           className="pointer-events-none absolute h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--accent)] shadow-[0_0_0_1px_rgba(28,24,20,0.6)]"
         />
+        <span className="pointer-events-none absolute inset-x-0 top-0 bg-obsidian/70 px-2 py-1 font-button text-[9px] uppercase tracking-[0.2em] text-[var(--accent-soft)]">
+          {principale.nome} · {principale.larghezza}×{principale.altezza}
+        </span>
         <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-obsidian/70 px-2 py-1 text-center font-button text-[9px] uppercase tracking-[0.2em] text-granite-mist/60">
           trascina per scegliere il punto focale
         </span>
@@ -106,6 +113,58 @@ export default function Ritaglio({ sorgente, valore, onCambia, rapporto = 4 / 5 
           <RotateCcw size={14} aria-hidden="true" />
         </button>
       </div>
+
+      {secondarie.length > 0 && (
+        <div className="mt-3">
+          <p className="mb-2 font-button text-[9px] uppercase tracking-[0.2em] text-granite-mist/40">
+            Lo stesso punto focale nelle altre zone
+          </p>
+          <div className="flex flex-wrap items-start gap-2">
+            {secondarie.map((z) => (
+              <div key={z.id} style={{ width: 96 }}>
+                <div
+                  style={{ aspectRatio: `${z.larghezza} / ${z.altezza}` }}
+                  className="relative overflow-hidden border border-[var(--border-on-dark)]"
+                >
+                  <ImmagineInquadrata sorgente={sorgente} zoom={zoom} x={x} y={y} />
+                </div>
+                <p className="mt-1 font-body text-[9px] leading-tight text-granite-mist/45">
+                  {z.nome}
+                  <br />
+                  {z.larghezza}×{z.altezza}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+/**
+ * L'immagine con la stessa geometria che applica `template/Foto.jsx`.
+ *
+ * Le due implementazioni devono coincidere: se qui il calcolo fosse diverso,
+ * l'anteprima del ritaglio mostrerebbe un'inquadratura che l'esportazione non
+ * produce. Sono le stesse quattro proprietà, nello stesso ordine.
+ */
+function ImmagineInquadrata({ sorgente, zoom, x, y }) {
+  return (
+    <img
+      src={sorgente}
+      alt=""
+      draggable={false}
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        objectPosition: `${x * 100}% ${y * 100}%`,
+        transform: `scale(${zoom})`,
+        transformOrigin: `${x * 100}% ${y * 100}%`,
+        filter: FOTO.filtro,
+        display: "block",
+      }}
+    />
   );
 }

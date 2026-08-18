@@ -10,6 +10,7 @@ import {
   ACCENTO, BadgeData, BadgeDisciplina, FasciaFoto, MarchioSuFoto, Percorso, Piede, Prezzo, SOFT, Stats, StatoPosti,
 } from "./parti";
 import { periodoBreve, periodoLeggibile } from "./date";
+import { BANDA_MARCHIO, CELLA_ESPERIENZA, FASCIA, GRIGLIA_ESPERIENZA } from "./zone";
 
 /**
  * Carosello evento — otto slide da 1080×1350, struttura fissa.
@@ -49,7 +50,8 @@ function Corpo({ children, titolo, sottotitolo }) {
         top: 150,
         left: G,
         right: G,
-        bottom: 56,
+        // Il fondo si fermava a 56 e il contenuto finiva sotto il marchio.
+        bottom: BANDA_MARCHIO,
         display: "flex",
         flexDirection: "column",
       }}
@@ -62,6 +64,9 @@ function Corpo({ children, titolo, sottotitolo }) {
           minSize={48}
           altezzaMassima={80 * 0.9 * 2}
           style={{
+            // In una colonna flex il titolo è comprimibile: senza questo, un
+            // contenuto abbondante lo schiaccia sotto la sua altezza.
+            flexShrink: 0,
             fontFamily: FONT.titolo,
             lineHeight: 0.9,
             letterSpacing: "0.012em",
@@ -75,6 +80,7 @@ function Corpo({ children, titolo, sottotitolo }) {
       {sottotitolo && (
         <div
           style={{
+            flexShrink: 0,
             marginTop: 14,
             fontFamily: FONT.etichetta,
             fontSize: 20,
@@ -120,7 +126,7 @@ export default function SlideCarosello({ id, contenuto, immagini = {}, traccia, 
     return (
       <Telaio {...comuni} conLogo={false} conIsoipse={false}>
         <FasciaFoto
-          altezza={700}
+          altezza={FASCIA.caroselloCover}
           sorgente={immagini[contenuto.media?.cover?.idBlob]}
           ritaglio={contenuto.media?.cover}
         >
@@ -136,7 +142,7 @@ export default function SlideCarosello({ id, contenuto, immagini = {}, traccia, 
           </div>
         </FasciaFoto>
 
-        <div style={{ position: "absolute", top: 700, left: 0, right: 0, bottom: 0, padding: `38px ${G}px 52px`, display: "flex", flexDirection: "column" }}>
+        <div style={{ position: "absolute", top: FASCIA.caroselloCover, left: 0, right: 0, bottom: 0, padding: `38px ${G}px 52px`, display: "flex", flexDirection: "column" }}>
           <TestoAdattivo
             chiave="car-cover-titolo" etichetta="Titolo della cover"
             size={112} minSize={64} altezzaMassima={112 * 0.85 * 2}
@@ -321,9 +327,15 @@ export default function SlideCarosello({ id, contenuto, immagini = {}, traccia, 
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gridTemplateRows: quante <= 2 ? "420px" : "250px 250px",
-              gap: 10,
+              flexShrink: 0,
+              // Le colonne in px, non in `1fr`: è la misura che l'editor di
+              // ritaglio usa per mostrare l'inquadratura di questa griglia.
+              gridTemplateColumns: `${CELLA_ESPERIENZA}px ${CELLA_ESPERIENZA}px`,
+              gridTemplateRows:
+                quante <= 2
+                  ? `${GRIGLIA_ESPERIENZA.rigaAlta}px`
+                  : `${GRIGLIA_ESPERIENZA.rigaBassa}px ${GRIGLIA_ESPERIENZA.rigaBassa}px`,
+              gap: GRIGLIA_ESPERIENZA.distanza,
             }}
           >
             {(quante <= 2 ? foto.slice(0, 2) : foto).map((r, i) => (
@@ -454,7 +466,7 @@ export default function SlideCarosello({ id, contenuto, immagini = {}, traccia, 
     return (
       <Telaio {...comuni} etichetta={meta.titolo} conLogo={false} conIsoipse={false}>
         <FasciaFoto
-          altezza={560}
+          altezza={FASCIA.caroselloCta}
           sorgente={immagini[contenuto.media?.sfondi?.cta?.idBlob || contenuto.media?.cover?.idBlob]}
           ritaglio={contenuto.media?.sfondi?.cta || contenuto.media?.cover}
         >
@@ -467,7 +479,7 @@ export default function SlideCarosello({ id, contenuto, immagini = {}, traccia, 
           </div>
         </FasciaFoto>
 
-        <div style={{ position: "absolute", top: 560, left: 0, right: 0, bottom: 0, padding: `36px ${G}px 52px`, display: "flex", flexDirection: "column" }}>
+        <div style={{ position: "absolute", top: FASCIA.caroselloCta, left: 0, right: 0, bottom: 0, padding: `36px ${G}px 52px`, display: "flex", flexDirection: "column" }}>
           <TestoAdattivo
             chiave="car-cta-titolo" etichetta="Titolo (CTA)"
             size={86} minSize={52} altezzaMassima={86 * 0.88 * 2}

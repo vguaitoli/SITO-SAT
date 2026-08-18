@@ -41,8 +41,12 @@ export class FontMancanti extends Error {
  * `requestAnimationFrame` non scatta in una scheda in background: se si cambia
  * scheda a metà esportazione, senza ripiego l'attesa non finirebbe mai. Il
  * timeout garantisce che il lavoro proceda comunque.
+ *
+ * È esportata perché serve anche a chi monta le grafiche prima di fotografarle:
+ * quel codice ha bisogno della stessa attesa, e averne due versioni significa
+ * che una delle due prima o poi si dimenticherà il ripiego.
  */
-const attendiUnFrame = () =>
+export const attendiUnFrame = () =>
   new Promise((risolvi) => {
     let fatto = false;
     const finisci = () => {

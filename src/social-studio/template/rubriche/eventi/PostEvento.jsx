@@ -7,6 +7,7 @@ import {
   BadgeData, BadgeDisciplina, FasciaFoto, MarchioSuFoto, Percorso, Piede, Prezzo, Stats, StatoPosti, SOFT,
 } from "./parti";
 import { periodoBreve, periodoLeggibile } from "./date";
+import { FASCIA } from "./zone";
 
 /**
  * Post evento — 1080×1350.
@@ -26,7 +27,8 @@ export default function PostEvento({ contenuto, immagini = {}, riferimento }) {
   const testi = contenuto.editoriale || {};
 
   const GUTTER = 60;
-  const ALTEZZA_FOTO = 700; // 51,9% dell'altezza: la stessa frazione della locandina
+  // La misura vive in zone.js: la stessa che l'editor di ritaglio mostra.
+  const ALTEZZA_FOTO = FASCIA.post;
 
   const colonne = [
     { etichetta: "Durata", valore: dati.durata },

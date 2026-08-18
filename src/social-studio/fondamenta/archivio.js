@@ -1,4 +1,4 @@
-import { convalidaContenuto, VERSIONE_SCHEMA } from "./schema";
+import { convalidaContenuto, convalidaTagMedia, VERSIONE_SCHEMA } from "./schema";
 import { migra } from "./migrazioni";
 
 /**
@@ -14,7 +14,11 @@ import { migra } from "./migrazioni";
  * - i binari (fotografie, GPX) stanno separati dai metadati e si citano per
  *   `idBlob`: un contenuto non porta mai dentro di sé i byte di un'immagine;
  * - `leggi()` migra il record allo schema corrente prima di restituirlo;
- * - `salva()` convalida: un record non conforme non entra nell'archivio.
+ * - `salva()` convalida: un record non conforme non entra nell'archivio;
+ * - gli elenchi hanno metodi propri — `elenca()` per i contenuti, `elencaMedia()`
+ *   per le fotografie. `esportaBackup()` produce un backup, e usarlo per
+ *   leggere un elenco significherebbe serializzare tutto l'archivio a ogni
+ *   ridisegno dell'interfaccia.
  *
  * IndexedDB è una libreria di lavoro, non un archivio fotografico permanente:
  * il browser può liberarlo. Il backup esportabile non è un accessorio.
@@ -31,6 +35,8 @@ import { migra } from "./migrazioni";
  * @property {(idBlob: string) => Promise<Blob|null>} leggiBlob
  * @property {(idBlob: string) => Promise<string|null>} urlTemporaneo
  * @property {(idBlob: string) => Promise<void>} eliminaBlob
+ * @property {(filtro?: object) => Promise<object[]>} elencaMedia
+ * @property {(id: string, tag: object) => Promise<object>} aggiornaTagMedia
  * @property {(opzioni?: object) => Promise<object>} esportaBackup
  * @property {(dati: object, modo?: "unisci"|"sostituisci") => Promise<object>} importaBackup
  * @property {() => Promise<{byte: number, quota: number|null, persistente: boolean}>} spazioUsato
@@ -40,6 +46,7 @@ import { migra } from "./migrazioni";
 export const METODI_RICHIESTI = [
   "elenca", "leggi", "salva", "elimina", "duplica",
   "salvaBlob", "leggiBlob", "urlTemporaneo", "eliminaBlob",
+  "elencaMedia", "aggiornaTagMedia",
   "esportaBackup", "importaBackup", "spazioUsato",
 ];
 
@@ -155,6 +162,21 @@ export function creaArchivioMemoria() {
       }
       blob.delete(idBlob);
       media.delete(idBlob);
+    },
+
+    async elencaMedia({ tipo = "immagine" } = {}) {
+      return [...media.values()]
+        .filter((m) => !tipo || m.tipo === tipo)
+        .map((m) => structuredClone(m))
+        .sort((a, b) => String(b.aggiunto).localeCompare(String(a.aggiunto)));
+    },
+
+    async aggiornaTagMedia(id, tag) {
+      const voce = media.get(id);
+      if (!voce) throw new Error(`Immagine ${id} inesistente.`);
+      const aggiornata = { ...voce, tag: convalidaTagMedia({ ...voce.tag, ...tag }) };
+      media.set(id, aggiornata);
+      return structuredClone(aggiornata);
     },
 
     async esportaBackup({ includiGpx = false } = {}) {

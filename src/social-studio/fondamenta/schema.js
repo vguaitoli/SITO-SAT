@@ -95,6 +95,9 @@ export const editoriale = z.object({
     id: z.string(),
     titolo: z.string().default(""),
     descrizione: z.string().default(""),
+    /** Da dove viene la voce: un preset scritto a mano, i punti di interesse
+     *  del sito, o la mano di chi scrive. Serve a sapere cosa va riletto. */
+    origine: z.string().default(""),
   })).default([]),
   caption: z.object({
     testo: z.string().default(""),
@@ -175,6 +178,24 @@ export const contenuto = z.object({
   dataPrevista: giorno.default(""),
 });
 
+/**
+ * I tag di una fotografia.
+ *
+ * Non sono decorazione: con qualche centinaio di immagini sono l'unico modo di
+ * ritrovarne una. Per questo si convalidano come tutto il resto — un tag
+ * scritto male è una foto che non si trova più.
+ */
+export const tagMedia = z.object({
+  evento: z.string().default(""),
+  luogo: z.string().default(""),
+  data: giorno.default(""),
+  categoria: z.string().default(""),
+  soggetto: z.array(z.string()).default([]),
+  mezzo: z.string().default(""),
+  disciplina: z.string().default(""),
+  libere: z.array(z.string()).default([]),
+});
+
 /** Voce della libreria media. Il binario sta a parte, qui solo i metadati. */
 export const vociMedia = z.object({
   id: z.string(),
@@ -185,17 +206,21 @@ export const vociMedia = z.object({
   larghezza: z.number().int().nonnegative().default(0),
   altezza: z.number().int().nonnegative().default(0),
   aggiunto: iso,
-  tag: z.object({
-    evento: z.string().default(""),
-    luogo: z.string().default(""),
-    data: giorno.default(""),
-    categoria: z.string().default(""),
-    soggetto: z.array(z.string()).default([]),
-    mezzo: z.string().default(""),
-    disciplina: z.string().default(""),
-    libere: z.array(z.string()).default([]),
-  }).default({}),
+  tag: tagMedia.default({}),
 });
+
+/**
+ * Convalida i tag di una fotografia, applicando i valori predefiniti.
+ * Solleva un errore leggibile: un tag scartato in silenzio sarebbe peggio.
+ */
+export function convalidaTagMedia(dati) {
+  const esito = tagMedia.safeParse(dati ?? {});
+  if (esito.success) return esito.data;
+  const dettagli = esito.error.issues
+    .map((i) => `${i.path.join(".") || "(radice)"}: ${i.message}`)
+    .join("; ");
+  throw new Error(`Tag non validi — ${dettagli}`);
+}
 
 /** Il backup completo, con la sua versione: serve a importarlo in futuro. */
 export const backup = z.object({

@@ -117,6 +117,17 @@ export function TestoAdattivo({
 }) {
   const ref = useRef(null);
   const [corpo, setCorpo] = useState(size);
+  /**
+   * Spazio da riservare sotto il testo per l'inchiostro che sporge.
+   *
+   * Con `line-height` minore di 1 il blocco di riga è più basso dei glifi: un
+   * titolo Bebas da 112 px occupa 95 px di riga e ne disegna 115. I venti di
+   * troppo non sono un errore da correggere — sono la tipografia della
+   * locandina — ma vanno messi nel conto, altrimenti finiscono tagliati o
+   * addosso a ciò che sta sotto. Si misurano invece di stimarli: dipendono
+   * dalle metriche del carattere, che non sono affar nostro.
+   */
+  const [respiro, setRespiro] = useState(0);
   const segnala = useSegnalaProblema();
   const testo = testoDa(children);
   const fontPronti = useFontPronti();
@@ -148,9 +159,23 @@ export function TestoAdattivo({
     const tetto = Number.isFinite(altezzaMassima) ? altezzaMassima : Infinity;
     const sbordaA = (dimensione) => altezzaContenuto(dimensione) > tetto + 1;
 
-    // Al massimo entra: niente da fare.
+    /** Inchiostro che sporge dal blocco di riga, al corpo scelto. */
+    const misuraRespiro = (dimensione) => {
+      const tettoPrecedente = el.style.maxHeight;
+      const respiroPrecedente = el.style.paddingBottom;
+      el.style.maxHeight = "none";
+      el.style.paddingBottom = "0px";
+      el.style.fontSize = `${dimensione}px`;
+      const sporgenza = Math.max(0, el.scrollHeight - el.clientHeight);
+      el.style.maxHeight = tettoPrecedente;
+      el.style.paddingBottom = respiroPrecedente;
+      return sporgenza;
+    };
+
+    // Al massimo entra: niente da fare, se non riservare l'inchiostro.
     if (!sbordaA(size)) {
       setCorpo(size);
+      setRespiro(misuraRespiro(size));
       segnala(chiave, null);
       return;
     }
@@ -172,6 +197,7 @@ export function TestoAdattivo({
     const nonEntraNemmeoAlMinimo = sbordaA(migliore);
     el.style.fontSize = `${migliore}px`;
     setCorpo(migliore);
+    setRespiro(misuraRespiro(migliore));
 
     segnala(
       chiave,
@@ -195,8 +221,27 @@ export function TestoAdattivo({
       ref={ref}
       style={{
         fontSize: `${corpo}px`,
-        maxHeight: altezzaMassima,
-        overflow: "hidden",
+        /*
+         * Il tetto vale sulle RIGHE, non sull'inchiostro: gli si somma il
+         * respiro misurato. Il respiro è anche spazio reale nel flusso — senza,
+         * il titolo finirebbe addosso al claim che gli sta sotto.
+         */
+        maxHeight: Number.isFinite(altezzaMassima) ? altezzaMassima + respiro : altezzaMassima,
+        paddingBottom: respiro,
+        /*
+         * Niente ritaglio, se non si sta troncando per righe con `maxRighe`.
+         *
+         * Non è una scelta di stile: html2canvas non applica `overflow: hidden`
+         * come il browser — ritaglia sul contenuto ignorando il padding — e
+         * quindi rasava i glifi **solo nel PNG**. Nel DOM il testo era intero,
+         * nell'esportazione no: il difetto era invisibile all'anteprima e si
+         * vedeva solo aprendo il file a 1080.
+         *
+         * Senza ritaglio il testo che non entra sborda e si vede, che è ciò che
+         * questo componente dichiara di voler fare, e il pre-flight lo segnala
+         * come errore invece di nasconderlo.
+         */
+        overflow: maxRighe ? "hidden" : "visible",
         display: maxRighe ? "-webkit-box" : undefined,
         WebkitLineClamp: maxRighe,
         WebkitBoxOrient: maxRighe ? "vertical" : undefined,

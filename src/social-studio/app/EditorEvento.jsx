@@ -1,21 +1,29 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AlertTriangle, CheckCircle2, Download, Lock, Unlock, Wand2, XCircle } from "lucide-react";
+import {
+  AlertTriangle, CheckCircle2, Download, FilePlus2, FolderOpen, History, Lock,
+  Package, RotateCcw, Save, Trash2, Unlock, Wand2, XCircle,
+} from "lucide-react";
 import { useSiteContent } from "@/content/TinaContentProvider";
 import { useArchivio } from "./ContestoArchivio";
-import Anteprima from "./Anteprima";
+import Anteprima, { FuoriSchermo } from "./Anteprima";
 import LibreriaUI from "../media/LibreriaUI";
 import Ritaglio from "../media/Ritaglio";
 import { contenutoVuoto } from "../fondamenta/schema";
 import { confrontaConLaFonte, daEvento } from "../fondamenta/adapter-sito";
+import { haPreset, highlightIniziali } from "../fondamenta/preset-eventi";
+import { elencoRevisioni, registraRevisione, ripristinaRevisione } from "../fondamenta/versioni";
 import { FornitoreProblemi, useFontPronti } from "../template/primitivi";
 import PostEvento from "../template/rubriche/eventi/PostEvento";
 import StoryEvento from "../template/rubriche/eventi/StoryEvento";
 import SlideCarosello, { SLIDE_CAROSELLO } from "../template/rubriche/eventi/CaroselloEvento";
+import { zonePerSlot } from "../template/rubriche/eventi/zone";
 import { preflight } from "../motori/preflight";
 import { analizzaGpx } from "../motori/gpx";
 import { estraiFattuali, paragrafi, verificaFattuale } from "../motori/caption/fact-lock";
+import { rigeneraCaption } from "../motori/caption/rigenera";
 import { creaProviderManuale } from "../motori/caption/provider";
-import { creaLavoroExport, esporta } from "../motori/export/esporta";
+import { attendiUnFrame } from "../motori/export/cattura";
+import { creaLavoroExport, esporta, esportaPacchetto } from "../motori/export/esporta";
 import { COLORI } from "../design/tokens";
 
 /**
@@ -27,6 +35,12 @@ import { COLORI } from "../design/tokens";
  * Il flusso è quello dichiarato: si sceglie l'evento, si controllano i dati, si
  * carica il GPX, si assegnano le fotografie, si scrive la caption, si guarda il
  * pre-flight, si esporta.
+ *
+ * **Il lavoro vive nell'archivio, non nello stato del componente.** Una bozza si
+ * salva, si chiude lo studio, si riapre e si ritrova com'era: caption,
+ * assegnazioni, ritagli, GPX, mappa e stato editoriale. Il GPX in particolare
+ * non si ricarica a mano — il file è nell'archivio e la traccia si ricostruisce
+ * da lì. Senza questo, tutto il resto è una demo.
  */
 
 const SLOT = [
@@ -38,13 +52,22 @@ const SLOT = [
   { id: "cta", nome: "Sfondo CTA" },
 ];
 
+/** I file del pacchetto evento. L'ordine è quello in cui si pubblica. */
+const PACCHETTO = [
+  { id: "post", nome: "post-1080x1350.png", formato: "post" },
+  { id: "story", nome: "story-1080x1920.png", formato: "story" },
+  ...SLIDE_CAROSELLO.map((s) => ({ id: s.id, nome: `carosello/${s.file}`, formato: "post" })),
+];
+
 export default function EditorEvento() {
   const { events, SITE, TOUR_GROUP } = useSiteContent();
-  const { archivio } = useArchivio();
+  const { archivio, aggiornaStato } = useArchivio();
   const fontPronti = useFontPronti();
 
-  const [slugScelto, setSlugScelto] = useState(null);
+  const [bozze, setBozze] = useState([]);
   const [contenuto, setContenuto] = useState(null);
+  const [sporco, setSporco] = useState(false);
+  const [statoSalvataggio, setStatoSalvataggio] = useState(null);
   const [problemi, setProblemi] = useState([]);
   const [immagini, setImmagini] = useState({});
   const [vociMedia, setVociMedia] = useState([]);
@@ -54,24 +77,130 @@ export default function EditorEvento() {
   const [erroreGpx, setErroreGpx] = useState(null);
   const [vista, setVista] = useState("post");
   const [avanzamento, setAvanzamento] = useState(null);
+  const [daConfermare, setDaConfermare] = useState(null);
+  const [mostraRevisioni, setMostraRevisioni] = useState(false);
+  const [fasePacchetto, setFasePacchetto] = useState(null);
+
   const lavoro = useRef(null);
   const nodi = useRef(new Map());
+  const riferimenti = useRef(new Map());
+  /** Lo stato come sta nell'archivio: serve a calcolare la revisione. */
+  const salvato = useRef(null);
+
+  /** Callback ref stabili: senza la cache il nodo si staccherebbe a ogni render. */
+  const registra = (chiave) => {
+    if (!riferimenti.current.has(chiave)) {
+      riferimenti.current.set(chiave, (el) => {
+        if (el) nodi.current.set(chiave, el);
+        else nodi.current.delete(chiave);
+      });
+    }
+    return riferimenti.current.get(chiave);
+  };
 
   const evento = useMemo(
-    () => events?.find((e) => e.slug === slugScelto) || null,
-    [events, slugScelto],
+    () => events?.find((e) => e.slug === contenuto?.fonte?.slug) || null,
+    [events, contenuto],
   );
 
-  /* ---- import dal sito: i dati fattuali non si scrivono a mano ---- */
+  /** Ogni modifica passa da qui: è così che «non salvato» resta veritiero. */
+  const aggiorna = useCallback((fn) => {
+    setContenuto((c) => (c ? fn(c) : c));
+    setSporco(true);
+    setStatoSalvataggio(null);
+  }, []);
+
+  /* ================================================================ *
+   * Bozze: elenco, apertura, salvataggio
+   * ================================================================ */
+
+  const ricaricaBozze = useCallback(async () => {
+    if (!archivio) return;
+    setBozze(await archivio.elenca({ categoria: "eventi" }));
+  }, [archivio]);
+
   useEffect(() => {
-    if (!evento) return;
+    ricaricaBozze();
+  }, [ricaricaBozze]);
+
+  /**
+   * Ricostruisce la traccia dal GPX già nell'archivio.
+   *
+   * È il punto che rende la persistenza utilizzabile: riaprendo una bozza il
+   * file non si ricarica a mano. Se il blob non c'è più — un backup importato
+   * senza GPX, o l'archivio ripulito dal browser — lo si dice, invece di
+   * mostrare una mappa vuota senza spiegazioni.
+   */
+  const ricostruisciTraccia = useCallback(async (c) => {
+    setErroreGpx(null);
+    const rif = c?.mappa?.gpx;
+    if (!rif?.idBlob) {
+      setTraccia(null);
+      return;
+    }
+    try {
+      const blob = await archivio.leggiBlob(rif.idBlob);
+      if (!blob) {
+        setTraccia(null);
+        setErroreGpx(
+          `Il file «${rif.nome || rif.idBlob}» non è più nell'archivio: ricaricalo per rifare la mappa.`,
+        );
+        return;
+      }
+      const a = analizzaGpx(await blob.text(), rif.nome);
+      setTraccia({ ...a, nomeFile: rif.nome });
+    } catch (e) {
+      setTraccia(null);
+      setErroreGpx(`GPX illeggibile: ${e.message}`);
+    }
+  }, [archivio]);
+
+  const scriviNellArchivio = useCallback(
+    async (daSalvare, { etichetta } = {}) => {
+      setStatoSalvataggio("in corso");
+      try {
+        const conStoria = registraRevisione(daSalvare, salvato.current, { etichetta });
+        const id = await archivio.salva(conStoria);
+        // Si rilegge: ciò che si vede è ciò che è sul disco, convalidato.
+        const riletto = await archivio.leggi(id);
+        setContenuto(riletto);
+        salvato.current = riletto;
+        setSporco(false);
+        setStatoSalvataggio(`salvato alle ${new Date().toLocaleTimeString("it-IT")}`);
+        await ricaricaBozze();
+        await aggiornaStato();
+        return riletto;
+      } catch (e) {
+        setStatoSalvataggio(`non salvato: ${e.message}`);
+        return null;
+      }
+    },
+    [archivio, ricaricaBozze, aggiornaStato],
+  );
+
+  const apriBozza = useCallback(
+    async (id) => {
+      const c = await archivio.leggi(id);
+      if (!c) return;
+      setContenuto(c);
+      salvato.current = c;
+      setSporco(false);
+      setStatoSalvataggio(null);
+      setProblemi([]);
+      setMostraRevisioni(false);
+      await ricostruisciTraccia(c);
+    },
+    [archivio, ricostruisciTraccia],
+  );
+
+  const nuovoDaEvento = (ev) => {
     const base = contenutoVuoto({ categoria: "eventi", formato: "post" });
-    const importato = daEvento(evento, {
+    const importato = daEvento(ev, {
       tourGroup: TOUR_GROUP?.label,
       urlBase: "https://www.sardegnatrailavventura.it",
       whatsapp: SITE?.telefono?.display,
     });
-    setContenuto({
+    const nuovo = {
       ...base,
       titolo: importato.fattuali.nome,
       fonte: importato.fonte,
@@ -79,29 +208,54 @@ export default function EditorEvento() {
       editoriale: {
         ...base.editoriale,
         ...importato.editoriale,
-        highlight: [
-          { id: "h1", titolo: "Granito", descrizione: "Le rocce della Gallura e del Limbara." },
-          { id: "h2", titolo: "Mare", descrizione: "Coste e spiagge fra una pista e l'altra." },
-          { id: "h3", titolo: "Borghi", descrizione: "Tempio, Buddusò, Pattada." },
-          { id: "h4", titolo: "Altopiani", descrizione: "Sterrati aperti e panorami larghi." },
-        ],
+        // Niente highlight generici: preset per l'evento che ne ha uno, oppure
+        // i punti di interesse che il sito dichiara. Mai testi di un altro tour.
+        highlight: highlightIniziali(importato.fattuali, importato.fonte.slug),
       },
       media: { cover: null, esperienza: [null, null, null, null], sfondi: {} },
-    });
-  }, [evento, TOUR_GROUP, SITE]);
+    };
+    setContenuto(nuovo);
+    salvato.current = null;
+    setSporco(true);
+    setStatoSalvataggio(null);
+    setTraccia(null);
+    setErroreGpx(null);
+    setProblemi([]);
+    setMostraRevisioni(false);
+  };
+
+  const eliminaBozza = async (id) => {
+    await archivio.elimina(id);
+    if (contenuto?.id === id) {
+      setContenuto(null);
+      salvato.current = null;
+      setTraccia(null);
+    }
+    await ricaricaBozze();
+  };
+
+  const ripristina = async (n) => {
+    const r = ripristinaRevisione(contenuto, n);
+    const riletto = await scriviNellArchivio(r, { etichetta: `ripristino della v${n}` });
+    if (riletto) await ricostruisciTraccia(riletto);
+    setMostraRevisioni(false);
+  };
 
   const scostamenti = useMemo(
     () => (contenuto && evento ? confrontaConLaFonte(contenuto, evento) : { allineato: true, scostamenti: [] }),
     [contenuto, evento],
   );
 
-  /* ---- immagini: url temporanei dall'archivio ---- */
+  /* ================================================================ *
+   * Media
+   * ================================================================ */
+
   const ricaricaMedia = useCallback(async () => {
     if (!archivio) return;
-    const pacco = await archivio.esportaBackup();
-    setVociMedia(pacco.media || []);
+    const elenco = await archivio.elencaMedia();
+    setVociMedia(elenco);
     const mappa = {};
-    for (const v of pacco.media || []) {
+    for (const v of elenco) {
       const u = await archivio.urlTemporaneo(v.id);
       if (u) mappa[v.id] = u;
     }
@@ -115,19 +269,7 @@ export default function EditorEvento() {
   const assegna = () => {
     if (!selezionata || !contenuto) return;
     const rif = { idBlob: selezionata, zoom: 1, x: 0.5, y: 0.5 };
-    setContenuto((c) => {
-      const media = { ...c.media };
-      if (slotAttivo === "cover") media.cover = rif;
-      else if (slotAttivo === "cta") media.sfondi = { ...media.sfondi, cta: rif };
-      else {
-        const i = Number(slotAttivo.split("-")[1]);
-        const esperienza = [...(media.esperienza || [])];
-        esperienza[i] = rif;
-        media.esperienza = esperienza;
-      }
-      return { ...c, media };
-    });
-    ricaricaMedia();
+    aggiorna((c) => ({ ...c, media: conRitaglio(c.media, slotAttivo, rif) }));
   };
 
   const ritaglioAttivo = useMemo(() => {
@@ -137,22 +279,13 @@ export default function EditorEvento() {
     return contenuto.media.esperienza?.[Number(slotAttivo.split("-")[1])] || null;
   }, [contenuto, slotAttivo]);
 
-  const cambiaRitaglio = (nuovo) => {
-    setContenuto((c) => {
-      const media = { ...c.media };
-      if (slotAttivo === "cover") media.cover = nuovo;
-      else if (slotAttivo === "cta") media.sfondi = { ...media.sfondi, cta: nuovo };
-      else {
-        const i = Number(slotAttivo.split("-")[1]);
-        const esperienza = [...media.esperienza];
-        esperienza[i] = nuovo;
-        media.esperienza = esperienza;
-      }
-      return { ...c, media };
-    });
-  };
+  const cambiaRitaglio = (nuovo) =>
+    aggiorna((c) => ({ ...c, media: conRitaglio(c.media, slotAttivo, nuovo) }));
 
-  /* ---- GPX: la geometria viene solo dal file ---- */
+  /* ================================================================ *
+   * GPX: la geometria viene solo dal file
+   * ================================================================ */
+
   const caricaGpx = async (file) => {
     setErroreGpx(null);
     try {
@@ -160,7 +293,7 @@ export default function EditorEvento() {
       if (!a.segmenti.length) throw new Error("Il file non contiene una traccia.");
       const idBlob = await archivio.salvaBlob("gpx", file, { nome: file.name });
       setTraccia({ ...a, nomeFile: file.name });
-      setContenuto((c) => ({
+      aggiorna((c) => ({
         ...c,
         mappa: {
           ...c.mappa,
@@ -168,69 +301,199 @@ export default function EditorEvento() {
           localita: a.waypoint.slice(0, 10).map((w, i) => ({ id: `w-${i}`, ...w })),
         },
       }));
+      await aggiornaStato();
     } catch (e) {
       setErroreGpx(e.message);
     }
   };
 
-  /* ---- caption ---- */
+  /**
+   * La traccia caricata e i chilometri dichiarati devono somigliarsi.
+   *
+   * Una traccia da 93 km non rappresenta un evento da 550: la slide del
+   * percorso mostrerebbe un pezzo di viaggio spacciato per il viaggio. È un
+   * avviso, non una correzione: il dato del sito non si tocca e la traccia non
+   * si allunga.
+   */
+  const avvisiTraccia = useMemo(() => {
+    if (!traccia || !contenuto) return [];
+    const dichiarati = Number.parseFloat(String(contenuto.fattuali?.km || "").replace(",", "."));
+    const misurati = traccia.metriche?.distanzaKm;
+    if (!Number.isFinite(dichiarati) || !Number.isFinite(misurati) || !dichiarati) return [];
+    const scarto = Math.abs(misurati - dichiarati) / dichiarati;
+    if (scarto <= 0.1) return [];
+    return [{
+      chiave: "gpx-distanza",
+      livello: "avviso",
+      messaggio:
+        `La traccia misura ${misurati.toFixed(1)} km, l'evento dichiara ${contenuto.fattuali.km}: ` +
+        "la slide del percorso mostrerebbe un tracciato che non corrisponde al viaggio.",
+    }];
+  }, [traccia, contenuto]);
+
+  /* ================================================================ *
+   * Caption
+   * ================================================================ */
+
   const provider = useMemo(() => creaProviderManuale(), []);
   const fatti = useMemo(() => (contenuto ? estraiFattuali(contenuto) : null), [contenuto]);
   const discordanze = useMemo(
     () => (contenuto && fatti ? verificaFattuale(contenuto.editoriale.caption.testo, fatti) : []),
     [contenuto, fatti],
   );
+  const [erroreCaption, setErroreCaption] = useState(null);
 
+  /**
+   * Genera o rigenera la caption.
+   *
+   * Il lavoro vero sta in `motori/caption/rigenera.js`: qui si chiama e si
+   * scrive il risultato. Al provider vanno i fatti congelati, i dati editoriali
+   * e i paragrafi bloccati — e al ritorno i bloccati sono di nuovo al loro
+   * posto, qualunque cosa il provider abbia risposto.
+   */
   const generaCaption = async () => {
-    const esito = await provider.genera({ rubrica: "eventi", lunghezza: contenuto.editoriale.caption.lunghezza });
-    setContenuto((c) => ({
-      ...c,
-      editoriale: { ...c.editoriale, caption: { ...c.editoriale.caption, testo: esito.testo } },
-    }));
+    setErroreCaption(null);
+    try {
+      const esito = await rigeneraCaption({ provider, contenuto });
+      aggiorna((c) => ({
+        ...c,
+        editoriale: {
+          ...c.editoriale,
+          caption: { ...c.editoriale.caption, testo: esito.testo },
+        },
+      }));
+    } catch (e) {
+      setErroreCaption(e.message);
+    }
   };
 
-  const bloccaParagrafo = (i) => {
-    setContenuto((c) => {
+  const bloccaParagrafo = (i) =>
+    aggiorna((c) => {
       const b = c.editoriale.caption.paragrafiBloccati || [];
       const nuovi = b.includes(i) ? b.filter((x) => x !== i) : [...b, i];
-      return { ...c, editoriale: { ...c.editoriale, caption: { ...c.editoriale.caption, paragrafiBloccati: nuovi } } };
+      return {
+        ...c,
+        editoriale: { ...c.editoriale, caption: { ...c.editoriale.caption, paragrafiBloccati: nuovi } },
+      };
     });
-  };
 
-  /* ---- pre-flight ---- */
+  /* ================================================================ *
+   * Pre-flight
+   * ================================================================ */
+
+  const tuttiIProblemi = useMemo(() => [...problemi, ...avvisiTraccia], [problemi, avvisiTraccia]);
+
   const controllo = useMemo(() => {
     if (!contenuto) return null;
     const formato = vista === "story" ? "story" : vista === "carosello" ? "carosello" : "post";
     return preflight({
       contenuto: { ...contenuto, formato },
       vociMedia,
-      problemi,
+      problemi: tuttiIProblemi,
       formato,
     });
+    // fontPronti non è usato nel corpo ma cambia l'esito del controllo font.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contenuto, vociMedia, problemi, vista, fontPronti]);
+  }, [contenuto, vociMedia, tuttiIProblemi, vista, fontPronti]);
 
-  /* ---- export ---- */
-  const esportaTutto = async () => {
+  /* ================================================================ *
+   * Esportazione
+   * ================================================================ */
+
+  const elementiVista = () =>
+    vista === "carosello"
+      ? SLIDE_CAROSELLO.map((s) => ({ id: s.id, nome: s.file, formato: "post", nodo: nodi.current.get(s.id) }))
+      : [{
+          id: vista,
+          nome: `${vista}.png`,
+          formato: vista === "story" ? "story" : "post",
+          nodo: nodi.current.get(vista),
+        }];
+
+  const esportaVista = async ({ ignoraAvvisi = false } = {}) => {
+    setDaConfermare(null);
     lavoro.current = creaLavoroExport();
     setAvanzamento({ fatti: 0, totale: 0, corrente: "avvio" });
-    const elementi =
-      vista === "carosello"
-        ? SLIDE_CAROSELLO.map((s) => ({ id: s.id, nome: s.file, formato: "post", nodo: nodi.current.get(s.id) }))
-        : [{ id: vista, nome: `${vista}.png`, formato: vista === "story" ? "story" : "post", nodo: nodi.current.get(vista) }];
 
     const esito = await esporta({
-      elementi: elementi.filter((e) => e.nodo),
+      elementi: elementiVista().filter((e) => e.nodo),
       contenuto: { ...contenuto, formato: vista === "carosello" ? "carosello" : vista },
       vociMedia,
-      problemi,
-      ignoraAvvisi: true,
+      problemi: tuttiIProblemi,
+      // Mai attivato d'ufficio: se ci sono avvisi, si torna a chiedere.
+      ignoraAvvisi,
       caption: contenuto.editoriale.caption.testo,
       lavoro: lavoro.current,
       onAvanzamento: setAvanzamento,
     });
-    setAvanzamento(esito.esito === "fatto" ? null : { errore: esito.esito });
+
+    setAvanzamento(null);
+    if (esito.esito === "bloccato") setDaConfermare({ tipo: "vista", ...esito });
   };
+
+  /**
+   * Il pacchetto ha bisogno che tutte e dieci le grafiche esistano nel DOM alla
+   * loro misura reale. Si montano fuori schermo, si aspetta che il browser
+   * abbia disegnato, poi si fotografa: due fasi, perché lo stato React non è
+   * disponibile nello stesso giro in cui lo si imposta.
+   */
+  const chiediPacchetto = (ignoraAvvisi = false) => {
+    setDaConfermare(null);
+    setFasePacchetto(ignoraAvvisi ? "monta-forzato" : "monta");
+  };
+
+  useEffect(() => {
+    if (fasePacchetto !== "monta" && fasePacchetto !== "monta-forzato") return undefined;
+    const ignoraAvvisi = fasePacchetto === "monta-forzato";
+    let vivo = true;
+
+    (async () => {
+      /*
+       * Due attese: la prima copre il commit di React, la seconda il disegno.
+       * Si usa `attendiUnFrame` e non `requestAnimationFrame` nudo perché in
+       * una scheda in secondo piano i frame non scattano affatto — e allora
+       * l'esportazione non partirebbe mai, restando «in corso» per sempre.
+       */
+      await attendiUnFrame();
+      await attendiUnFrame();
+      if (!vivo) return;
+
+      setFasePacchetto("in corso");
+      lavoro.current = creaLavoroExport();
+      setAvanzamento({ fatti: 0, totale: PACCHETTO.length, corrente: "avvio" });
+
+      const esito = await esportaPacchetto({
+        elementi: PACCHETTO.map((p) => ({ ...p, nodo: nodi.current.get(`pacco-${p.id}`) })),
+        contenuto,
+        vociMedia,
+        problemi: tuttiIProblemi,
+        ignoraAvvisi,
+        caption: contenuto.editoriale.caption.testo,
+        lavoro: lavoro.current,
+        onAvanzamento: setAvanzamento,
+      });
+
+      if (!vivo) return;
+      setAvanzamento(esito.esito === "fatto" ? { pacchetto: esito.archivio, ms: esito.msTotale } : null);
+      if (esito.esito === "bloccato") setDaConfermare({ tipo: "pacchetto", ...esito });
+      if (esito.esito === "incompleto") {
+        setDaConfermare({ tipo: "pacchetto", esito: "incompleto", mancanti: esito.mancanti });
+      }
+      setFasePacchetto(null);
+    })();
+
+    return () => { vivo = false; };
+    // Le altre dipendenze si leggono al momento dell'uso: aggiungerle qui
+    // rilancerebbe l'esportazione a ogni battitura.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fasePacchetto]);
+
+  const pacchettoMontato = fasePacchetto === "monta" || fasePacchetto === "monta-forzato" || fasePacchetto === "in corso";
+  // Occupato durante tutto il montaggio e la cattura, non solo mentre scorre
+  // l'avanzamento: fra il clic e il primo frame il pulsante resta premibile.
+  const occupato = Boolean(pacchettoMontato || (avanzamento && !avanzamento.pacchetto));
+
+  /* ================================================================ */
 
   if (!events?.length) {
     return <p className="font-body text-sm text-granite-mist/60">Nessun evento disponibile dal sito.</p>;
@@ -238,30 +501,125 @@ export default function EditorEvento() {
 
   return (
     <div className="space-y-6">
-      {/* Scelta dell'evento. */}
+      {/* ---- bozze salvate e creazione ---- */}
       <section className="border border-[var(--border-on-dark)] p-4">
-        <h3 className="mb-3 font-button text-[10px] uppercase tracking-[0.22em] text-[var(--accent-soft)]">
-          Carica da evento del sito
+        <h3 className="mb-3 flex items-center gap-2 font-button text-[10px] uppercase tracking-[0.22em] text-[var(--accent-soft)]">
+          <FolderOpen size={13} aria-hidden="true" />
+          Bozze nell'archivio · {bozze.length}
         </h3>
+        {bozze.length === 0 ? (
+          <p className="mb-4 font-body text-xs text-granite-mist/45">
+            Nessuna bozza salvata. Ne resta una nell'archivio del browser appena premi «Salva».
+          </p>
+        ) : (
+          <ul className="mb-4 divide-y divide-[var(--border-on-dark)]">
+            {bozze.map((b) => (
+              <li key={b.id} className="flex items-center gap-3 py-2">
+                <button
+                  type="button"
+                  onClick={() => apriBozza(b.id)}
+                  className={`min-w-0 flex-1 text-left font-body text-xs transition-colors hover:text-[var(--accent-soft)] ${
+                    contenuto?.id === b.id ? "text-[var(--accent-soft)]" : "text-granite-mist/70"
+                  }`}
+                >
+                  <span className="block truncate">{b.titolo}</span>
+                  <span className="block font-body text-[10px] text-granite-mist/40">
+                    {b.stato} · {new Date(b.modificato).toLocaleString("it-IT")}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => eliminaBozza(b.id)}
+                  title="Elimina la bozza"
+                  className="flex-none p-1 text-granite-mist/40 transition-colors hover:text-[#E2857A]"
+                >
+                  <Trash2 size={12} aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <h4 className="mb-2 flex items-center gap-2 font-button text-[10px] uppercase tracking-[0.22em] text-granite-mist/45">
+          <FilePlus2 size={12} aria-hidden="true" />
+          Nuova bozza da un evento del sito
+        </h4>
         <div className="flex flex-wrap gap-2">
           {events.map((e) => (
             <button
               key={e.slug}
               type="button"
-              onClick={() => setSlugScelto(e.slug)}
-              className={`border px-3 py-2 font-body text-xs transition-colors ${
-                slugScelto === e.slug
-                  ? "border-[var(--accent)] text-[var(--accent-soft)]"
-                  : "border-[var(--border-on-dark)] text-granite-mist/70 hover:border-granite-mist/40"
-              }`}
+              onClick={() => nuovoDaEvento(e)}
+              className="border border-[var(--border-on-dark)] px-3 py-2 font-body text-xs text-granite-mist/70 transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-soft)]"
             >
               {e.name}
+              {haPreset(e.slug) && <span className="ml-1.5 text-[var(--accent-soft)]" title="Ha un preset editoriale">·</span>}
             </button>
           ))}
         </div>
+
+        {contenuto && (
+          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-[var(--border-on-dark)] pt-3">
+            <button
+              type="button"
+              onClick={() => scriviNellArchivio(contenuto)}
+              disabled={statoSalvataggio === "in corso"}
+              className="btn-mech inline-flex items-center gap-2 bg-[var(--cta)] px-4 py-2 text-xs text-[var(--cta-text)] disabled:opacity-40"
+            >
+              <Save size={13} aria-hidden="true" />
+              Salva la bozza
+            </button>
+            <span className="font-body text-[11px] text-granite-mist/50">
+              {sporco ? (
+                <span style={{ color: COLORI.accentoEventi }}>modifiche non salvate</span>
+              ) : (
+                statoSalvataggio || "allineata all'archivio"
+              )}
+            </span>
+            {contenuto.versioni?.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setMostraRevisioni((v) => !v)}
+                className="ml-auto inline-flex items-center gap-1.5 border border-[var(--border-on-dark)] px-2 py-1 font-button text-[9px] uppercase tracking-[0.14em] text-granite-mist/60 transition-colors hover:border-[var(--accent)]"
+              >
+                <History size={11} aria-hidden="true" />
+                {contenuto.versioni.length} revisioni
+              </button>
+            )}
+          </div>
+        )}
+
+        {mostraRevisioni && contenuto && (
+          <ul className="mt-3 divide-y divide-[var(--border-on-dark)] border border-[var(--border-on-dark)]">
+            {elencoRevisioni(contenuto).map((r) => (
+              <li key={r.n} className="flex items-center gap-3 px-3 py-2">
+                <span className="font-button text-[10px] uppercase tracking-[0.16em] text-granite-mist/40">
+                  v{r.n}
+                </span>
+                <span className="min-w-0 flex-1 truncate font-body text-xs text-granite-mist/65">
+                  {r.etichetta}
+                  <span className="ml-2 text-granite-mist/35">
+                    {new Date(r.quando).toLocaleString("it-IT")}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => ripristina(r.n)}
+                  disabled={!r.ripristinabile}
+                  title={r.ripristinabile ? "Torna a questo stato" : "Punto di creazione: non contiene uno stato"}
+                  className="inline-flex flex-none items-center gap-1.5 border border-[var(--border-on-dark)] px-2 py-1 font-button text-[9px] uppercase tracking-[0.14em] text-granite-mist/60 transition-colors hover:border-[var(--accent)] disabled:opacity-30"
+                >
+                  <RotateCcw size={10} aria-hidden="true" />
+                  Ripristina
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
         {contenuto && (
           <p className="mt-3 font-body text-xs text-granite-mist/50">
-            Dati fattuali importati dal sito · {contenuto.fonte.slug}
+            Dati fattuali dal sito · {contenuto.fonte.slug}
             {!scostamenti.allineato && (
               <span style={{ color: COLORI.accentoEventi }}>
                 {" "}· il sito è cambiato: {scostamenti.scostamenti.map((s) => s.nome).join(", ")}
@@ -272,32 +630,38 @@ export default function EditorEvento() {
       </section>
 
       {!contenuto ? (
-        <p className="font-body text-sm text-granite-mist/55">Scegli un evento per cominciare.</p>
+        <p className="font-body text-sm text-granite-mist/55">
+          Apri una bozza o creane una da un evento per cominciare.
+        </p>
       ) : (
         <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
           {/* ---- colonna sinistra: media, GPX, caption ---- */}
           <div className="space-y-5">
-            <LibreriaUI onSeleziona={setSelezionata} selezionato={selezionata} />
+            <LibreriaUI onSeleziona={setSelezionata} selezionato={selezionata} onCambiata={ricaricaMedia} />
 
             <section className="border border-[var(--border-on-dark)] p-4">
               <h3 className="mb-3 font-button text-[10px] uppercase tracking-[0.22em] text-[var(--accent-soft)]">
                 Assegna e inquadra
               </h3>
               <div className="mb-3 flex flex-wrap gap-1.5">
-                {SLOT.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => setSlotAttivo(s.id)}
-                    className={`border px-2 py-1 font-button text-[9px] uppercase tracking-[0.14em] transition-colors ${
-                      slotAttivo === s.id
-                        ? "border-[var(--accent)] text-[var(--accent-soft)]"
-                        : "border-[var(--border-on-dark)] text-granite-mist/55"
-                    }`}
-                  >
-                    {s.nome}
-                  </button>
-                ))}
+                {SLOT.map((s) => {
+                  const piena = Boolean(riferimentoSlot(contenuto.media, s.id)?.idBlob);
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setSlotAttivo(s.id)}
+                      className={`border px-2 py-1 font-button text-[9px] uppercase tracking-[0.14em] transition-colors ${
+                        slotAttivo === s.id
+                          ? "border-[var(--accent)] text-[var(--accent-soft)]"
+                          : "border-[var(--border-on-dark)] text-granite-mist/55"
+                      }`}
+                    >
+                      {s.nome}
+                      {piena && <span className="ml-1 text-[var(--wild-sage-bright)]">•</span>}
+                    </button>
+                  );
+                })}
               </div>
               <button
                 type="button"
@@ -311,6 +675,7 @@ export default function EditorEvento() {
                 sorgente={immagini[ritaglioAttivo?.idBlob]}
                 valore={ritaglioAttivo}
                 onCambia={cambiaRitaglio}
+                zone={zonePerSlot(slotAttivo)}
               />
             </section>
 
@@ -319,29 +684,34 @@ export default function EditorEvento() {
                 Traccia GPX
               </h3>
               <label className="btn-mech mb-2 block cursor-pointer border border-[var(--border-on-dark)] px-3 py-2 text-center text-xs transition-colors hover:border-[var(--accent)]">
-                Carica un file .gpx
+                {contenuto.mappa?.gpx?.idBlob ? "Sostituisci il file .gpx" : "Carica un file .gpx"}
                 <input type="file" accept=".gpx" className="hidden" onChange={(e) => e.target.files?.[0] && caricaGpx(e.target.files[0])} />
               </label>
-              {erroreGpx && <p className="font-body text-xs" style={{ color: "#E2857A" }}>{erroreGpx}</p>}
+              {erroreGpx && <p className="mb-2 font-body text-xs" style={{ color: "#E2857A" }}>{erroreGpx}</p>}
               {traccia && (
-                <dl className="grid grid-cols-2 gap-2 font-body text-[11px] text-granite-mist/65">
-                  <div><dt className="text-granite-mist/40">segmenti</dt><dd>{traccia.segmenti.length}</dd></div>
-                  <div><dt className="text-granite-mist/40">punti</dt><dd>{traccia.metriche.punti.toLocaleString("it-IT")}</dd></div>
-                  <div><dt className="text-granite-mist/40">distanza</dt><dd>{traccia.metriche.distanzaKm.toFixed(1)} km</dd></div>
-                  <div><dt className="text-granite-mist/40">D+ / D−</dt><dd>{traccia.metriche.dislivelloPositivo ?? "—"} / {traccia.metriche.dislivelloNegativo ?? "—"} m</dd></div>
-                  <div><dt className="text-granite-mist/40">quota</dt><dd>{traccia.metriche.quotaMin ?? "—"}–{traccia.metriche.quotaMax ?? "—"} m</dd></div>
-                  <div><dt className="text-granite-mist/40">waypoint</dt><dd>{traccia.waypoint.length}</dd></div>
-                  <p className="col-span-2 text-granite-mist/40">
-                    Suggerimenti dal file: non sovrascrivono i dati dell'evento.
+                <>
+                  <p className="mb-2 font-body text-[11px] text-granite-mist/50">
+                    {traccia.nomeFile} · dall'archivio, non serve ricaricarlo
                   </p>
-                </dl>
+                  <dl className="grid grid-cols-2 gap-2 font-body text-[11px] text-granite-mist/65">
+                    <div><dt className="text-granite-mist/40">segmenti</dt><dd>{traccia.segmenti.length}</dd></div>
+                    <div><dt className="text-granite-mist/40">punti</dt><dd>{traccia.metriche.punti.toLocaleString("it-IT")}</dd></div>
+                    <div><dt className="text-granite-mist/40">distanza</dt><dd>{traccia.metriche.distanzaKm.toFixed(1)} km</dd></div>
+                    <div><dt className="text-granite-mist/40">D+ / D−</dt><dd>{traccia.metriche.dislivelloPositivo ?? "—"} / {traccia.metriche.dislivelloNegativo ?? "—"} m</dd></div>
+                    <div><dt className="text-granite-mist/40">quota</dt><dd>{traccia.metriche.quotaMin ?? "—"}–{traccia.metriche.quotaMax ?? "—"} m</dd></div>
+                    <div><dt className="text-granite-mist/40">waypoint</dt><dd>{traccia.waypoint.length}</dd></div>
+                    <p className="col-span-2 text-granite-mist/40">
+                      Suggerimenti dal file: non sovrascrivono i dati dell'evento.
+                    </p>
+                  </dl>
+                </>
               )}
             </section>
 
             <section className="border border-[var(--border-on-dark)] p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h3 className="font-button text-[10px] uppercase tracking-[0.22em] text-[var(--accent-soft)]">
-                  Caption
+                  Caption · {provider.nome}
                 </h3>
                 <button
                   type="button"
@@ -349,13 +719,13 @@ export default function EditorEvento() {
                   className="inline-flex items-center gap-1.5 border border-[var(--border-on-dark)] px-2 py-1 font-button text-[9px] uppercase tracking-[0.14em] transition-colors hover:border-[var(--accent)]"
                 >
                   <Wand2 size={11} aria-hidden="true" />
-                  Traccia
+                  {contenuto.editoriale.caption.testo.trim() ? "Rigenera" : "Genera"}
                 </button>
               </div>
               <textarea
                 value={contenuto.editoriale.caption.testo}
                 onChange={(e) =>
-                  setContenuto((c) => ({
+                  aggiorna((c) => ({
                     ...c,
                     editoriale: { ...c.editoriale, caption: { ...c.editoriale.caption, testo: e.target.value } },
                   }))
@@ -364,26 +734,34 @@ export default function EditorEvento() {
                 placeholder="Scrivi la caption. La traccia dà la struttura, le parole sono tue."
                 className="w-full border border-[var(--border-on-dark)] bg-[var(--obsidian)] p-2 font-body text-xs leading-relaxed text-[var(--text-on-dark)] outline-none placeholder:text-granite-mist/30 focus:border-[var(--accent)]"
               />
+              {erroreCaption && <p className="mt-1 font-body text-xs" style={{ color: "#E2857A" }}>{erroreCaption}</p>}
 
               {paragrafi(contenuto.editoriale.caption.testo).filter((p) => p.testo.trim()).length > 1 && (
-                <ul className="mt-2 space-y-1">
-                  {paragrafi(contenuto.editoriale.caption.testo).map((p) => {
-                    if (!p.testo.trim()) return null;
-                    const bloccato = contenuto.editoriale.caption.paragrafiBloccati.includes(p.i);
-                    return (
-                      <li key={p.i}>
-                        <button
-                          type="button"
-                          onClick={() => bloccaParagrafo(p.i)}
-                          className="flex w-full items-start gap-2 text-left font-body text-[10px] text-granite-mist/50 transition-colors hover:text-granite-mist/80"
-                        >
-                          {bloccato ? <Lock size={11} className="mt-0.5 flex-none text-[var(--accent-soft)]" /> : <Unlock size={11} className="mt-0.5 flex-none" />}
-                          <span className="truncate">{p.testo.slice(0, 60)}</span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
+                <>
+                  <p className="mt-2 font-body text-[10px] text-granite-mist/35">
+                    Il lucchetto tiene un paragrafo fuori dalla rigenerazione.
+                  </p>
+                  <ul className="mt-1 space-y-1">
+                    {paragrafi(contenuto.editoriale.caption.testo).map((p) => {
+                      if (!p.testo.trim()) return null;
+                      const bloccato = contenuto.editoriale.caption.paragrafiBloccati.includes(p.i);
+                      return (
+                        <li key={p.i}>
+                          <button
+                            type="button"
+                            onClick={() => bloccaParagrafo(p.i)}
+                            className={`flex w-full items-start gap-2 text-left font-body text-[10px] transition-colors hover:text-granite-mist/80 ${
+                              bloccato ? "text-[var(--accent-soft)]" : "text-granite-mist/50"
+                            }`}
+                          >
+                            {bloccato ? <Lock size={11} className="mt-0.5 flex-none" /> : <Unlock size={11} className="mt-0.5 flex-none" />}
+                            <span className="truncate">{p.testo.slice(0, 60)}</span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </>
               )}
 
               {discordanze.length > 0 && (
@@ -415,35 +793,102 @@ export default function EditorEvento() {
               ))}
               <button
                 type="button"
-                onClick={esportaTutto}
-                disabled={!controllo?.puoiEsportare}
-                className="btn-mech ml-auto inline-flex items-center gap-2 bg-[var(--cta)] px-4 py-2 text-xs text-[var(--cta-text)] disabled:opacity-40"
+                onClick={() => esportaVista()}
+                disabled={occupato}
+                className="ml-auto inline-flex items-center gap-2 border border-[var(--border-on-dark)] px-3 py-2 font-button text-[10px] uppercase tracking-[0.14em] text-granite-mist/70 transition-colors hover:border-[var(--accent)] disabled:opacity-40"
               >
                 <Download size={13} aria-hidden="true" />
                 Esporta {vista}
               </button>
-              {avanzamento && (
+              <button
+                type="button"
+                onClick={() => chiediPacchetto(false)}
+                disabled={occupato}
+                className="btn-mech inline-flex items-center gap-2 bg-[var(--cta)] px-4 py-2 text-xs text-[var(--cta-text)] disabled:opacity-40"
+              >
+                <Package size={14} aria-hidden="true" />
+                Esporta pacchetto evento
+              </button>
+              {occupato && (
                 <button type="button" onClick={() => lavoro.current?.annulla()} className="border border-[var(--border-on-dark)] px-3 py-2 font-button text-[10px] uppercase">
                   Annulla
                 </button>
               )}
             </div>
 
-            {avanzamento?.totale > 0 && (
+            {avanzamento?.totale > 0 && !avanzamento.pacchetto && (
               <p className="font-body text-xs text-granite-mist/60">
                 {avanzamento.fatti} di {avanzamento.totale} · {avanzamento.corrente}
               </p>
+            )}
+            {avanzamento?.pacchetto && (
+              <p className="font-body text-xs" style={{ color: COLORI.verdeChiaro }}>
+                {avanzamento.pacchetto.nome} · {avanzamento.pacchetto.quanti} file ·{" "}
+                {(avanzamento.pacchetto.byte / 1024 / 1024).toFixed(1)} MB · {(avanzamento.ms / 1000).toFixed(1)} s
+              </p>
+            )}
+
+            {/* Gli errori bloccano; gli avvisi si superano solo dicendolo. */}
+            {daConfermare && (
+              <section className="border p-4" style={{ borderColor: COLORI.accentoEventi }}>
+                {daConfermare.esito === "incompleto" ? (
+                  <p className="font-body text-xs text-granite-mist/75">
+                    Alcune grafiche non erano pronte ({daConfermare.mancanti.join(", ")}): riprova.
+                  </p>
+                ) : daConfermare.soloAvvisi ? (
+                  <>
+                    <p className="mb-2 font-body text-xs text-granite-mist/80">
+                      Il pre-flight segnala {daConfermare.controllo.avvisi.length} avvisi. Non bloccano
+                      l'esportazione, ma vanno superati consapevolmente.
+                    </p>
+                    <ul className="mb-3 space-y-1">
+                      {daConfermare.controllo.avvisi.map((a) => (
+                        <li key={a.id} className="font-body text-[11px] text-granite-mist/60">· {a.messaggio}</li>
+                      ))}
+                    </ul>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          daConfermare.tipo === "pacchetto" ? chiediPacchetto(true) : esportaVista({ ignoraAvvisi: true })
+                        }
+                        className="btn-mech bg-[var(--cta)] px-4 py-2 text-xs text-[var(--cta-text)]"
+                      >
+                        Esporta comunque
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDaConfermare(null)}
+                        className="border border-[var(--border-on-dark)] px-4 py-2 font-button text-[10px] uppercase tracking-[0.14em] text-granite-mist/60"
+                      >
+                        Torna a correggere
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="mb-2 font-body text-xs" style={{ color: "#E2857A" }}>
+                      Esportazione bloccata: {daConfermare.controllo.errori.length} errori.
+                    </p>
+                    <ul className="space-y-1">
+                      {daConfermare.controllo.errori.map((e) => (
+                        <li key={e.id} className="font-body text-[11px] text-granite-mist/65">· {e.messaggio}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </section>
             )}
 
             <FornitoreProblemi onProblemi={setProblemi}>
               {vista === "post" && (
                 <Anteprima formato="post" massimaAltezza={700}>
-                  <PostEvento contenuto={contenuto} immagini={immagini} riferimento={(el) => el && nodi.current.set("post", el)} />
+                  <PostEvento contenuto={contenuto} immagini={immagini} riferimento={registra("post")} />
                 </Anteprima>
               )}
               {vista === "story" && (
                 <Anteprima formato="story" massimaAltezza={700}>
-                  <StoryEvento contenuto={contenuto} immagini={immagini} riferimento={(el) => el && nodi.current.set("story", el)} />
+                  <StoryEvento contenuto={contenuto} immagini={immagini} riferimento={registra("story")} />
                 </Anteprima>
               )}
               {vista === "carosello" && (
@@ -459,12 +904,29 @@ export default function EditorEvento() {
                           contenuto={contenuto}
                           immagini={immagini}
                           traccia={traccia}
-                          riferimento={(el) => el && nodi.current.set(s.id, el)}
+                          riferimento={registra(s.id)}
                         />
                       </Anteprima>
                     </div>
                   ))}
                 </div>
+              )}
+
+              {/* Le dieci grafiche del pacchetto, a misura reale e fuori vista. */}
+              {pacchettoMontato && (
+                <>
+                  <FuoriSchermo formato="post" riferimento={registra("pacco-post")}>
+                    <PostEvento contenuto={contenuto} immagini={immagini} />
+                  </FuoriSchermo>
+                  <FuoriSchermo formato="story" riferimento={registra("pacco-story")}>
+                    <StoryEvento contenuto={contenuto} immagini={immagini} />
+                  </FuoriSchermo>
+                  {SLIDE_CAROSELLO.map((s) => (
+                    <FuoriSchermo key={s.id} formato="post" riferimento={registra(`pacco-${s.id}`)}>
+                      <SlideCarosello id={s.id} contenuto={contenuto} immagini={immagini} traccia={traccia} />
+                    </FuoriSchermo>
+                  ))}
+                </>
               )}
             </FornitoreProblemi>
 
@@ -494,4 +956,31 @@ export default function EditorEvento() {
       )}
     </div>
   );
+}
+
+/* ================================================================== *
+ * Aiutanti
+ * ================================================================== */
+
+/** Il riferimento del ritaglio di uno slot. */
+function riferimentoSlot(media, slot) {
+  if (slot === "cover") return media?.cover || null;
+  if (slot === "cta") return media?.sfondi?.cta || null;
+  return media?.esperienza?.[Number(slot.split("-")[1])] || null;
+}
+
+/** Media con il ritaglio di uno slot sostituito. Non muta l'originale. */
+function conRitaglio(media, slot, nuovo) {
+  const copia = { ...media };
+  if (slot === "cover") {
+    copia.cover = nuovo;
+  } else if (slot === "cta") {
+    copia.sfondi = { ...copia.sfondi, cta: nuovo };
+  } else {
+    const i = Number(slot.split("-")[1]);
+    const esperienza = [...(copia.esperienza || [])];
+    esperienza[i] = nuovo;
+    copia.esperienza = esperienza;
+  }
+  return copia;
 }

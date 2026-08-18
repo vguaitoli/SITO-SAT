@@ -67,6 +67,10 @@ export default function Anteprima({ formato = "post", children, riferimento, mas
  * `scale()` verrebbe fotografata così com'è. Lo si tiene fuori dalla vista con
  * un `position: fixed` a coordinate negative invece di `display: none`, perché
  * un nodo nascosto non ha dimensioni e html2canvas non saprebbe cosa ritagliare.
+ *
+ * Nemmeno `opacity: 0`: un nodo trasparente viene disegnato trasparente, e un
+ * PNG vuoto è esattamente il genere di guasto che si scopre dopo aver
+ * pubblicato. Fuori dallo schermo e opaco.
  */
 export function FuoriSchermo({ formato = "post", children, riferimento }) {
   const f = FORMATI[formato];
@@ -80,7 +84,6 @@ export function FuoriSchermo({ formato = "post", children, riferimento }) {
         width: f.larghezza,
         height: f.altezza,
         pointerEvents: "none",
-        opacity: 0,
       }}
     >
       <div ref={riferimento} style={{ width: f.larghezza, height: f.altezza }}>

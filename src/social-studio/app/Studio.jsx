@@ -11,10 +11,11 @@ import { COLORI } from "../design/tokens";
 /**
  * STA Social Studio — guscio dell'applicazione.
  *
- * Fase 4A: design system, Brand Lock, Template Engine, anteprima dal vivo e
- * pre-flight sono in piedi e collegati fra loro. L'editor completo, la Media
- * Library con l'interfaccia e il planner arrivano dopo; qui si vede che
- * l'impianto regge, con i dati veri del sito.
+ * Design system, Brand Lock, Template Engine, anteprima dal vivo e pre-flight
+ * sono in piedi e collegati fra loro. La rubrica EVENTI è completa da un capo
+ * all'altro — bozze persistenti, Media Library con metadata, GPX reale, caption
+ * con Fact Lock, pacchetto esportabile. Le altre sette rubriche hanno il
+ * framework ma non i template.
  */
 export default function Studio() {
   useEffect(() => {
@@ -57,7 +58,7 @@ function Intestazione() {
             Brand Lock {lucchetto ? "attivo" : "disattivato"}
           </span>
           <span className="font-button text-[10px] uppercase tracking-[0.2em] text-granite-mist/35">
-            Fase 4A
+            Fase 5.1
           </span>
         </div>
       </div>
