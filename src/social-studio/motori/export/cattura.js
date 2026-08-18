@@ -1,5 +1,6 @@
 import html2canvas from "html2canvas";
 import { FORMATI } from "../../design/formati";
+import { COLORI } from "../../design/tokens";
 import { assicuraFontPronti } from "../font";
 
 /**
@@ -89,7 +90,10 @@ export async function cattura(nodo, { formato = "post", segnale } = {}) {
       width: f.larghezza,
       height: f.altezza,
       scale: 1, // il nodo è già a misura: nessun ricampionamento
-      backgroundColor: null,
+      // Fondo opaco esplicito: con `null` i pixel non dipinti restano
+      // trasparenti, e un PNG destinato a Instagram non deve avere
+      // trasparenza — si vedrebbe nero o bianco a seconda di dove finisce.
+      backgroundColor: COLORI.fondo,
       useCORS: true,
       logging: false,
       // Senza questi html2canvas userebbe lo scroll della pagina e

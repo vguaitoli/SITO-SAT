@@ -233,9 +233,9 @@ describe("Pre-flight", () => {
     expect(esito.errori.map((e) => e.id)).toContain("sforo-cover-titolo");
   });
 
-  it("segnala che la grafica EVENTI è provvisoria", () => {
+  it("non segnala piu' EVENTI come provvisoria: la grafica deriva dalla locandina", () => {
     const esito = preflight({ contenuto: evento(), vociMedia: media });
-    expect(esito.avvisi.map((e) => e.id)).toContain("provvisoria");
+    expect(esito.avvisi.map((e) => e.id)).not.toContain("provvisoria");
   });
 
   it("un controllo che si rompe non nasconde gli altri", () => {

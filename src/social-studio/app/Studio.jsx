@@ -1,17 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, Lock, XCircle } from "lucide-react";
-import { useSiteContent } from "@/content/TinaContentProvider";
 import { FornitoreArchivio } from "./ContestoArchivio";
 import StatoArchivio from "./StatoArchivio";
-import Anteprima from "./Anteprima";
 import { ELENCO_CATEGORIE } from "../design/categorie";
-import { contenutoVuoto } from "../fondamenta/schema";
 import { brandLockAttivo } from "../fondamenta/brand-lock";
-import { daEvento } from "../fondamenta/adapter-sito";
-import { preflight } from "../motori/preflight";
-import { FornitoreProblemi, useFontPronti } from "../template/primitivi";
-import PostEvento from "../template/rubriche/eventi/PostEvento";
 import StressTest from "./StressTest";
+import EditorEvento from "./EditorEvento";
 import { COLORI } from "../design/tokens";
 
 /**
@@ -38,7 +32,7 @@ export default function Studio() {
         <main className="mx-auto max-w-6xl space-y-8 px-6 py-8 lg:px-10">
           <StatoArchivio />
           <Rubriche />
-          <BancoDiProva />
+          <EditorEvento />
           <StressTest />
         </main>
       </div>
@@ -100,112 +94,6 @@ function Rubriche() {
           </li>
         ))}
       </ol>
-    </section>
-  );
-}
-
-/**
- * Banco di prova: il template EVENTI con i dati reali del sito.
- *
- * Serve a verificare l'impianto — adapter, cornice, testo adattivo, pre-flight —
- * su un contenuto vero invece che su dati inventati.
- */
-function BancoDiProva() {
-  const { events, SITE, TOUR_GROUP } = useSiteContent();
-  const [problemi, setProblemi] = useState([]);
-
-  const evento = useMemo(
-    () => events?.find((e) => /giganti/i.test(e.name || "")) || events?.[0] || null,
-    [events],
-  );
-
-  const contenuto = useMemo(() => {
-    if (!evento) return null;
-    const base = contenutoVuoto({ categoria: "eventi", formato: "post" });
-    const importato = daEvento(evento, {
-      tourGroup: TOUR_GROUP?.label,
-      urlBase: "https://www.sardegnatrailavventura.it",
-      whatsapp: SITE?.telefono?.display,
-    });
-    return {
-      ...base,
-      titolo: importato.fattuali.nome,
-      fonte: importato.fonte,
-      fattuali: { ...base.fattuali, ...importato.fattuali },
-      editoriale: { ...base.editoriale, ...importato.editoriale },
-    };
-  }, [evento, TOUR_GROUP, SITE]);
-
-  // Il controllo sui font va rifatto quando i font arrivano, altrimenti
-  // segnalerebbe per sempre un'assenza momentanea.
-  const fontPronti = useFontPronti();
-
-  const controllo = useMemo(
-    () => (contenuto ? preflight({ contenuto, vociMedia: [], formato: "post", problemi }) : null),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [contenuto, problemi, fontPronti],
-  );
-
-  if (!contenuto) {
-    return (
-      <section className="border border-[var(--border-on-dark)] p-5">
-        <p className="font-body text-sm text-granite-mist/60">Nessun evento disponibile dal sito.</p>
-      </section>
-    );
-  }
-
-  return (
-    <section className="border border-[var(--border-on-dark)] p-5">
-      <div className="mb-5 flex flex-wrap items-baseline justify-between gap-3">
-        <h2 className="font-button text-xs uppercase tracking-[0.2em] text-[var(--accent-soft)]">
-          Anteprima · Post evento
-        </h2>
-        <span className="font-body text-xs text-granite-mist/45">
-          dati importati dal sito · {contenuto.fonte.slug}
-        </span>
-      </div>
-
-      <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-        <FornitoreProblemi onProblemi={setProblemi}>
-          <Anteprima formato="post" massimaAltezza={680}>
-            <PostEvento contenuto={contenuto} immagini={{}} />
-          </Anteprima>
-        </FornitoreProblemi>
-
-        <div>
-          <h3 className="mb-3 font-button text-[10px] uppercase tracking-[0.22em] text-granite-mist/50">
-            Pre-flight
-          </h3>
-          <ul className="space-y-2">
-            {controllo.esiti.map((e) => (
-              <li key={e.id} className="flex items-start gap-2 font-body text-xs leading-snug">
-                <Segno livello={e.livello} />
-                <span
-                  style={{
-                    color:
-                      e.livello === "errore"
-                        ? "#E2857A"
-                        : e.livello === "avviso"
-                          ? COLORI.accentoEventi
-                          : "rgba(245,235,217,0.6)",
-                  }}
-                >
-                  {e.messaggio}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-4 border-t border-[var(--border-on-dark)] pt-3 font-button text-[10px] uppercase tracking-[0.2em]">
-            {controllo.puoiEsportare ? (
-              <span className="text-[var(--wild-sage-bright)]">Esportabile</span>
-            ) : (
-              <span style={{ color: "#E2857A" }}>
-                Bloccato · {controllo.errori.length} error{controllo.errori.length === 1 ? "e" : "i"}
-              </span>
-            )}
-          </p>
-        </div>
-      </div>
     </section>
   );
 }

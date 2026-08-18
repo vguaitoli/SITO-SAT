@@ -42,8 +42,11 @@ export const CATEGORIE = {
     tonoCaption: "Desiderio, dati e conversione. La CTA non è opzionale.",
     varianti: ["standard", "locandina", "minimale"],
     formati: ["post", "story", "carosello"],
-    /** La grafica attende il sorgente della locandina: vedi note in fondo. */
-    provvisoria: true,
+    /**
+     * La grafica ora deriva dalla locandina del progetto
+     * (docs/locandina-template.html) riproporzionata sul master 1080×1350:
+     * non e' piu' provvisoria.
+     */
   },
 
   trail: {
