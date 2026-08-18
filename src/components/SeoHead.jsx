@@ -13,6 +13,21 @@ function upsertMeta(selector, attributes) {
   });
 }
 
+const SELETTORI_PUBBLICI = [
+  'link[rel="canonical"]',
+  'link[rel="alternate"][hreflang]',
+  'meta[name="description"]',
+  'meta[property^="og:"]',
+  'meta[name^="twitter:"]',
+  "#seo-jsonld",
+];
+
+function rimuoviMetadatiPubblici() {
+  SELETTORI_PUBBLICI.forEach((selettore) => {
+    document.head.querySelectorAll(selettore).forEach((element) => element.remove());
+  });
+}
+
 function upsertCanonical(href) {
   let element = document.head.querySelector('link[rel="canonical"]');
   if (!element) {
@@ -68,6 +83,14 @@ export default function SeoHead() {
 
       document.documentElement.lang = seo.htmlLang;
       document.title = seo.title;
+
+      if (seo.privata) {
+        rimuoviMetadatiPubblici();
+        upsertMeta('meta[name="robots"]', { name: "robots", content: seo.robots });
+        upsertMeta('meta[name="googlebot"]', { name: "googlebot", content: seo.robots });
+        return;
+      }
+
       upsertCanonical(seo.canonical);
       updateAlternates(seo.alternates);
 

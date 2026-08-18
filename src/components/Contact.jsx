@@ -8,8 +8,8 @@ import { useSiteContent } from "@/content/TinaContentProvider";
 import { useI18n } from "@/i18n/I18nProvider";
 
 export default function Contact() {
-  const { homepage, tours, siteSettings, SITE, CTA_LABELS } = useSiteContent();
-  const { t, href, localize } = useI18n();
+  const { homepage, tours, events, siteSettings, SITE, CTA_LABELS } = useSiteContent();
+  const { t, href, localize, localeMeta } = useI18n();
   const categories = localize(CATEGORIE);
   const content = homepage.contact;
   const contacts = [
@@ -22,20 +22,93 @@ export default function Contact() {
   const visibleContacts = SITE.contattiVerificati
     ? contacts
     : contacts.filter((contact) => contact.label === t("Dove siamo"));
-  const tourOptions = [
-    ...tours.map((tour) => `${tour.name} (${tour.type})`),
-    ...categories.filter((category) => category.kind === "course").map((category) => category.nome),
-    ...categories.filter((category) => category.kind === "rental").map((category) => category.nome),
-  ];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const getDate = (value) => (value ? new Date(`${value.slice(0, 10)}T00:00:00`) : null);
+  const formatDate = (value) =>
+    getDate(value)?.toLocaleDateString(localeMeta.dateLocale, {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }) || "";
+  const formatEventPeriod = (event) => {
+    const start = formatDate(event.date);
+    const end = formatDate(event.endDate);
+    return end && end !== start ? `${start} – ${end}` : start;
+  };
+
+  // I valori restano stabili tra le lingue; le etichette, invece, vengono
+  // localizzate. In questo modo un link da una scheda evento può preselezionare
+  // il form senza dipendere dal testo mostrato a schermo.
+  const vehicleFilters = CATEGORIE.map((category, index) => ({
+    value: category.tourType || category.nome,
+    label: categories[index]?.nome || category.nome,
+    service: category.kind === "course" || category.kind === "rental",
+  })).filter(
+    (filter, index, list) => list.findIndex((entry) => entry.value === filter.value) === index,
+  );
+
+  const scheduledEvents = events
+    .filter((event) => {
+      const lastDay = getDate(event.endDate || event.date);
+      return event.date && lastDay && lastDay >= today;
+    })
+    .sort((a, b) => getDate(a.date).getTime() - getDate(b.date).getTime())
+    .map((event) => ({
+      id: `event:${event.slug}`,
+      slug: event.slug,
+      vehicle: event.type,
+      kind: "event",
+      name: event.name,
+      // Un input type="date" accetta solo YYYY-MM-DD, mentre Tina salva una
+      // data ISO completa con orario.
+      date: event.date.slice(0, 10),
+      label: `${event.name} · ${formatEventPeriod(event)}`,
+    }));
+  const catalogTours = tours.map((tour) => ({
+    id: `tour:${tour.slug}`,
+    slug: tour.slug,
+    vehicle: tour.type,
+    kind: "tour",
+    name: tour.name,
+    date: tour.date || "",
+    label: tour.name,
+  }));
+  const catalogOptions = [...scheduledEvents, ...catalogTours];
+
+  // Le esperienze senza un itinerario pubblicato (per esempio SSV, corsi o
+  // noleggio) conservano comunque un percorso di richiesta informazioni.
+  vehicleFilters.forEach((vehicle) => {
+    if (!catalogOptions.some((option) => option.vehicle === vehicle.value)) {
+      catalogOptions.push({
+        id: `request:${vehicle.value}`,
+        vehicle: vehicle.value,
+        kind: "request",
+        name: vehicle.label,
+        date: "",
+        label: `${t("Richiedi informazioni su")} ${vehicle.label}`,
+      });
+    }
+  });
+
   const [searchParams] = useSearchParams();
-  const requestedTour = localize(searchParams.get("interesse"));
-  const initialTour = requestedTour && tourOptions.includes(requestedTour) ? requestedTour : "";
+  const requestedInterest = searchParams.get("interesse") || "";
+  const requestedLabel = localize(requestedInterest);
+  const initialOption = catalogOptions.find(
+    (option) =>
+      option.id === requestedInterest ||
+      option.slug === requestedInterest ||
+      option.name === requestedLabel ||
+      option.label === requestedLabel ||
+      `${option.name} (${option.vehicle})` === requestedLabel,
+  );
   const [form, setForm] = useState({
     nome: "",
     email: "",
     telefono: "",
-    tour: initialTour,
-    data: "",
+    mezzo: initialOption?.vehicle || "",
+    tour: initialOption?.id || "",
+    data: initialOption?.date || "",
     messaggio: "",
     // Dichiarazione di presa visione dell'informativa privacy (obbligatoria).
     privacy: false,
@@ -49,6 +122,15 @@ export default function Contact() {
 
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;
+    if (name === "mezzo") {
+      setForm({ ...form, mezzo: value, tour: "" });
+      return;
+    }
+    if (name === "tour") {
+      const selected = catalogOptions.find((option) => option.id === value);
+      setForm({ ...form, tour: value, data: selected?.kind === "event" ? selected.date : "" });
+      return;
+    }
     setForm({ ...form, [name]: type === "checkbox" ? checked : value });
   };
 
@@ -63,17 +145,21 @@ export default function Contact() {
       if (!WEB3FORMS_ACCESS_KEY) {
         throw new Error("Web3Forms non configurato: manca VITE_WEB3FORMS_ACCESS_KEY.");
       }
+      const selectedVehicle = vehicleFilters.find((vehicle) => vehicle.value === form.mezzo);
+      const selectedInterest = catalogOptions.find((option) => option.id === form.tour);
+      const interestLabel = selectedInterest?.label || t("Esperienza da consigliare");
       const res = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           access_key: WEB3FORMS_ACCESS_KEY,
-          subject: `Nuova richiesta: ${form.tour || "Esperienza"} - ${form.nome}`,
+          subject: `Nuova richiesta: ${interestLabel} - ${form.nome}`,
           from_name: "Sito Sardegna Trail Avventura",
           nome: form.nome,
           email: form.email,
           telefono: form.telefono,
-          tour: form.tour,
+          mezzo: selectedVehicle?.label || form.mezzo,
+          tour_o_evento: interestLabel,
           data_desiderata: form.data,
           messaggio: form.messaggio,
         }),
@@ -83,7 +169,7 @@ export default function Contact() {
         throw new Error(result.message || "Invio non riuscito");
       }
       setSent(true);
-      setForm({ nome: "", email: "", telefono: "", tour: "", data: "", messaggio: "", privacy: false, botcheck: "" });
+      setForm({ nome: "", email: "", telefono: "", mezzo: "", tour: "", data: "", messaggio: "", privacy: false, botcheck: "" });
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
       setError(
@@ -98,6 +184,11 @@ export default function Contact() {
 
   const inputClass =
     "w-full bg-transparent border-b border-[#F5EBD9]/20 focus:border-[#A0612A] py-3 px-0 font-body text-[#F5EBD9] placeholder-[#F5EBD9]/40 outline-none transition-colors";
+  const filteredOptions = catalogOptions.filter((option) => option.vehicle === form.mezzo);
+  const filteredEvents = filteredOptions.filter((option) => option.kind === "event");
+  const filteredTours = filteredOptions.filter((option) => option.kind !== "event");
+  const vehicleOptions = vehicleFilters.filter((vehicle) => !vehicle.service);
+  const serviceOptions = vehicleFilters.filter((vehicle) => vehicle.service);
 
   return (
     <section id="contatti" className="bg-[#1C1814] topo-dark py-24 lg:py-32">
@@ -263,26 +354,62 @@ export default function Contact() {
                 </div>
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="contact-tour" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Esperienza o corso")}</label>
+                    <label htmlFor="contact-mezzo" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Mezzo *")}</label>
+                    <select
+                      id="contact-mezzo"
+                      name="mezzo"
+                      value={form.mezzo}
+                      onChange={handleChange}
+                      className={inputClass + " text-[#F5EBD9]"}
+                      required
+                    >
+                      <option value="" className="bg-[#1C1814]">{t("Seleziona il mezzo...")}</option>
+                      <optgroup label={t("Mezzi")} className="bg-[#1C1814]">
+                        {vehicleOptions.map((vehicle) => (
+                          <option key={vehicle.value} value={vehicle.value}>{vehicle.label}</option>
+                        ))}
+                      </optgroup>
+                      {serviceOptions.length > 0 && (
+                        <optgroup label={t("Altri servizi")} className="bg-[#1C1814]">
+                          {serviceOptions.map((vehicle) => (
+                            <option key={vehicle.value} value={vehicle.value}>{vehicle.label}</option>
+                          ))}
+                        </optgroup>
+                      )}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="contact-tour" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Tour o evento *")}</label>
                     <select
                       id="contact-tour"
                       name="tour"
                       value={form.tour}
                       onChange={handleChange}
-                      className={inputClass + " text-[#F5EBD9]"}
+                      disabled={!form.mezzo}
+                      required
+                      className={inputClass + " text-[#F5EBD9] disabled:cursor-not-allowed disabled:opacity-45"}
                     >
-                      <option value="" className="bg-[#1C1814]">{t("Seleziona...")}</option>
-                      {tourOptions.map((t) => (
-                        <option key={t} value={t} className="bg-[#1C1814]">
-                          {t}
-                        </option>
-                      ))}
-                      <option value={t("Non so ancora / consigliatemi voi")} className="bg-[#1C1814]">
-                        {t("Non so ancora / consigliatemi voi")}
+                      <option value="" className="bg-[#1C1814]">
+                        {form.mezzo ? t("Seleziona tour o evento...") : t("Prima seleziona il mezzo")}
                       </option>
+                      {filteredEvents.length > 0 && (
+                        <optgroup label={t("Eventi con data fissata")} className="bg-[#1C1814]">
+                          {filteredEvents.map((option) => (
+                            <option key={option.id} value={option.id}>{option.label}</option>
+                          ))}
+                        </optgroup>
+                      )}
+                      {filteredTours.length > 0 && (
+                        <optgroup label={t("Tour e richieste su misura")} className="bg-[#1C1814]">
+                          {filteredTours.map((option) => (
+                            <option key={option.id} value={option.id}>{option.label}</option>
+                          ))}
+                        </optgroup>
+                      )}
                     </select>
                   </div>
-                  <div>
+                </div>
+                <div>
                     <label htmlFor="contact-data" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Data desiderata")}</label>
                     <input
                       id="contact-data"
@@ -292,7 +419,6 @@ export default function Contact() {
                       onChange={handleChange}
                       className={inputClass + " text-[#F5EBD9]"}
                     />
-                  </div>
                 </div>
                 <div>
                   <label htmlFor="contact-messaggio" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Messaggio")}</label>

@@ -20,6 +20,11 @@ const HOME_IMAGE = "/media/reali/hero-maxienduro-panorama-1200.webp";
 const HOME_HERO_IMAGE = "/media/logo-sardegna-trail-avventura.png";
 const INDEX_ROBOTS = "index, follow, max-image-preview:large";
 const NOINDEX_ROBOTS = "noindex, nofollow";
+const PRIVATE_ROBOTS = "noindex, nofollow, noarchive";
+// Pagina accessibile solo tramite link, esclusa da sitemap e prerendering.
+const PAGINE_INTERNE = [
+  { prefisso: "/feedback", titolo: "Questionario post-tour" },
+];
 const TOUR_PAGES = normalizeTours(tourCatalogContent);
 const EVENT_PAGES = normalizeEvents(eventCatalogContent);
 
@@ -429,6 +434,21 @@ function finalize(path, locale, seo) {
 }
 
 export function getSeoForPath(pathname) {
+  const interna = PAGINE_INTERNE.find(
+    (pagina) => pathname === pagina.prefisso || pathname.startsWith(`${pagina.prefisso}/`),
+  );
+  if (interna) {
+    return {
+      privata: true,
+      path: pathname,
+      locale: "it",
+      htmlLang: LOCALE_META.it.htmlLang,
+      title: `${interna.titolo} | ${SITE_NAME}`,
+      robots: PRIVATE_ROBOTS,
+      indexable: false,
+    };
+  }
+
   const resolved = resolveRoute(pathname);
   const { locale, name, params } = resolved;
   const path = name === "notFound" ? pathname : routePath(locale, name, params);

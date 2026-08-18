@@ -19,6 +19,7 @@ const BlogList = lazy(() => import('./pages/BlogList'));
 const BlogDetail = lazy(() => import('./pages/BlogDetail'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const CookiePolicy = lazy(() => import('./pages/CookiePolicy'));
+const Feedback = lazy(() => import('./pages/Feedback'));
 
 function RouteFallback() {
   const { t } = useI18n();
@@ -47,6 +48,7 @@ const SiteRoutes = () => {
         <Route path="/blog/:id" element={<BlogDetail />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/cookie-policy" element={<CookiePolicy />} />
+        <Route path="/feedback" element={<Feedback />} />
         <Route path="/en" element={<Home />} />
         <Route path="/en/experiences/:cat" element={<CategoriaPage />} />
         <Route path="/en/tours" element={<TourItinerari />} />
