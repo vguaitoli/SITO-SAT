@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useLayoutEffect, useRef, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { COLORI, FONT, TESTO } from "../design/tokens";
 import { assicuraFontPronti } from "../motori/font";
 
@@ -14,12 +14,21 @@ import { assicuraFontPronti } from "../motori/font";
  * ================================================================== */
 
 const ContestoProblemi = createContext(null);
+const ContestoAmbito = createContext("");
 
 /**
  * Raccoglie i problemi rilevati durante il disegno.
  *
  * Il requisito è esplicito: se un contenuto non ci sta, va segnalato
  * nell'editor, non rimpicciolito fino a diventare illeggibile.
+ *
+ * Il registro è una mappa per chiave, quindi la chiave **è** l'identità della
+ * segnalazione. Con chiavi globali come `stat-Durata` il Post, la Story e le
+ * otto slide — che vengono montati insieme durante l'esportazione del
+ * pacchetto — si scrivevano l'uno sull'altro: l'errore vero di una Story
+ * spariva perché il Post scriveva `null` sulla stessa chiave. `AmbitoProblemi`
+ * prefissa le chiavi con il formato e la slide, e ogni componente ripulisce la
+ * propria voce quando viene smontato.
  */
 export function FornitoreProblemi({ onProblemi, children }) {
   const raccolti = useRef(new Map());
@@ -43,11 +52,61 @@ export function FornitoreProblemi({ onProblemi, children }) {
     [onProblemi],
   );
 
+  // Il timer sopravviverebbe allo smontaggio e chiamerebbe `onProblemi` su un
+  // componente che non c'è più.
+  useEffect(() => () => clearTimeout(timer.current), []);
+
   return <ContestoProblemi.Provider value={segnala}>{children}</ContestoProblemi.Provider>;
 }
 
 export function useSegnalaProblema() {
   return useContext(ContestoProblemi) || (() => {});
+}
+
+/**
+ * Delimita un ambito di segnalazioni.
+ *
+ * I template ci avvolgono il proprio contenuto: `<AmbitoProblemi nome="story">`,
+ * `<AmbitoProblemi nome="carosello/05">`. Gli ambiti si annidano, così una
+ * seconda istanza dello stesso template — l'anteprima e la copia fuori schermo
+ * del pacchetto — non condivide nessuna chiave con la prima.
+ */
+export function AmbitoProblemi({ nome, children }) {
+  const genitore = useContext(ContestoAmbito);
+  const valore = useMemo(
+    () => [genitore, nome].filter(Boolean).join("/"),
+    [genitore, nome],
+  );
+  return <ContestoAmbito.Provider value={valore}>{children}</ContestoAmbito.Provider>;
+}
+
+/** La chiave completa di una segnalazione, ambito compreso. */
+export function useChiaveProblema(chiave) {
+  const ambito = useContext(ContestoAmbito);
+  return useMemo(() => [ambito, chiave].filter(Boolean).join("/"), [ambito, chiave]);
+}
+
+/**
+ * Registra una segnalazione e la ritira allo smontaggio.
+ *
+ * Il ritiro è il punto: senza, passando da Story a Post restavano gli errori
+ * della Story, e dopo l'esportazione del pacchetto restavano quelli dei dieci
+ * template smontati. Il pre-flight mostrava problemi di grafiche che non
+ * esistevano più.
+ */
+export function useSegnalazione(chiave, problema) {
+  const segnala = useSegnalaProblema();
+  const chiaveIntera = useChiaveProblema(chiave);
+  const impronta = problema ? JSON.stringify(problema) : null;
+
+  useEffect(() => {
+    segnala(chiaveIntera, impronta ? JSON.parse(impronta) : null);
+    return () => segnala(chiaveIntera, null);
+    // `impronta` è la forma stabile di `problema`: senza, l'effetto girerebbe
+    // a ogni render perché l'oggetto è nuovo ogni volta.
+  }, [segnala, chiaveIntera, impronta]);
+
+  return chiaveIntera;
 }
 
 /* ================================================================== *
@@ -129,8 +188,16 @@ export function TestoAdattivo({
    */
   const [respiro, setRespiro] = useState(0);
   const segnala = useSegnalaProblema();
+  const chiaveIntera = useChiaveProblema(chiave);
   const testo = testoDa(children);
   const fontPronti = useFontPronti();
+
+  /*
+   * Il ritiro sta in un effetto proprio, separato dalla misura: la misura non
+   * gira quando il componente viene smontato, e senza questo la segnalazione
+   * resterebbe nel registro per sempre.
+   */
+  useEffect(() => () => segnala(chiaveIntera, null), [segnala, chiaveIntera]);
 
   useLayoutEffect(() => {
     const el = ref.current;
@@ -176,7 +243,7 @@ export function TestoAdattivo({
     if (!sbordaA(size)) {
       setCorpo(size);
       setRespiro(misuraRespiro(size));
-      segnala(chiave, null);
+      segnala(chiaveIntera, null);
       return;
     }
 
@@ -200,7 +267,7 @@ export function TestoAdattivo({
     setRespiro(misuraRespiro(migliore));
 
     segnala(
-      chiave,
+      chiaveIntera,
       nonEntraNemmeoAlMinimo
         ? {
             livello: "errore",
@@ -214,7 +281,7 @@ export function TestoAdattivo({
           : null,
     );
     // La misura dipende solo dagli ingressi, non da `corpo`: nessun ciclo.
-  }, [testo, size, minSize, altezzaMassima, chiave, etichetta, segnala, fontPronti]);
+  }, [testo, size, minSize, altezzaMassima, chiaveIntera, etichetta, segnala, fontPronti]);
 
   return (
     <div
@@ -259,18 +326,15 @@ export function TestoAdattivo({
  * Non taglia nulla: mostra tutto e avvisa.
  */
 export function ControlloCapienza({ chiave, etichetta, quante, massimo }) {
-  const segnala = useSegnalaProblema();
-  useLayoutEffect(() => {
-    segnala(
-      chiave,
-      quante > massimo
-        ? {
-            livello: "avviso",
-            messaggio: `${etichetta}: ${quante} voci, il layout ne regge ${massimo} con equilibrio. Toglierne ${quante - massimo} o passare a una variante compatta.`,
-          }
-        : null,
-    );
-  }, [chiave, etichetta, quante, massimo, segnala]);
+  useSegnalazione(
+    chiave,
+    quante > massimo
+      ? {
+          livello: "avviso",
+          messaggio: `${etichetta}: ${quante} voci, il layout ne regge ${massimo} con equilibrio. Toglierne ${quante - massimo} o passare a una variante compatta.`,
+        }
+      : null,
+  );
   return null;
 }
 

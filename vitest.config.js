@@ -8,8 +8,9 @@ import path from "node:path";
  * L'alias @ ricalca quello di vite.config.js: i moduli si importano con gli
  * stessi percorsi che usano nell'applicazione.
  *
- * L'ambito è ristretto a src/social-studio e scripts: i test coprono le
- * fondamenta, non il sito pubblico, che resta fuori da questo lavoro.
+ * L'ambito è ristretto alle fondamenta: src/social-studio, gli script, le API e
+ * — sola eccezione nel sito pubblico — src/seo, perché è lì che vivono i
+ * metadati della pagina interna dello studio.
  */
 export default defineConfig({
   resolve: {
@@ -17,7 +18,12 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
-    include: ["src/social-studio/**/*.test.{js,jsx}", "scripts/**/*.test.mjs", "api/**/*.test.mjs"],
+    include: [
+      "src/social-studio/**/*.test.{js,jsx}",
+      "src/seo/**/*.test.js",
+      "scripts/**/*.test.mjs",
+      "api/**/*.test.mjs",
+    ],
     globals: false,
     restoreMocks: true,
   },

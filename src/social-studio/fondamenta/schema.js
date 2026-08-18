@@ -28,6 +28,22 @@ export const STATI = ["bozza", "pronto", "programmato", "pubblicato", "archiviat
 /** Da dove viene un singolo dato fattuale. Rende verificabile il Fact Lock. */
 export const ORIGINI = ["sito", "manuale", "gpx"];
 
+/** Disponibilità dei posti, mostrata sul badge accanto alla data. */
+export const STATI_POSTI = ["disponibili", "ultimi", "soldout", "attesa"];
+
+/** Taglie della caption. Passano al provider come parte della richiesta. */
+export const LUNGHEZZE_CAPTION = ["breve", "standard", "storytelling"];
+
+/**
+ * Da dove viene una voce degli highlight.
+ *
+ * `preset` è scritta a mano per un singolo evento, `punti-interesse` derivata
+ * dai dati del sito, `manuale` toccata nell'editor. Serve a sapere cosa è
+ * ancora da rileggere: una voce derivata ha il titolo giusto e la descrizione
+ * da scrivere.
+ */
+export const ORIGINI_HIGHLIGHT = ["preset", "punti-interesse", "manuale", ""];
+
 const iso = z.string().datetime({ offset: true }).or(z.string().length(0));
 const giorno = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.string().length(0));
 
@@ -73,6 +89,13 @@ export const fattuali = z.object({
   livello: z.string().default(""),
   partecipantiMin: z.string().default(""),
   partecipantiMax: z.string().default(""),
+  /**
+   * Località di partenza. Viene da `startLocation` del sito e l'adapter la
+   * importava già, ma questo schema non la dichiarava: la convalida la
+   * scartava in silenzio a ogni salvataggio, e `estraiFattuali` la leggeva
+   * sempre vuota.
+   */
+  partenza: z.string().default(""),
   mezzo: z.string().default(""),
   pneumatici: z.string().default(""),
   esperienza: z.string().default(""),
@@ -97,16 +120,16 @@ export const editoriale = z.object({
     descrizione: z.string().default(""),
     /** Da dove viene la voce: un preset scritto a mano, i punti di interesse
      *  del sito, o la mano di chi scrive. Serve a sapere cosa va riletto. */
-    origine: z.string().default(""),
+    origine: z.enum(ORIGINI_HIGHLIGHT).default(""),
   })).default([]),
   caption: z.object({
     testo: z.string().default(""),
-    lunghezza: z.enum(["breve", "standard", "storytelling"]).default("standard"),
+    lunghezza: z.enum(LUNGHEZZE_CAPTION).default("standard"),
     paragrafiBloccati: z.array(z.number().int().nonnegative()).default([]),
   }).default({}),
   cta: z.string().default(""),
   whatsapp: z.string().default(""),
-  statoPosti: z.enum(["disponibili", "ultimi", "soldout", "attesa"]).default("disponibili"),
+  statoPosti: z.enum(STATI_POSTI).default("disponibili"),
 });
 
 export const configurazioneMappa = z.object({

@@ -37,21 +37,49 @@ const BYTE_MASSIMI = 32 * 1024;
 const RUBRICHE = ["tour", "eventi", "trail", "sardegna", "guide", "garage", "crew", "info"];
 
 /**
- * Schema chiuso: un campo non previsto fa fallire la richiesta invece di
- * passare al fornitore senza controllo. Accetta solo testo e dati strutturati
- * brevi — fotografie, GPX e coordinate non possono attraversarlo.
+ * I soli campi fattuali che possono attraversare l'endpoint.
+ *
+ * Sono esattamente quelli prodotti da `estraiFattuali()` in
+ * `src/social-studio/motori/caption/fact-lock.js`. L'elenco è duplicato di
+ * proposito: qui non si possono importare moduli del frontend, e un endpoint
+ * che si fida di ciò che gli arriva non è un endpoint protetto. Un test
+ * confronta le due liste e fallisce se divergono.
  */
+export const CAMPI_FATTUALI = [
+  "nome", "prezzo", "dataInizio", "dataFine", "periodo", "km", "sterrato",
+  "durata", "livello", "partecipantiMin", "partecipantiMax", "partenza",
+];
+
+const testoBreve = z.string().max(400);
+
+/**
+ * Schema chiuso, campo per campo.
+ *
+ * `fattuali` era un `z.record` con chiavi libere: una richiesta con
+ * `fattuali.gpx`, `fattuali.idBlob` o delle coordinate passava la validazione e
+ * arrivava intatta al fornitore. Un dizionario aperto dentro uno schema
+ * `.strict()` è una porta aperta in un muro: il muro non conta.
+ *
+ * Ora le chiavi ammesse sono dodici e nominate. Fotografie, GPX, coordinate,
+ * riferimenti a blob e qualunque campo inventato fanno fallire la richiesta.
+ */
+const fattualiSchema = z
+  .object(Object.fromEntries(CAMPI_FATTUALI.map((c) => [c, testoBreve.default("")])))
+  .strict();
+
 const richiestaSchema = z.object({
   rubrica: z.enum(RUBRICHE),
   lunghezza: z.enum(["breve", "standard", "storytelling"]).default("standard"),
-  fattuali: z.record(z.union([z.string().max(400), z.number(), z.boolean()])).default({}),
+  fattuali: fattualiSchema.default({}),
   editoriale: z.object({
     titolo: z.string().max(200).default(""),
     claim: z.string().max(400).default(""),
     note: z.string().max(2000).default(""),
-  }).default({}),
+  }).strict().default({}),
   paragrafiBloccati: z.array(z.string().max(2000)).max(10).default([]),
 }).strict();
+
+export { richiestaSchema };
 
 /**
  * Limite di frequenza in memoria, a finestra scorrevole.

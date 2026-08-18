@@ -1,18 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  AlertTriangle, CheckCircle2, Download, FilePlus2, FolderOpen, History, Lock,
-  Package, RotateCcw, Save, Trash2, Unlock, Wand2, XCircle,
+  AlertTriangle, CheckCircle2, Database, Download, FilePlus2, FolderOpen, History,
+  Lock, Package, Pencil, RotateCcw, Save, Trash2, Unlock, Wand2, XCircle,
 } from "lucide-react";
 import { useSiteContent } from "@/content/TinaContentProvider";
 import { useArchivio } from "./ContestoArchivio";
 import Anteprima, { FuoriSchermo } from "./Anteprima";
 import LibreriaUI from "../media/LibreriaUI";
 import Ritaglio from "../media/Ritaglio";
-import { contenutoVuoto } from "../fondamenta/schema";
+import { contenutoVuoto, LUNGHEZZE_CAPTION, STATI, STATI_POSTI } from "../fondamenta/schema";
 import { confrontaConLaFonte, daEvento } from "../fondamenta/adapter-sito";
 import { haPreset, highlightIniziali } from "../fondamenta/preset-eventi";
 import { elencoRevisioni, registraRevisione, ripristinaRevisione } from "../fondamenta/versioni";
-import { FornitoreProblemi, useFontPronti } from "../template/primitivi";
+import { AmbitoProblemi, FornitoreProblemi, useFontPronti } from "../template/primitivi";
 import PostEvento from "../template/rubriche/eventi/PostEvento";
 import StoryEvento from "../template/rubriche/eventi/StoryEvento";
 import SlideCarosello, { SLIDE_CAROSELLO } from "../template/rubriche/eventi/CaroselloEvento";
@@ -155,11 +155,21 @@ export default function EditorEvento() {
     }
   }, [archivio]);
 
+  /**
+   * Scrive nell'archivio, registrando una revisione.
+   *
+   * `giaRegistrata` serve al ripristino: `ripristinaRevisione()` mette già in
+   * cronologia lo stato precedente, e registrarne un'altra qui produceva due
+   * voci per un solo gesto — la seconda identica alla prima, con un'etichetta
+   * diversa.
+   */
   const scriviNellArchivio = useCallback(
-    async (daSalvare, { etichetta } = {}) => {
+    async (daSalvare, { etichetta, giaRegistrata = false } = {}) => {
       setStatoSalvataggio("in corso");
       try {
-        const conStoria = registraRevisione(daSalvare, salvato.current, { etichetta });
+        const conStoria = giaRegistrata
+          ? daSalvare
+          : registraRevisione(daSalvare, salvato.current, { etichetta });
         const id = await archivio.salva(conStoria);
         // Si rilegge: ciò che si vede è ciò che è sul disco, convalidato.
         const riletto = await archivio.leggi(id);
@@ -235,8 +245,10 @@ export default function EditorEvento() {
   };
 
   const ripristina = async (n) => {
+    // La revisione la mette `ripristinaRevisione`, con l'etichetta giusta:
+    // qui si salva soltanto.
     const r = ripristinaRevisione(contenuto, n);
-    const riletto = await scriviNellArchivio(r, { etichetta: `ripristino della v${n}` });
+    const riletto = await scriviNellArchivio(r, { giaRegistrata: true });
     if (riletto) await ricostruisciTraccia(riletto);
     setMostraRevisioni(false);
   };
@@ -366,6 +378,47 @@ export default function EditorEvento() {
       setErroreCaption(e.message);
     }
   };
+
+  /** Scrive un campo del ramo editoriale. Passa da `aggiorna`, quindi sporca. */
+  const scriviEditoriale = (campo, valore) =>
+    aggiorna((c) => ({ ...c, editoriale: { ...c.editoriale, [campo]: valore } }));
+
+  /** Scrive un campo di primo livello: stato del contenuto, data prevista. */
+  const scriviRadice = (campo, valore) => aggiorna((c) => ({ ...c, [campo]: valore }));
+
+  /**
+   * Modifica un highlight.
+   *
+   * Toccando titolo o descrizione l'origine diventa «manuale»: una voce
+   * derivata dai punti di interesse del sito, una volta riscritta, non è più
+   * derivata — e sapere quali voci sono ancora da rileggere è il motivo per cui
+   * l'origine esiste.
+   */
+  const scriviHighlight = (indice, campo, valore) =>
+    aggiorna((c) => {
+      const highlight = [...(c.editoriale.highlight || [])];
+      const voce = highlight[indice];
+      if (!voce) return c;
+      highlight[indice] = { ...voce, [campo]: valore, origine: "manuale" };
+      return { ...c, editoriale: { ...c.editoriale, highlight } };
+    });
+
+  const aggiungiHighlight = () =>
+    aggiorna((c) => {
+      const highlight = [...(c.editoriale.highlight || [])];
+      if (highlight.length >= 4) return c;
+      highlight.push({ id: `h-${Date.now()}`, titolo: "", descrizione: "", origine: "manuale" });
+      return { ...c, editoriale: { ...c.editoriale, highlight } };
+    });
+
+  const togliHighlight = (indice) =>
+    aggiorna((c) => ({
+      ...c,
+      editoriale: {
+        ...c.editoriale,
+        highlight: (c.editoriale.highlight || []).filter((_, i) => i !== indice),
+      },
+    }));
 
   const bloccaParagrafo = (i) =>
     aggiorna((c) => {
@@ -637,6 +690,211 @@ export default function EditorEvento() {
         <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
           {/* ---- colonna sinistra: media, GPX, caption ---- */}
           <div className="space-y-5">
+            {/* ---- dati fattuali: si leggono, non si scrivono ---- */}
+            <section className="border border-[var(--border-on-dark)] p-4">
+              <h3 className="mb-1 flex items-center gap-2 font-button text-[10px] uppercase tracking-[0.22em] text-[var(--accent-soft)]">
+                <Database size={13} aria-hidden="true" />
+                Dati dal sito
+              </h3>
+              <p className="mb-3 font-body text-[10px] leading-snug text-granite-mist/40">
+                Sola lettura. Si cambiano su TinaCMS: qui una seconda copia
+                modificabile diventerebbe una seconda verità.
+              </p>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 font-body text-[11px]">
+                {[
+                  ["Nome", contenuto.fattuali.nome],
+                  ["Prezzo", contenuto.fattuali.prezzo],
+                  ["Percorso", contenuto.fattuali.km],
+                  ["Sterrato", contenuto.fattuali.sterrato],
+                  ["Durata", contenuto.fattuali.durata],
+                  ["Livello", contenuto.fattuali.livello],
+                  ["Partenza", contenuto.fattuali.partenza],
+                  ["Dal", contenuto.fattuali.dataInizio],
+                  ["Al", contenuto.fattuali.dataFine],
+                  ["Gruppo", contenuto.fattuali.partecipantiMin && `${contenuto.fattuali.partecipantiMin}–${contenuto.fattuali.partecipantiMax}`],
+                ].map(([etichetta, valore]) => (
+                  <div key={etichetta} className="min-w-0">
+                    <dt className="font-button text-[9px] uppercase tracking-[0.16em] text-granite-mist/35">
+                      {etichetta}
+                    </dt>
+                    <dd className="truncate text-granite-mist/70" title={valore || "—"}>
+                      {valore || "—"}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+
+            {/* ---- testi editoriali: qui si scrive ---- */}
+            <section className="border border-[var(--border-on-dark)] p-4">
+              <h3 className="mb-3 flex items-center gap-2 font-button text-[10px] uppercase tracking-[0.22em] text-[var(--accent-soft)]">
+                <Pencil size={13} aria-hidden="true" />
+                Testi editoriali
+              </h3>
+              <div className="space-y-3">
+                <Campo etichetta="Titolo breve" aiuto="Quello che entra nella grafica: il nome del sito è spesso troppo lungo.">
+                  <input
+                    type="text"
+                    value={contenuto.editoriale.titoloBreve}
+                    onChange={(e) => scriviEditoriale("titoloBreve", e.target.value)}
+                    className={CLASSE_CAMPO}
+                  />
+                </Campo>
+
+                <Campo etichetta="Claim" aiuto="Una riga sotto il titolo, in maiuscoletto spaziato.">
+                  <textarea
+                    rows={2}
+                    value={contenuto.editoriale.claim}
+                    onChange={(e) => scriviEditoriale("claim", e.target.value)}
+                    className={CLASSE_CAMPO}
+                  />
+                </Campo>
+
+                <Campo etichetta="Frase dei numeri" aiuto="Chiude la slide 02 del carosello.">
+                  <textarea
+                    rows={2}
+                    value={contenuto.editoriale.fraseNumeri}
+                    onChange={(e) => scriviEditoriale("fraseNumeri", e.target.value)}
+                    className={CLASSE_CAMPO}
+                  />
+                </Campo>
+
+                <Campo etichetta="Descrizione" aiuto="Non finisce nella grafica: fa da contesto alla caption.">
+                  <textarea
+                    rows={3}
+                    value={contenuto.editoriale.descrizione}
+                    onChange={(e) => scriviEditoriale("descrizione", e.target.value)}
+                    className={CLASSE_CAMPO}
+                  />
+                </Campo>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Campo etichetta="CTA">
+                    <input
+                      type="text"
+                      value={contenuto.editoriale.cta}
+                      onChange={(e) => scriviEditoriale("cta", e.target.value)}
+                      className={CLASSE_CAMPO}
+                    />
+                  </Campo>
+                  <Campo etichetta="Posti">
+                    <select
+                      value={contenuto.editoriale.statoPosti}
+                      onChange={(e) => scriviEditoriale("statoPosti", e.target.value)}
+                      className={CLASSE_CAMPO}
+                    >
+                      {STATI_POSTI.map((v) => <option key={v} value={v}>{v}</option>)}
+                    </select>
+                  </Campo>
+                </div>
+
+                <Campo etichetta="WhatsApp" aiuto="Compare nella fascia CTA della slide 08.">
+                  <input
+                    type="text"
+                    value={contenuto.editoriale.whatsapp}
+                    onChange={(e) => scriviEditoriale("whatsapp", e.target.value)}
+                    className={CLASSE_CAMPO}
+                  />
+                </Campo>
+              </div>
+            </section>
+
+            {/* ---- highlight della slide 05 ---- */}
+            <section className="border border-[var(--border-on-dark)] p-4">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <h3 className="font-button text-[10px] uppercase tracking-[0.22em] text-[var(--accent-soft)]">
+                  Highlight · {(contenuto.editoriale.highlight || []).length} di 4
+                </h3>
+                {(contenuto.editoriale.highlight || []).length < 4 && (
+                  <button
+                    type="button"
+                    onClick={aggiungiHighlight}
+                    className="border border-[var(--border-on-dark)] px-2 py-1 font-button text-[9px] uppercase tracking-[0.14em] text-granite-mist/60 transition-colors hover:border-[var(--accent)]"
+                  >
+                    Aggiungi
+                  </button>
+                )}
+              </div>
+              {(contenuto.editoriale.highlight || []).length === 0 ? (
+                <p className="font-body text-[11px] text-granite-mist/45">
+                  Nessun highlight. Il sito non dichiara punti di interesse per questo evento:
+                  scrivili qui o lascia la slide 05 alle sole fotografie.
+                </p>
+              ) : (
+                <ul className="space-y-3">
+                  {contenuto.editoriale.highlight.map((h, i) => (
+                    <li key={h.id} className="border border-[var(--border-on-dark)] p-2.5">
+                      <div className="mb-2 flex items-center gap-2">
+                        <span className="font-button text-[9px] uppercase tracking-[0.16em] text-granite-mist/35">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span
+                          className="font-body text-[9px] text-granite-mist/40"
+                          title="Da dove viene questa voce"
+                        >
+                          {h.origine === "punti-interesse"
+                            ? "dai punti di interesse del sito · descrizione da scrivere"
+                            : h.origine === "preset"
+                              ? "preset dell'evento"
+                              : h.origine === "manuale"
+                                ? "scritta a mano"
+                                : "origine non indicata"}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => togliHighlight(i)}
+                          title="Togli la voce"
+                          className="ml-auto p-0.5 text-granite-mist/40 transition-colors hover:text-[#E2857A]"
+                        >
+                          <Trash2 size={11} aria-hidden="true" />
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        value={h.titolo}
+                        placeholder="Titolo"
+                        onChange={(e) => scriviHighlight(i, "titolo", e.target.value)}
+                        className={`${CLASSE_CAMPO} mb-1.5`}
+                      />
+                      <textarea
+                        rows={2}
+                        value={h.descrizione}
+                        placeholder="Descrizione"
+                        onChange={(e) => scriviHighlight(i, "descrizione", e.target.value)}
+                        className={CLASSE_CAMPO}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            {/* ---- stato editoriale del contenuto ---- */}
+            <section className="border border-[var(--border-on-dark)] p-4">
+              <h3 className="mb-3 font-button text-[10px] uppercase tracking-[0.22em] text-[var(--accent-soft)]">
+                Stato del contenuto
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                <Campo etichetta="Stato">
+                  <select
+                    value={contenuto.stato}
+                    onChange={(e) => scriviRadice("stato", e.target.value)}
+                    className={CLASSE_CAMPO}
+                  >
+                    {STATI.map((v) => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </Campo>
+                <Campo etichetta="Data prevista">
+                  <input
+                    type="date"
+                    value={contenuto.dataPrevista}
+                    onChange={(e) => scriviRadice("dataPrevista", e.target.value)}
+                    className={CLASSE_CAMPO}
+                  />
+                </Campo>
+              </div>
+            </section>
+
             <LibreriaUI onSeleziona={setSelezionata} selezionato={selezionata} onCambiata={ricaricaMedia} />
 
             <section className="border border-[var(--border-on-dark)] p-4">
@@ -713,14 +971,32 @@ export default function EditorEvento() {
                 <h3 className="font-button text-[10px] uppercase tracking-[0.22em] text-[var(--accent-soft)]">
                   Caption · {provider.nome}
                 </h3>
-                <button
-                  type="button"
-                  onClick={generaCaption}
-                  className="inline-flex items-center gap-1.5 border border-[var(--border-on-dark)] px-2 py-1 font-button text-[9px] uppercase tracking-[0.14em] transition-colors hover:border-[var(--accent)]"
-                >
-                  <Wand2 size={11} aria-hidden="true" />
-                  {contenuto.editoriale.caption.testo.trim() ? "Rigenera" : "Genera"}
-                </button>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={contenuto.editoriale.caption.lunghezza}
+                    onChange={(e) =>
+                      aggiorna((c) => ({
+                        ...c,
+                        editoriale: {
+                          ...c.editoriale,
+                          caption: { ...c.editoriale.caption, lunghezza: e.target.value },
+                        },
+                      }))
+                    }
+                    title="Taglia della caption: parte nella richiesta al provider"
+                    className="border border-[var(--border-on-dark)] bg-[var(--obsidian)] px-1.5 py-1 font-body text-[10px] text-[var(--text-on-dark)] outline-none focus:border-[var(--accent)]"
+                  >
+                    {LUNGHEZZE_CAPTION.map((v) => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={generaCaption}
+                    className="inline-flex items-center gap-1.5 border border-[var(--border-on-dark)] px-2 py-1 font-button text-[9px] uppercase tracking-[0.14em] transition-colors hover:border-[var(--accent)]"
+                  >
+                    <Wand2 size={11} aria-hidden="true" />
+                    {contenuto.editoriale.caption.testo.trim() ? "Rigenera" : "Genera"}
+                  </button>
+                </div>
               </div>
               <textarea
                 value={contenuto.editoriale.caption.testo}
@@ -912,9 +1188,14 @@ export default function EditorEvento() {
                 </div>
               )}
 
-              {/* Le dieci grafiche del pacchetto, a misura reale e fuori vista. */}
+              {/*
+                Le dieci grafiche del pacchetto, a misura reale e fuori vista.
+                Sotto l'ambito «pacco»: sono copie degli stessi template già
+                visibili, e senza un ambito proprio le loro segnalazioni si
+                confonderebbero con quelle dell'anteprima.
+              */}
               {pacchettoMontato && (
-                <>
+                <AmbitoProblemi nome="pacco">
                   <FuoriSchermo formato="post" riferimento={registra("pacco-post")}>
                     <PostEvento contenuto={contenuto} immagini={immagini} />
                   </FuoriSchermo>
@@ -926,7 +1207,7 @@ export default function EditorEvento() {
                       <SlideCarosello id={s.id} contenuto={contenuto} immagini={immagini} traccia={traccia} />
                     </FuoriSchermo>
                   ))}
-                </>
+                </AmbitoProblemi>
               )}
             </FornitoreProblemi>
 
@@ -961,6 +1242,29 @@ export default function EditorEvento() {
 /* ================================================================== *
  * Aiutanti
  * ================================================================== */
+
+/** Lo stile dei campi di testo, scritto una volta. */
+const CLASSE_CAMPO =
+  "w-full border border-[var(--border-on-dark)] bg-[var(--obsidian)] px-2 py-1.5 " +
+  "font-body text-xs leading-relaxed text-[var(--text-on-dark)] outline-none " +
+  "placeholder:text-granite-mist/30 focus:border-[var(--accent)]";
+
+/** Etichetta, campo e nota: la nota spiega dove finisce il testo. */
+function Campo({ etichetta, aiuto, children }) {
+  return (
+    <label className="block">
+      <span className="mb-1 block font-button text-[9px] uppercase tracking-[0.18em] text-granite-mist/45">
+        {etichetta}
+      </span>
+      {children}
+      {aiuto && (
+        <span className="mt-1 block font-body text-[10px] leading-snug text-granite-mist/35">
+          {aiuto}
+        </span>
+      )}
+    </label>
+  );
+}
 
 /** Il riferimento del ritaglio di uno slot. */
 function riferimentoSlot(media, slot) {

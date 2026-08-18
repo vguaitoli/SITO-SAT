@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React from "react";
 import { AlertTriangle, CheckCircle2, Lock, XCircle } from "lucide-react";
 import { FornitoreArchivio } from "./ContestoArchivio";
 import StatoArchivio from "./StatoArchivio";
@@ -18,14 +18,12 @@ import { COLORI } from "../design/tokens";
  * framework ma non i template.
  */
 export default function Studio() {
-  useEffect(() => {
-    const meta = document.createElement("meta");
-    meta.name = "robots";
-    meta.content = "noindex, nofollow, noarchive";
-    document.head.appendChild(meta);
-    return () => meta.remove();
-  }, []);
-
+  /*
+   * Il `robots` non si scrive più qui: lo governa SeoHead, che conosce la rotta
+   * e sa anche togliere i metadati pubblici ereditati dalla pagina precedente.
+   * Due proprietari dello stesso tag producevano un titolo da 404 su una pagina
+   * che esiste.
+   */
   return (
     <FornitoreArchivio>
       <div className="min-h-screen bg-[var(--obsidian)] text-[var(--text-on-dark)]">

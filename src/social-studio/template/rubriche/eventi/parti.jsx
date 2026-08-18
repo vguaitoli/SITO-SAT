@@ -1,6 +1,6 @@
 import React from "react";
 import Foto from "../../Foto";
-import { TestoAdattivo } from "../../primitivi";
+import { AmbitoProblemi, TestoAdattivo } from "../../primitivi";
 import { COLORI, FONT } from "../../../design/tokens";
 
 /**
@@ -127,8 +127,9 @@ export function FasciaFoto({ altezza, sorgente, ritaglio, children }) {
  * I valori vanno a capo invece di troncarsi: «29 ottobre – 1 novembre» è un
  * dato, non un dettaglio da abbreviare con i puntini.
  */
-export function Stats({ colonne, scala = 1, corpoValore = 38 }) {
+export function Stats({ colonne, scala = 1, corpoValore = 38, ambito = "dati" }) {
   return (
+    <AmbitoProblemi nome={ambito}>
     <div
       style={{
         display: "flex",
@@ -178,6 +179,7 @@ export function Stats({ colonne, scala = 1, corpoValore = 38 }) {
         </div>
       ))}
     </div>
+    </AmbitoProblemi>
   );
 }
 

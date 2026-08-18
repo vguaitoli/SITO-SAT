@@ -13,6 +13,28 @@ function upsertMeta(selector, attributes) {
   });
 }
 
+/**
+ * Toglie dalla testa i metadati pubblici.
+ *
+ * Serve alle pagine interne: non basta non scriverli, perché arrivando da una
+ * pagina pubblica sono già lì. Senza rimozione, `/admin/social` mostrerebbe il
+ * canonical e l'Open Graph dell'ultima pagina visitata.
+ */
+const SELETTORI_PUBBLICI = [
+  'link[rel="canonical"]',
+  'link[rel="alternate"][hreflang]',
+  'meta[name="description"]',
+  'meta[property^="og:"]',
+  'meta[name^="twitter:"]',
+  "#seo-jsonld",
+];
+
+function rimuoviMetadatiPubblici() {
+  SELETTORI_PUBBLICI.forEach((selettore) => {
+    document.head.querySelectorAll(selettore).forEach((element) => element.remove());
+  });
+}
+
 function upsertCanonical(href) {
   let element = document.head.querySelector('link[rel="canonical"]');
   if (!element) {
@@ -68,6 +90,19 @@ export default function SeoHead() {
 
       document.documentElement.lang = seo.htmlLang;
       document.title = seo.title;
+
+      /*
+       * Pagina interna: titolo e robots, e via tutto il resto. Uscendo verso
+       * una pagina pubblica questo stesso effetto rigira e li riscrive, quindi
+       * la rimozione non è distruttiva.
+       */
+      if (seo.privata) {
+        rimuoviMetadatiPubblici();
+        upsertMeta('meta[name="robots"]', { name: "robots", content: seo.robots });
+        upsertMeta('meta[name="googlebot"]', { name: "googlebot", content: seo.robots });
+        return;
+      }
+
       upsertCanonical(seo.canonical);
       updateAlternates(seo.alternates);
 

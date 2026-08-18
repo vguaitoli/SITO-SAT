@@ -1,6 +1,6 @@
 import React from "react";
 import Telaio from "../../Telaio";
-import { TestoAdattivo } from "../../primitivi";
+import { AmbitoProblemi, TestoAdattivo } from "../../primitivi";
 import { FORMATI } from "../../../design/formati";
 import { COLORI, FONT } from "../../../design/tokens";
 import {
@@ -38,6 +38,9 @@ export default function PostEvento({ contenuto, immagini = {}, riferimento }) {
   ];
 
   return (
+    // Le segnalazioni del Post vivono sotto «post»: Story e carosello, montati
+    // insieme durante l'esportazione del pacchetto, non le sovrascrivono.
+    <AmbitoProblemi nome="post">
     <Telaio categoria="eventi" formato="post" riferimento={riferimento} conLogo={false} conIsoipse={false}>
       <FasciaFoto
         altezza={ALTEZZA_FOTO}
@@ -154,5 +157,6 @@ export default function PostEvento({ contenuto, immagini = {}, riferimento }) {
         </div>
       </div>
     </Telaio>
+    </AmbitoProblemi>
   );
 }

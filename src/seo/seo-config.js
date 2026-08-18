@@ -20,6 +20,23 @@ const HOME_IMAGE = "/media/reali/hero-maxienduro-panorama-1200.webp";
 const HOME_HERO_IMAGE = "/media/logo-sardegna-trail-avventura.png";
 const INDEX_ROBOTS = "index, follow, max-image-preview:large";
 const NOINDEX_ROBOTS = "noindex, nofollow";
+/** Pagine interne: fuori da ogni indice, da ogni cache e da ogni archivio. */
+const PRIVATE_ROBOTS = "noindex, nofollow, noarchive";
+
+/**
+ * Le pagine interne dell'attività, non parte del sito pubblico.
+ *
+ * Senza questo elenco cadevano nel ramo «pagina non trovata» in fondo a
+ * `getSeoForPath`: il titolo del browser diceva «Pagina non trovata», e la
+ * pagina si portava dietro canonical, hreflang, Open Graph e dati strutturati
+ * di un indirizzo che non esiste. Sono metadati pubblici su una pagina privata.
+ *
+ * Non entrano in `getSeoEntries()`, quindi restano fuori da sitemap e
+ * prerendering.
+ */
+const PAGINE_INTERNE = [
+  { prefisso: "/admin/social", titolo: "STA Social Studio" },
+];
 const TOUR_PAGES = normalizeTours(tourCatalogContent);
 const EVENT_PAGES = normalizeEvents(eventCatalogContent);
 
@@ -429,6 +446,26 @@ function finalize(path, locale, seo) {
 }
 
 export function getSeoForPath(pathname) {
+  const interna = PAGINE_INTERNE.find(
+    (pagina) => pathname === pagina.prefisso || pathname.startsWith(`${pagina.prefisso}/`),
+  );
+  if (interna) {
+    /*
+     * Descrittore volutamente minimo: `privata` dice a SeoHead di togliere i
+     * metadati pubblici invece di scriverne di sbagliati. Titolo e robots
+     * bastano; tutto il resto su una pagina interna è rumore.
+     */
+    return {
+      privata: true,
+      path: pathname,
+      locale: "it",
+      htmlLang: LOCALE_META.it.htmlLang,
+      title: `${interna.titolo} | ${SITE_NAME}`,
+      robots: PRIVATE_ROBOTS,
+      indexable: false,
+    };
+  }
+
   const resolved = resolveRoute(pathname);
   const { locale, name, params } = resolved;
   const path = name === "notFound" ? pathname : routePath(locale, name, params);

@@ -1,6 +1,6 @@
 import React from "react";
 import Telaio from "../../Telaio";
-import { TestoAdattivo } from "../../primitivi";
+import { AmbitoProblemi, TestoAdattivo } from "../../primitivi";
 import { FORMATI } from "../../../design/formati";
 import { COLORI, FONT } from "../../../design/tokens";
 import {
@@ -21,6 +21,32 @@ import { FASCIA } from "./zone";
  * dati invece di quattro, e nessun elenco di tappe. Una Story si guarda per
  * cinque secondi.
  */
+/**
+ * Le tre distanze che nella Story si annullavano.
+ *
+ * Sono dichiarate, non ricavate dallo spazio che avanza: nel 9:16 lo spazio che
+ * avanza è zero quasi sempre, e una distanza che dipende dall'avanzo è una
+ * distanza che sparisce quando serve.
+ */
+/*
+ * La colonna è sovrappiena: ogni pixel di respiro aggiunto sopra spinge la CTA
+ * giù e lo paga il margine verso l'area sicura. Misurato: con 30 px di respiro
+ * il margine scende da 18 a 8. Venti px sono un distacco visibile e lasciano il
+ * margine dov'era.
+ *
+ * Il `paddingBottom` non c'entra con la posizione della CTA — la CTA è
+ * collocata da ciò che le sta sopra, e il padding estende solo il box sotto.
+ *
+ * La tensione non si risolve con le distanze: questa Story porta titolo, claim,
+ * tre dati, prezzo e CTA in una colonna che non li contiene. Il riferimento
+ * canonico (Stories-Via-dei-Giganti.dc.html) la risolve dividendo — la cover
+ * porta titolo, claim e data; numeri e prezzo stanno su schermate proprie.
+ * È una decisione di struttura, e va approvata prima di prenderla.
+ */
+const RESPIRO_CLAIM = 20;
+const RESPIRO_PREZZO_CTA = 32;
+const MARGINE_AREA_SICURA = 34;
+
 export default function StoryEvento({ contenuto, immagini = {}, riferimento }) {
   const f = FORMATI.story;
   const dati = contenuto.fattuali || {};
@@ -38,6 +64,7 @@ export default function StoryEvento({ contenuto, immagini = {}, riferimento }) {
   ];
 
   return (
+    <AmbitoProblemi nome="story">
     <Telaio categoria="eventi" formato="story" riferimento={riferimento} conLogo={false} conIsoipse={false}>
       <FasciaFoto
         altezza={ALTEZZA_FOTO}
@@ -106,11 +133,20 @@ export default function StoryEvento({ contenuto, immagini = {}, riferimento }) {
           </TestoAdattivo>
         )}
 
-        <div style={{ marginTop: "auto", paddingBottom: 34 }}>
-          <Stats colonne={colonne} scala={1.15} corpoValore={40} />
+        {/*
+          Le distanze sono padding, non `margin-top: auto`.
+          `auto` distribuisce lo spazio che avanza, e quando non avanza niente si
+          annulla senza dirlo: il claim finiva a contatto con la riga dei dati
+          (misurati 0 px) e il blocco sfondava il fondo della colonna di 17 px,
+          mangiandosi il margine promesso verso l'area sicura — 18 px invece di 34.
+          Un padding non si comprime.
+        */}
+        <div style={{ marginTop: "auto", paddingTop: RESPIRO_CLAIM, paddingBottom: MARGINE_AREA_SICURA, flexShrink: 0 }}>
+          {/* Scala 1 come nel Post: tre colonne non hanno bisogno di più corpo di quattro. */}
+          <Stats colonne={colonne} scala={1} corpoValore={38} />
 
           <div style={{ marginTop: 26, display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24 }}>
-            <Prezzo valore={dati.prezzo} scala={1.15} corpo={82} />
+            <Prezzo valore={dati.prezzo} scala={1.15} corpo={72} />
           </div>
 
           {/*
@@ -120,7 +156,7 @@ export default function StoryEvento({ contenuto, immagini = {}, riferimento }) {
             impossibile — i due elementi si spingono a vicenda.
           */}
           {testi.cta && (
-            <div style={{ marginTop: 24 }}>
+            <div style={{ marginTop: RESPIRO_PREZZO_CTA }}>
               <span
                 style={{
                   display: "block",
@@ -188,5 +224,6 @@ export default function StoryEvento({ contenuto, immagini = {}, riferimento }) {
         sardegnatrailavventura.it
       </div>
     </Telaio>
+    </AmbitoProblemi>
   );
 }

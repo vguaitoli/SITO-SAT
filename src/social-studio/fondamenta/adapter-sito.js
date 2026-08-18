@@ -58,8 +58,8 @@ export function daEvento(evento, { tourGroup, urlBase = "", whatsapp = "" } = {}
 
   const campiDalSito = [
     "categoria", "nome", "dataInizio", "dataFine", "periodo", "prezzo", "km",
-    "sterrato", "durata", "livello", "mezzo", "puntiInteresse", "inclusi",
-    "nonInclusi", "requisiti", "tappe", "url",
+    "sterrato", "durata", "livello", "partenza", "mezzo", "puntiInteresse",
+    "inclusi", "nonInclusi", "requisiti", "tappe", "url",
   ];
 
   return {
@@ -125,6 +125,7 @@ function strutturaConfrontabile(evento) {
     sterrato: evento.sterrato ?? null,
     durata: evento.durata ?? null,
     livello: evento.livello ?? null,
+    partenza: evento.partenza ?? null,
     interesse: evento.interesse ?? null,
     incluso: soloPiene(evento.incluso),
     esclusioni: soloPiene(evento.esclusioni),
@@ -138,6 +139,7 @@ const NOMI = {
   name: "nome", subtitle: "sottotitolo", type: "tipologia", periodo: "periodo",
   date: "data di inizio", endDate: "data di fine", prezzo: "prezzo", km: "chilometri",
   sterrato: "sterrato", durata: "durata", livello: "livello",
+  partenza: "località di partenza",
   interesse: "punti di interesse", incluso: "servizi inclusi",
   esclusioni: "esclusioni", equipaggiamento: "requisiti", tappe: "tappe",
 };

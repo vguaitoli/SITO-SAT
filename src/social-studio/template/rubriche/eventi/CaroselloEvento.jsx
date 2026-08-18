@@ -3,7 +3,7 @@ import { Bed, Check, Coffee, Compass, Fuel, Gift, Luggage, Satellite, ShieldChec
 import Telaio from "../../Telaio";
 import Foto from "../../Foto";
 import Mappa from "../../Mappa";
-import { Cella, ControlloCapienza, Filo, TestoAdattivo } from "../../primitivi";
+import { AmbitoProblemi, Cella, ControlloCapienza, Filo, TestoAdattivo } from "../../primitivi";
 import { FORMATI } from "../../../design/formati";
 import { COLORI, FONT, FOTO } from "../../../design/tokens";
 import {
@@ -113,11 +113,28 @@ function iconaPer(testo) {
 
 /* ================================================================== */
 
-export default function SlideCarosello({ id, contenuto, immagini = {}, traccia, riferimento }) {
+/**
+ * Ogni slide ha il proprio ambito di segnalazioni.
+ *
+ * Le otto slide condividono gli stessi componenti — `Stats`, `Percorso`,
+ * `TestoAdattivo` con le stesse etichette — e durante l'esportazione del
+ * pacchetto sono montate tutte insieme. Senza un ambito per slide, la 08
+ * cancellava l'errore della 02 scrivendo `null` sulla stessa chiave.
+ */
+export default function SlideCarosello(props) {
+  const meta = SLIDE_CAROSELLO.find((s) => s.id === props.id);
+  if (!meta) return null;
+  return (
+    <AmbitoProblemi nome={`carosello/${String(meta.numero).padStart(2, "0")}`}>
+      <ContenutoSlide {...props} meta={meta} />
+    </AmbitoProblemi>
+  );
+}
+
+function ContenutoSlide({ contenuto, immagini = {}, traccia, riferimento, meta }) {
+  const id = meta.id;
   const dati = contenuto.fattuali || {};
   const testi = contenuto.editoriale || {};
-  const meta = SLIDE_CAROSELLO.find((s) => s.id === id);
-  if (!meta) return null;
 
   const comuni = { categoria: "eventi", formato: "post", numero: meta.numero, totale: TOTALE, riferimento };
 
@@ -494,6 +511,7 @@ export default function SlideCarosello({ id, contenuto, immagini = {}, traccia, 
 
           <div style={{ marginTop: "auto" }}>
             <Stats
+              ambito="dati-cta"
               colonne={[
                 { etichetta: "Prezzo", valore: dati.prezzo },
                 { etichetta: "Partecipanti", valore: dati.partecipantiMin ? `${dati.partecipantiMin}–${dati.partecipantiMax}` : "" },

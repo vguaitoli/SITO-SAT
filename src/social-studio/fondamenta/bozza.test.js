@@ -162,6 +162,37 @@ describe("una bozza sopravvive alla chiusura dello studio", () => {
     expect(conGpx.gpx).toHaveLength(1);
   });
 
+  it("un ripristino aggiunge UNA sola revisione, con la sua etichetta", async () => {
+    const archivio = creaArchivioMemoria();
+    const id = await archivio.salva(bozzaLavorata("gpx-x"));
+    const primo = await archivio.leggi(id);
+
+    // Una modifica salvata: una revisione.
+    await archivio.salva(registraRevisione(
+      { ...primo, editoriale: { ...primo.editoriale, claim: "Secondo claim" } },
+      primo,
+    ));
+    const conUna = await archivio.leggi(id);
+    expect(conUna.versioni).toHaveLength(1);
+
+    /*
+     * Il ripristino è UN gesto: deve valere UNA voce. `ripristinaRevisione`
+     * registra già lo stato attuale, quindi chi salva non deve registrarne
+     * un'altra — è il difetto che questo test blocca.
+     */
+    const ripristinato = ripristinaRevisione(conUna, 1);
+    await archivio.salva(ripristinato);
+    const dopo = await archivio.leggi(id);
+
+    expect(dopo.versioni).toHaveLength(conUna.versioni.length + 1);
+    expect(dopo.versioni.at(-1).etichetta).toBe("stato prima del ripristino della v1");
+    expect(dopo.versioni.at(-1).n).toBe(2);
+    // Il claim è tornato quello di prima…
+    expect(dopo.editoriale.claim).toBe(primo.editoriale.claim);
+    // …e il ripristino si può annullare: lo stato scartato è in cronologia.
+    expect(dopo.versioni.at(-1).dati.editoriale.claim).toBe("Secondo claim");
+  });
+
   it("ripristina una revisione e la ritrova dopo il salvataggio", async () => {
     const archivio = creaArchivioMemoria();
     const primaVersione = bozzaLavorata("gpx-x");
@@ -186,8 +217,9 @@ describe("una bozza sopravvive alla chiusura dello studio", () => {
     const finale = await archivio.leggi(id);
     expect(finale.editoriale.caption.testo).toBe(primaVersione.editoriale.caption.testo);
     expect(finale.editoriale.caption.paragrafiBloccati).toEqual([0, 2]);
-    // Il ritorno indietro non ha cancellato la storia.
-    expect(finale.versioni.length).toBeGreaterThan(1);
+    // Esattamente una revisione in più, non «più di una»: la verifica generica
+    // passava anche quando il ripristino ne registrava due.
+    expect(finale.versioni).toHaveLength(conStoria.versioni.length + 1);
   });
 });
 
