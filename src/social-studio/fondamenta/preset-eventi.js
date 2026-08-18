@@ -15,6 +15,21 @@
  *    con le descrizioni da scrivere.
  */
 
+/**
+ * Kicker per slug, dal riferimento canonico.
+ *
+ * Solo per l'evento a cui appartiene: per gli altri resta vuoto, e il
+ * pre-flight lo segnala invece di far inventare una geografia.
+ */
+export const PRESET_KICKER = {
+  "la-via-dei-giganti-2026": "NORD SARDEGNA · GALLURA",
+};
+
+/** Il kicker dell'evento, o stringa vuota. Mai un testo composto. */
+export function kickerIniziale(slug) {
+  return (slug && PRESET_KICKER[slug]) || "";
+}
+
 /** Preset per slug. Ogni voce vale per quell'evento e per nessun altro. */
 export const PRESET_HIGHLIGHT = {
   "la-via-dei-giganti-2026": [

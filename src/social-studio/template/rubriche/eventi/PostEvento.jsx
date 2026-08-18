@@ -1,162 +1,386 @@
 import React from "react";
-import Telaio from "../../Telaio";
+import TelaioEvento from "./TelaioEvento";
 import { AmbitoProblemi, TestoAdattivo } from "../../primitivi";
-import { FORMATI } from "../../../design/formati";
-import { COLORI, FONT } from "../../../design/tokens";
 import {
-  BadgeData, BadgeDisciplina, FasciaFoto, MarchioSuFoto, Percorso, Piede, Prezzo, Stats, StatoPosti, SOFT,
-} from "./parti";
-import { periodoBreve, periodoLeggibile } from "./date";
-import { FASCIA } from "./zone";
+  ACCENTO, BADGE, DATI, DISTANZA_BLOCCHI, FILO, INCHIOSTRO, ITINERARIO,
+  KICKER, MARCHIO, ORDINATE, OTTICO, PIEDE, TELA, TIPO,
+} from "../../../design/eventi";
+import { periodoBreve } from "./date";
 
 /**
- * Post evento — 1080×1350.
+ * Post EVENTI — variante `EVENTO STANDARD / EDITORIAL`, 1080×1350.
  *
- * Gerarchia della locandina del progetto, riproporzionata sul master 4:5: la
- * fotografia tiene la fascia alta e resta libera da testo, il testo vive sulla
- * fascia scura sotto, i dati in quattro colonne divise da filetti, il percorso
- * in una riga, il piede con nota e sito.
+ * Traduzione fedele di `Locandina-Via-dei-Giganti.dc.html` (progetto Claude
+ * Design «La via dei giganti»), non un miglioramento. Dove il riferimento
+ * posiziona a mano, qui ci sono le ordinate dichiarate in `design/eventi.js`:
+ * una composizione che dipende dall'altezza dei propri figli cambia atmosfera
+ * quando cambia il testo, e l'atmosfera è il punto.
  *
- * Lo spazio guadagnato passando da 1080 a 1350 va alla fascia dati, che nella
- * locandina quadrata era compressa: qui ci entra anche il prezzo, che il
- * formato quadrato non aveva.
+ * **Prezzo e CTA non ci sono.** Il Post canonico non li contiene: al loro posto,
+ * in fondo, ci sono contatti e sito. Comprimerli dentro avrebbe alterato la
+ * gerarchia del riferimento, quindi non li ho messi — il conflitto col master
+ * funzionale è dichiarato nel checkpoint e si risolverà nelle varianti di
+ * conversione.
  */
-export default function PostEvento({ contenuto, immagini = {}, riferimento }) {
-  const f = FORMATI.post;
+
+/** Le righe di un testo, come le ha scritte l'autore. */
+const righe = (testo) => String(testo || "").split(/\r?\n/);
+
+/** Numerali italiani per l'etichetta dell'itinerario, come nel riferimento. */
+const PAROLE = ["", "una", "due", "tre", "quattro", "cinque", "sei", "sette", "otto"];
+
+/**
+ * Divide il titolo: l'ultima parola va in accento.
+ *
+ * Nel riferimento il titolo è «La via dei» + «giganti» in arancio. La regola
+ * generale che riproduce quel risultato è: l'ultima parola prende l'accento e
+ * va a capo. Su un titolo di una sola parola non c'è nulla da dividere.
+ */
+export function dividiTitolo(titolo) {
+  const parole = String(titolo || "").trim().split(/\s+/).filter(Boolean);
+  if (parole.length <= 1) return { prima: "", accento: parole[0] || "" };
+  return { prima: parole.slice(0, -1).join(" "), accento: parole.at(-1) };
+}
+
+export default function PostEvento({ contenuto, immagini = {}, traccia, riferimento }) {
   const dati = contenuto.fattuali || {};
   const testi = contenuto.editoriale || {};
+  const cover = contenuto.media?.cover;
+  const { prima, accento } = dividiTitolo(testi.titoloBreve || dati.nome);
 
-  const GUTTER = 60;
-  // La misura vive in zone.js: la stessa che l'editor di ritaglio mostra.
-  const ALTEZZA_FOTO = FASCIA.post;
+  const tappe = dati.tappe || [];
+  const etichettaItinerario = tappe.length && PAROLE[tappe.length]
+    ? `L'ANELLO IN ${PAROLE[tappe.length].toUpperCase()} TAPPE`
+    : "L'ITINERARIO";
+
+  const percorso = tappe.length
+    ? [tappe[0]?.partenza, ...tappe.map((t) => t.arrivo)].filter(Boolean)
+    : dati.puntiInteresse || [];
 
   const colonne = [
-    { etichetta: "Durata", valore: dati.durata },
-    { etichetta: "Percorso", valore: dati.km },
-    { etichetta: "Sterrato", valore: dati.sterrato },
-    { etichetta: "Livello", valore: dati.livello },
+    { etichetta: DATI.colonne[0], valore: periodoBreve(dati) },
+    { etichetta: DATI.colonne[1], valore: dati.partenza },
+    { etichetta: DATI.colonne[2], valore: dati.sterrato },
+    { etichetta: DATI.colonne[3], valore: dati.livello },
   ];
 
   return (
-    // Le segnalazioni del Post vivono sotto «post»: Story e carosello, montati
-    // insieme durante l'esportazione del pacchetto, non le sovrascrivono.
     <AmbitoProblemi nome="post">
-    <Telaio categoria="eventi" formato="post" riferimento={riferimento} conLogo={false} conIsoipse={false}>
-      <FasciaFoto
-        altezza={ALTEZZA_FOTO}
-        sorgente={immagini[contenuto.media?.cover?.idBlob]}
-        ritaglio={contenuto.media?.cover}
+      <TelaioEvento
+        sorgente={immagini[cover?.idBlob]}
+        ritaglio={cover}
+        segmenti={traccia?.segmenti || []}
+        configurazioneMappa={contenuto.mappa}
+        mood={contenuto.visual?.mood}
+        riferimento={riferimento}
       >
-        <div style={{ position: "absolute", top: 52, left: GUTTER }}>
-          <MarchioSuFoto />
-        </div>
-        <div style={{ position: "absolute", top: 52, right: GUTTER }}>
-          <BadgeDisciplina>{dati.categoria || dati.mezzo}</BadgeDisciplina>
-        </div>
-        <div style={{ position: "absolute", left: GUTTER, bottom: 34, display: "flex", alignItems: "center", gap: 16 }}>
-          <BadgeData>{periodoBreve(dati)}</BadgeData>
-          <StatoPosti stato={testi.statoPosti} />
-        </div>
-      </FasciaFoto>
-
-      {/* Fascia dei testi. */}
-      <div
-        style={{
-          position: "absolute",
-          top: ALTEZZA_FOTO,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          padding: `38px ${GUTTER}px 52px`,
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <TestoAdattivo
-          chiave="post-evento-titolo"
-          etichetta="Titolo del post"
-          size={112}
-          minSize={64}
-          altezzaMassima={112 * 0.85 * 2}
+        {/* ---- intestazione: marchio a sinistra, badge a destra ---- */}
+        <div
           style={{
-            fontFamily: FONT.titolo,
-            lineHeight: 0.85,
-            letterSpacing: "0.012em",
-            textTransform: "uppercase",
-            color: COLORI.testo,
+            position: "absolute",
+            top: ORDINATE.intestazione,
+            left: TELA.padding.sinistro,
+            right: TELA.padding.destro,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 24,
           }}
         >
-          {testi.titoloBreve || dati.nome}
-        </TestoAdattivo>
-
-        {testi.claim && (
-          <TestoAdattivo
-            chiave="post-evento-claim"
-            etichetta="Claim"
-            size={25}
-            minSize={18}
-            altezzaMassima={25 * 1.5 * 3}
-            style={{
-              marginTop: 16,
-              fontFamily: FONT.etichetta,
-              letterSpacing: "0.18em",
-              lineHeight: 1.5,
-              textTransform: "uppercase",
-              color: SOFT,
-            }}
-          >
-            {testi.claim}
-          </TestoAdattivo>
-        )}
-
-        {/* `margin-top: auto` spinge i dati in fondo: è la struttura della locandina. */}
-        <div style={{ marginTop: "auto" }}>
-          <Stats colonne={colonne} />
-
-          <div style={{ marginTop: 20 }}>
-            <Percorso tappe={dati.tappe} puntiInteresse={dati.puntiInteresse} />
+          <div style={{ display: "flex", alignItems: "center", gap: MARCHIO.distanzaLogoTesto }}>
+            <img
+              src="/media/logo-sardegna-trail-avventura.png"
+              alt=""
+              style={{
+                width: MARCHIO.logo.larghezza,
+                height: MARCHIO.logo.altezza,
+                objectFit: "contain",
+                flex: "none",
+                filter: MARCHIO.ombraLogo,
+              }}
+            />
+            <div style={{ display: "flex", flexDirection: "column", gap: MARCHIO.distanzaNomePayoff }}>
+              <div
+                style={{
+                  fontFamily: TIPO.marchioNome.famiglia,
+                  fontSize: TIPO.marchioNome.corpo,
+                  letterSpacing: TIPO.marchioNome.tracking,
+                  lineHeight: TIPO.marchioNome.interlinea,
+                  textTransform: "uppercase",
+                  color: INCHIOSTRO.primario,
+                }}
+              >
+                {MARCHIO.nome[0]}
+                <br />
+                {MARCHIO.nome[1]}
+              </div>
+              <div
+                style={{
+                  fontFamily: TIPO.marchioPayoff.famiglia,
+                  fontSize: TIPO.marchioPayoff.corpo,
+                  letterSpacing: TIPO.marchioPayoff.tracking,
+                  color: INCHIOSTRO.secondario,
+                }}
+              >
+                {MARCHIO.payoff}
+              </div>
+            </div>
           </div>
 
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: BADGE.distanzaPosti }}>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: BADGE.larghezza,
+                height: BADGE.altezza,
+                padding: BADGE.padding,
+                boxSizing: "border-box",
+                border: `${BADGE.bordo}px solid ${ACCENTO}`,
+                fontFamily: TIPO.badge.famiglia,
+                fontSize: TIPO.badge.corpo,
+                letterSpacing: TIPO.badge.tracking,
+                color: ACCENTO,
+                textAlign: "center",
+              }}
+            >
+              {(dati.categoria || dati.mezzo || "").toUpperCase()}
+            </div>
+            {testi.statoPosti === "ultimi" && (
+              <div
+                style={{
+                  fontFamily: TIPO.posti.famiglia,
+                  fontSize: TIPO.posti.corpo,
+                  letterSpacing: TIPO.posti.tracking,
+                  color: INCHIOSTRO.secondario,
+                }}
+              >
+                POSTI LIMITATI
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ---- kicker: barra in accento più etichetta. Solo se c'è. ---- */}
+        {testi.kicker && (
           <div
             style={{
-              marginTop: 22,
+              position: "absolute",
+              top: ORDINATE.kicker,
+              left: OTTICO.kicker,
+              display: "flex",
+              alignItems: "center",
+              gap: KICKER.distanza,
+            }}
+          >
+            <span
+              style={{
+                width: KICKER.barra.larghezza,
+                height: KICKER.barra.altezza,
+                background: ACCENTO,
+                flex: "none",
+              }}
+            />
+            <span
+              style={{
+                fontFamily: TIPO.kicker.famiglia,
+                fontSize: TIPO.kicker.corpo,
+                letterSpacing: TIPO.kicker.tracking,
+                color: INCHIOSTRO.kicker,
+              }}
+            >
+              {testi.kicker}
+            </span>
+          </div>
+        )}
+
+        {/* ---- titolo: ultima parola in accento ---- */}
+        <div style={{ position: "absolute", top: ORDINATE.titolo, left: OTTICO.titolo, right: TELA.padding.destro }}>
+          <TestoAdattivo
+            chiave="titolo"
+            etichetta="Titolo del post"
+            size={TIPO.titolo.taglie[TIPO.titolo.tagliaPredefinita]}
+            minSize={TIPO.titolo.taglie.Contenuto - 32}
+            altezzaMassima={TIPO.titolo.taglie.Enorme * TIPO.titolo.interlinea * 2}
+            style={{
+              fontFamily: TIPO.titolo.famiglia,
+              letterSpacing: TIPO.titolo.tracking,
+              lineHeight: TIPO.titolo.interlinea,
+              textTransform: "uppercase",
+              color: INCHIOSTRO.primario,
+              textShadow: TIPO.titolo.ombra,
+            }}
+          >
+            {prima}
+            {prima && <br />}
+            <span style={{ color: ACCENTO }}>{accento}</span>
+          </TestoAdattivo>
+        </div>
+
+        {/* ---- claim ---- */}
+        {testi.claim && (
+          <div style={{ position: "absolute", top: ORDINATE.claim, left: OTTICO.claim, width: 405 }}>
+            <TestoAdattivo
+              chiave="claim"
+              etichetta="Claim"
+              size={TIPO.claim.corpo}
+              minSize={20}
+              altezzaMassima={TIPO.claim.corpo * TIPO.claim.interlinea * 5}
+              style={{
+                fontFamily: TIPO.claim.famiglia,
+                fontWeight: TIPO.claim.peso,
+                lineHeight: TIPO.claim.interlinea,
+                // `text-align: justify` è nel riferimento, e si vede: nel master
+                // le righe del claim arrivano tutte allo stesso margine destro.
+                textAlign: "justify",
+                color: INCHIOSTRO.suVelo,
+              }}
+            >
+              {/*
+                Le andate a capo del claim si rispettano. Nel riferimento il
+                claim ha un `<br>` dopo «mare.»: con `justify` e nessuna
+                interruzione, l'ultima riga corta si allarga fino a spaziare le
+                parole in modo goffo. Dove va a capo è una scelta di chi scrive.
+              */}
+              {righe(testi.claim).map((riga, i) => (
+                <React.Fragment key={i}>
+                  {i > 0 && <br />}
+                  {riga}
+                </React.Fragment>
+              ))}
+            </TestoAdattivo>
+          </div>
+        )}
+
+        {/* ---- piede della composizione: dati, itinerario, contatti ---- */}
+        <div
+          style={{
+            position: "absolute",
+            left: TELA.padding.sinistro,
+            right: TELA.padding.destro,
+            bottom: TELA.padding.basso,
+            display: "flex",
+            flexDirection: "column",
+            gap: DISTANZA_BLOCCHI,
+          }}
+        >
+          {/* quattro colonne fra due filetti */}
+          <div
+            style={{
               display: "flex",
               alignItems: "flex-end",
               justifyContent: "space-between",
-              gap: 28,
+              gap: DATI.distanzaColonne,
+              borderTop: `1px solid ${FILO}`,
+              borderBottom: `1px solid ${FILO}`,
+              padding: `${DATI.paddingVerticale}px 0`,
             }}
           >
-            <Prezzo valore={dati.prezzo} />
-            {testi.cta && (
+            {colonne.map((c) => (
+              <div key={c.etichetta} style={{ display: "flex", flexDirection: "column", gap: DATI.distanzaEtichettaValore, minWidth: 0 }}>
+                <span
+                  style={{
+                    fontFamily: TIPO.etichettaDato.famiglia,
+                    fontSize: TIPO.etichettaDato.corpo,
+                    letterSpacing: TIPO.etichettaDato.tracking,
+                    color: INCHIOSTRO.secondario,
+                  }}
+                >
+                  {c.etichetta}
+                </span>
+                <span
+                  style={{
+                    fontFamily: TIPO.valoreDato.famiglia,
+                    fontWeight: TIPO.valoreDato.peso,
+                    fontSize: TIPO.valoreDato.corpo,
+                    letterSpacing: TIPO.valoreDato.tracking,
+                    textTransform: "uppercase",
+                    color: INCHIOSTRO.primario,
+                  }}
+                >
+                  {c.valore || "—"}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* itinerario a sinistra, servizi inclusi a destra */}
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 36 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: ITINERARIO.distanzaEtichettaValore, minWidth: 0 }}>
               <span
                 style={{
-                  flex: "none",
-                  fontFamily: FONT.etichetta,
-                  fontSize: 20,
-                  letterSpacing: "0.14em",
-                  textTransform: "uppercase",
-                  color: COLORI.testo,
-                  background: COLORI.verde,
-                  padding: "14px 24px",
+                  fontFamily: TIPO.etichettaDato.famiglia,
+                  fontSize: TIPO.etichettaDato.corpo,
+                  letterSpacing: TIPO.etichettaDato.tracking,
+                  color: INCHIOSTRO.secondario,
                 }}
               >
-                {testi.cta}
+                {etichettaItinerario}
               </span>
+              <TestoAdattivo
+                chiave="itinerario"
+                etichetta="Itinerario"
+                size={TIPO.itinerario.corpo}
+                minSize={17}
+                altezzaMassima={TIPO.itinerario.corpo * TIPO.itinerario.interlinea * 2}
+                style={{
+                  fontFamily: TIPO.itinerario.famiglia,
+                  letterSpacing: TIPO.itinerario.tracking,
+                  lineHeight: TIPO.itinerario.interlinea,
+                  textTransform: "uppercase",
+                  textAlign: "justify",
+                  color: INCHIOSTRO.primario,
+                }}
+              >
+                {percorso.join(" · ")}
+              </TestoAdattivo>
+            </div>
+
+            {dati.inclusi?.length > 0 && (
+              <ul
+                style={{
+                  width: ITINERARIO.inclusi.larghezza,
+                  flex: "none",
+                  margin: 0,
+                  padding: 0,
+                  listStyle: "none",
+                  fontFamily: TIPO.inclusi.famiglia,
+                  fontWeight: TIPO.inclusi.peso,
+                  fontSize: TIPO.inclusi.corpo,
+                  lineHeight: TIPO.inclusi.interlinea,
+                  textTransform: "capitalize",
+                  color: INCHIOSTRO.secondario,
+                }}
+              >
+                {dati.inclusi.slice(0, 4).map((v, i) => (
+                  <li key={`${v}-${i}`}>{v}</li>
+                ))}
+              </ul>
             )}
           </div>
 
-          <div style={{ marginTop: 22 }}>
-            <Piede
-              nota={
-                dati.partecipantiMin && dati.partecipantiMax
-                  ? `Gruppi da ${dati.partecipantiMin} a ${dati.partecipantiMax} partecipanti · ${periodoLeggibile(dati)}`
-                  : periodoLeggibile(dati)
-              }
-            />
+          {/* contatti e sito */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 24,
+              borderTop: `1px solid ${FILO}`,
+              paddingTop: PIEDE.paddingSopra,
+              fontFamily: TIPO.piede.famiglia,
+              fontSize: TIPO.piede.corpo,
+              color: INCHIOSTRO.secondario,
+            }}
+          >
+            <div>{testi.whatsapp || ""}</div>
+            <div style={{ color: INCHIOSTRO.primario, fontWeight: 500 }}>
+              {(dati.url || "").replace(/^https?:\/\//, "").replace(/\/eventi\/.*$/, "")}
+            </div>
           </div>
         </div>
-      </div>
-    </Telaio>
+      </TelaioEvento>
     </AmbitoProblemi>
   );
 }

@@ -134,9 +134,18 @@ export function creaArchivioLocale() {
         attendi(tx.objectStore(DEPOSITI.contenuti).get(id)),
       );
       if (!grezzo) return null;
-      // La migrazione avviene in lettura: il dato su disco resta com'è finché
-      // non viene risalvato, così un errore non lo rovina.
-      return migra(grezzo).record;
+      /*
+       * Migrazione **e convalida** in lettura. La convalida non è un doppione
+       * di quella in scrittura: è ciò che applica i valori predefiniti dei
+       * campi aggiunti dopo. Senza, una bozza salvata da una versione
+       * precedente tornava priva dei campi nuovi — non `""` ma `undefined` — e
+       * l'editor riceveva un campo che non esisteva: input non controllato e
+       * blocco non disegnato, senza un errore da nessuna parte.
+       *
+       * Il dato su disco resta com'è finché non viene risalvato: qui si
+       * completa la copia in memoria, non il file.
+       */
+      return convalidaContenuto(migra(grezzo).record);
     },
 
     async salva(contenuto) {

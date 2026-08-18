@@ -36,6 +36,16 @@ function campiObbligatori({ contenuto }) {
     if (!f.prezzo) esiti.push(voce("errore", "prezzo", "Manca il prezzo."));
     if (!f.dataInizio && !f.periodo) esiti.push(voce("errore", "date", "Mancano le date."));
     if (!contenuto.editoriale?.cta) esiti.push(voce("avviso", "cta", "Manca la CTA."));
+    /*
+     * Il kicker è la riga sopra il titolo nel Post standard. Senza, quel blocco
+     * semplicemente non si disegna: è un'assenza legittima, non un guasto. Ma
+     * va detta, perché l'alternativa — comporre un testo dai dati — riempirebbe
+     * la locandina di una geografia che nessuno ha scritto.
+     */
+    if (contenuto.formato === "post" && !contenuto.editoriale?.kicker) {
+      esiti.push(voce("avviso", "kicker",
+        "Manca il kicker: la riga sopra il titolo non verrà disegnata. Scrivilo, non si ricava dai dati."));
+    }
   }
   return esiti;
 }

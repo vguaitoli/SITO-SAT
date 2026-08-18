@@ -107,7 +107,7 @@ export function creaArchivioMemoria() {
     async leggi(id) {
       const grezzo = contenuti.get(id);
       if (!grezzo) return null;
-      return migra(structuredClone(grezzo)).record;
+      return convalidaContenuto(migra(structuredClone(grezzo)).record);
     },
 
     async salva(c) {

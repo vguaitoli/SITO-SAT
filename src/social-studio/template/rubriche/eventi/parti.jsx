@@ -16,7 +16,7 @@ import { COLORI, FONT } from "../../../design/tokens";
  * frazione di altezza (51%), e lo spazio guadagnato va alla fascia dati, che
  * nella locandina era compressa.
  *
- * Colori: token del sito, con #E18A3C come unico accento aggiunto e riservato
+ * Colori: token del sito, con `COLORI.accentoEventi` come unico accento aggiunto e riservato
  * a questa rubrica. Il bronzo #C98B4B della locandina è sostituito dalla sabbia
  * #E4D4B0, che è un token del sito.
  */
@@ -26,7 +26,13 @@ export const VELO_FOTO =
   "linear-gradient(to bottom, rgba(28,24,20,0.72) 0%, rgba(28,24,20,0.10) 22%, rgba(28,24,20,0) 38%), " +
   "linear-gradient(to top, rgba(28,24,20,1) 0%, rgba(28,24,20,0.55) 12%, rgba(28,24,20,0) 30%)";
 
-export const ACCENTO = "#E18A3C";
+/**
+ * L'accento della rubrica, letto dal token unico.
+ *
+ * Era una quarta copia scritta a mano: `#E18A3C`. Ora Story e carosello usano
+ * lo stesso `#E08A3C` del Post e del progetto Claude Design.
+ */
+export const ACCENTO = COLORI.accentoEventi;
 export const SOFT = COLORI.sabbia;
 
 /** Marchio sulla fotografia, in alto a sinistra come nella locandina. */

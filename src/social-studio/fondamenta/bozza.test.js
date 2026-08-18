@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { creaArchivioMemoria } from "./archivio";
 import { contenutoVuoto } from "./schema";
 import { registraRevisione, ripristinaRevisione } from "./versioni";
-import { highlightIniziali } from "./preset-eventi";
+import { highlightIniziali, kickerIniziale } from "./preset-eventi";
 import { analizzaGpx } from "../motori/gpx";
 
 /**
@@ -56,6 +56,7 @@ function bozzaLavorata(idGpx) {
     editoriale: {
       ...base.editoriale,
       titoloBreve: "La Via dei Giganti",
+      kicker: "NORD SARDEGNA · GALLURA",
       claim: "Sterrato, granito e mare",
       cta: "Scrivici per prenotare",
       statoPosti: "ultimi",
@@ -104,7 +105,16 @@ describe("una bozza sopravvive alla chiusura dello studio", () => {
     expect(riletto.editoriale.caption).toEqual(originale.editoriale.caption);
     expect(riletto.editoriale.highlight).toEqual(originale.editoriale.highlight);
     expect(riletto.editoriale.statoPosti).toBe("ultimi");
-    expect(riletto.media).toEqual(originale.media);
+    expect(riletto.editoriale.kicker).toBe("NORD SARDEGNA · GALLURA");
+    // `specchiata` è stato aggiunto dopo: la convalida lo mette a `false` sui
+    // ritagli che non lo dichiarano, ed è esattamente ciò che deve fare con le
+    // bozze salvate prima. L'atteso si normalizza allo stesso modo.
+    const conSpecchiata = (r) => (r ? { specchiata: false, ...r } : r);
+    expect(riletto.media).toEqual({
+      cover: conSpecchiata(originale.media.cover),
+      esperienza: originale.media.esperienza.map(conSpecchiata),
+      sfondi: { cta: conSpecchiata(originale.media.sfondi.cta) },
+    });
     expect(riletto.mappa).toEqual(originale.mappa);
     expect(riletto.fattuali).toEqual(originale.fattuali);
     expect(riletto.fonte.istantanea).toEqual(originale.fonte.istantanea);
@@ -118,10 +128,39 @@ describe("una bozza sopravvive alla chiusura dello studio", () => {
     const id = await archivio.salva(bozzaLavorata("gpx-x"));
     const riletto = await archivio.leggi(id);
 
-    expect(riletto.media.cover).toEqual({ idBlob: "img-cover", zoom: 1.35, x: 0.28, y: 0.72 });
+    expect(riletto.media.cover).toEqual({
+      idBlob: "img-cover", zoom: 1.35, x: 0.28, y: 0.72, specchiata: false,
+    });
     expect(riletto.media.esperienza[2]).toBeNull();
     expect(riletto.media.esperienza[3].zoom).toBeCloseTo(1.05);
     expect(riletto.media.sfondi.cta.x).toBeCloseTo(0.7);
+  });
+
+  it("una bozza salvata prima del ribaltamento resta identica alla vista", async () => {
+    const archivio = creaArchivioMemoria();
+    // Il ritaglio non dichiara `specchiata`: è la forma che hanno su disco le
+    // bozze salvate prima di questo capitolo.
+    const id = await archivio.salva(bozzaLavorata("gpx-x"));
+    const riletto = await archivio.leggi(id);
+
+    // Arriva spenta, quindi la fotografia si disegna come prima: nessuna
+    // migrazione, nessun cambio di resa su ciò che era già stato approvato.
+    expect(riletto.media.cover.specchiata).toBe(false);
+    expect(riletto.media.sfondi.cta.specchiata).toBe(false);
+    expect(riletto.media.esperienza.filter(Boolean).every((r) => r.specchiata === false)).toBe(true);
+    // E gli altri numeri del ritaglio non si sono spostati.
+    expect(riletto.media.cover.zoom).toBeCloseTo(1.35);
+    expect(riletto.media.cover.x).toBeCloseTo(0.28);
+  });
+
+  it("conserva il ribaltamento quando lo si accende", async () => {
+    const archivio = creaArchivioMemoria();
+    const base = bozzaLavorata("gpx-x");
+    const id = await archivio.salva({
+      ...base,
+      media: { ...base.media, cover: { ...base.media.cover, specchiata: true } },
+    });
+    expect((await archivio.leggi(id)).media.cover.specchiata).toBe(true);
   });
 
   it("ricostruisce la traccia dal blob, senza un nuovo caricamento", async () => {
@@ -220,6 +259,84 @@ describe("una bozza sopravvive alla chiusura dello studio", () => {
     // Esattamente una revisione in più, non «più di una»: la verifica generica
     // passava anche quando il ripristino ne registrava due.
     expect(finale.versioni).toHaveLength(conStoria.versioni.length + 1);
+  });
+});
+
+describe("kicker", () => {
+  it("sopravvive al salvataggio e alla riapertura", async () => {
+    const archivio = creaArchivioMemoria();
+    const id = await archivio.salva(bozzaLavorata("gpx-x"));
+    expect((await archivio.leggi(id)).editoriale.kicker).toBe("NORD SARDEGNA · GALLURA");
+  });
+
+  it("entra nella cronologia insieme al resto dei testi", async () => {
+    const archivio = creaArchivioMemoria();
+    const id = await archivio.salva(bozzaLavorata("gpx-x"));
+    const primo = await archivio.leggi(id);
+
+    await archivio.salva(registraRevisione(
+      { ...primo, editoriale: { ...primo.editoriale, kicker: "GALLURA · LIMBARA" } },
+      primo,
+    ));
+    const conStoria = await archivio.leggi(id);
+    expect(conStoria.editoriale.kicker).toBe("GALLURA · LIMBARA");
+    // Il kicker vecchio è recuperabile: `editoriale` è un ramo sorvegliato.
+    expect(conStoria.versioni.at(-1).dati.editoriale.kicker).toBe("NORD SARDEGNA · GALLURA");
+
+    const tornato = ripristinaRevisione(conStoria, conStoria.versioni.at(-1).n);
+    expect(tornato.editoriale.kicker).toBe("NORD SARDEGNA · GALLURA");
+  });
+
+  it("una bozza salvata prima che il campo esistesse resta valida e vuota", async () => {
+    const archivio = creaArchivioMemoria();
+    const base = bozzaLavorata("gpx-x");
+    // La forma su disco delle bozze precedenti: nessun `kicker`.
+    const senza = { ...base, editoriale: { ...base.editoriale } };
+    delete senza.editoriale.kicker;
+
+    const id = await archivio.salva(senza);
+    const riletto = await archivio.leggi(id);
+    // Vuoto, non inventato. Il template non disegnerà il blocco.
+    expect(riletto.editoriale.kicker).toBe("");
+    // E nulla d'altro si è mosso.
+    expect(riletto.editoriale.claim).toBe(base.editoriale.claim);
+  });
+
+  it("legge un record estraneo completandolo con i campi nuovi", async () => {
+    /*
+     * Il caso vero, che il test sopra non copriva: un record **scritto da una
+     * versione precedente**, che non passa dalla convalida in scrittura di
+     * questa. Arrivava con `kicker: undefined` — non `""` — e l'editor si
+     * ritrovava un campo inesistente: input non controllato, blocco non
+     * disegnato, nessun errore. `leggi()` deve restituire un record conforme
+     * allo schema corrente, non solo migrato.
+     */
+    const archivio = creaArchivioMemoria();
+    const base = bozzaLavorata("gpx-x");
+    const legacy = { ...base, editoriale: { ...base.editoriale } };
+    delete legacy.editoriale.kicker;
+    delete legacy.editoriale.highlight;
+
+    await archivio.importaBackup({
+      formato: "sta-social-studio-backup",
+      versioneSchema: 1,
+      esportatoIl: new Date().toISOString(),
+      contenuti: [legacy],
+    });
+
+    const riletto = await archivio.leggi(legacy.id);
+    expect(riletto.editoriale.kicker).toBe("");
+    expect(riletto.editoriale.kicker).not.toBeUndefined();
+    expect(riletto.editoriale.highlight).toEqual([]);
+    // I ritagli, aggiunti anch'essi dopo, ricevono lo stesso trattamento.
+    expect(riletto.media.cover.specchiata).toBe(false);
+  });
+
+  it("il preset esiste solo per l'evento del riferimento", () => {
+    expect(kickerIniziale("la-via-dei-giganti-2026")).toBe("NORD SARDEGNA · GALLURA");
+    // Per gli altri resta vuoto: una geografia non si deduce.
+    expect(kickerIniziale("honda-xr-tour-2026")).toBe("");
+    expect(kickerIniziale(null)).toBe("");
   });
 });
 

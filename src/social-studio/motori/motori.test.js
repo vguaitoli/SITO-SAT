@@ -212,6 +212,26 @@ describe("Pre-flight", () => {
     expect(preflight({ contenuto: evento(), vociMedia: media }).errori.map((e) => e.id)).not.toContain("gpx");
   });
 
+  it("avvisa quando manca il kicker del Post standard", () => {
+    const c = evento();
+    const senza = preflight({ contenuto: { ...c, formato: "post" }, vociMedia: media });
+    expect(senza.avvisi.map((e) => e.id)).toContain("kicker");
+    // È un avviso: il blocco non si disegna, ma il Post resta esportabile.
+    expect(senza.puoiEsportare).toBe(true);
+
+    const con = preflight({
+      contenuto: { ...c, formato: "post", editoriale: { ...c.editoriale, kicker: "NORD SARDEGNA · GALLURA" } },
+      vociMedia: media,
+    });
+    expect(con.avvisi.map((e) => e.id)).not.toContain("kicker");
+  });
+
+  it("non chiede il kicker dove quel blocco non esiste", () => {
+    const c = evento();
+    const story = preflight({ contenuto: { ...c, formato: "story" }, vociMedia: media, formato: "story" });
+    expect(story.avvisi.map((e) => e.id)).not.toContain("kicker");
+  });
+
   it("avvisa su una caption senza invito all'azione", () => {
     const c = evento();
     const esito = preflight({

@@ -50,9 +50,9 @@ describe("le otto rubriche", () => {
   });
 });
 
-describe("l'accento #E18A3C", () => {
+describe("l'accento EVENTI", () => {
   it("è l'accento della sola rubrica EVENTI", () => {
-    expect(CATEGORIE.eventi.accento).toBe("#E18A3C");
+    expect(CATEGORIE.eventi.accento).toBe(COLORI.accentoEventi);
     const altre = ELENCO_CATEGORIE.filter((c) => c.id !== "eventi");
     for (const c of altre) {
       expect(c.accento, `${c.nome} non deve usare l'arancio degli eventi`).toBe(COLORI.accento);
@@ -62,7 +62,8 @@ describe("l'accento #E18A3C", () => {
   it("non sostituisce l'accento globale del sito", () => {
     // Il token del sito resta l'oxblood: è il punto della decisione «ibrida».
     expect(COLORI.accento).toBe("#A0612A");
-    expect(COLORI.accentoEventi).toBe("#E18A3C");
+    // Viene dal progetto Claude Design, non più scritto a mano.
+    expect(COLORI.accentoEventi).toBe("#E08A3C");
   });
 });
 
@@ -82,7 +83,7 @@ describe("varianti e formati", () => {
 
   it("i predefiniti si caricano dalla rubrica", () => {
     const p = predefinitiCategoria("eventi");
-    expect(p.accento).toBe("#E18A3C");
+    expect(p.accento).toBe(COLORI.accentoEventi);
     expect(p.pesoFoto).toBe(50);
     expect(p.variante).toBe("standard");
   });

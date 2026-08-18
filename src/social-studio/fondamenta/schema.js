@@ -60,6 +60,15 @@ export const ritaglio = z.object({
   zoom: z.number().min(1).max(4).default(1),
   x: z.number().min(0).max(1).default(0.5),
   y: z.number().min(0).max(1).default(0.5),
+  /**
+   * Ribaltamento orizzontale. Spento per definizione.
+   *
+   * Nel riferimento EVENTI la fotografia di copertina è specchiata, ma è una
+   * scelta su quella fotografia: qui è un dato del ritaglio, accanto a zoom e
+   * punto focale. Le bozze salvate prima non hanno il campo e ricevono `false`
+   * dalla convalida — nessuna migrazione, nessun cambio di resa.
+   */
+  specchiata: z.boolean().default(false),
 });
 
 export const tappa = z.object({
@@ -111,6 +120,15 @@ export const fattuali = z.object({
 /** Ciò che appartiene solo alla comunicazione social. Qui l'AI può lavorare. */
 export const editoriale = z.object({
   titoloBreve: z.string().default(""),
+  /**
+   * Kicker: la riga spaziata sopra il titolo, accanto alla barra in accento.
+   *
+   * È un dato **editoriale**, non fattuale: «NORD SARDEGNA · GALLURA» è una
+   * scelta di racconto, non la località di partenza. Non si deriva dai dati e
+   * non si inventa — vuoto per definizione, e il template non disegna il blocco
+   * se manca.
+   */
+  kicker: z.string().default(""),
   claim: z.string().default(""),
   fraseNumeri: z.string().default(""),
   descrizione: z.string().default(""),
@@ -154,6 +172,12 @@ export const configurazioneMappa = z.object({
 
 /** Metadati visuali, per la Visual History e il bilanciamento del feed. */
 export const visual = z.object({
+  /**
+   * Mood EVENTI: cambia insieme filtro fotografico, velo e contrasto.
+   *
+   * I tre nomi vengono dal progetto Claude Design. Non toccano l'accento.
+   */
+  mood: z.enum(["Notte", "Polvere", "Inchiostro"]).default("Notte"),
   tono: z.enum(["dark", "light", "mixed"]).default("dark"),
   tipo: z.enum(["photo", "graphic", "mixed"]).default("mixed"),
   soggetto: z.array(z.enum(["person", "bike", "landscape", "group", "technical", "food"])).default([]),

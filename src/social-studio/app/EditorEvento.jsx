@@ -9,8 +9,9 @@ import Anteprima, { FuoriSchermo } from "./Anteprima";
 import LibreriaUI from "../media/LibreriaUI";
 import Ritaglio from "../media/Ritaglio";
 import { contenutoVuoto, LUNGHEZZE_CAPTION, STATI, STATI_POSTI } from "../fondamenta/schema";
+import { ELENCO_MOOD, MOOD } from "../design/eventi";
 import { confrontaConLaFonte, daEvento } from "../fondamenta/adapter-sito";
-import { haPreset, highlightIniziali } from "../fondamenta/preset-eventi";
+import { haPreset, highlightIniziali, kickerIniziale } from "../fondamenta/preset-eventi";
 import { elencoRevisioni, registraRevisione, ripristinaRevisione } from "../fondamenta/versioni";
 import { AmbitoProblemi, FornitoreProblemi, useFontPronti } from "../template/primitivi";
 import PostEvento from "../template/rubriche/eventi/PostEvento";
@@ -79,7 +80,12 @@ export default function EditorEvento() {
   const [avanzamento, setAvanzamento] = useState(null);
   const [daConfermare, setDaConfermare] = useState(null);
   const [mostraRevisioni, setMostraRevisioni] = useState(false);
-  const [fasePacchetto, setFasePacchetto] = useState(null);
+  /**
+   * Che cosa si sta esportando e a che punto è.
+   *
+   * `null` | `{ cosa: "vista"|"pacchetto", ignoraAvvisi, fase: "monta"|"cattura" }`
+   */
+  const [export_, setExport] = useState(null);
 
   const lavoro = useRef(null);
   const nodi = useRef(new Map());
@@ -221,6 +227,8 @@ export default function EditorEvento() {
         // Niente highlight generici: preset per l'evento che ne ha uno, oppure
         // i punti di interesse che il sito dichiara. Mai testi di un altro tour.
         highlight: highlightIniziali(importato.fattuali, importato.fonte.slug),
+        // Vuoto se l'evento non ha un preset: il pre-flight lo segnalerà.
+        kicker: kickerIniziale(importato.fonte.slug),
       },
       media: { cover: null, esperienza: [null, null, null, null], sfondi: {} },
     };
@@ -453,36 +461,30 @@ export default function EditorEvento() {
    * Esportazione
    * ================================================================ */
 
+  /**
+   * Gli elementi della vista corrente, presi dai nodi **fuori schermo**.
+   *
+   * Non dal nodo dell'anteprima: quello sta dentro un antenato con
+   * `transform: scale()`, e html2canvas lo fotografa applicando quella scala —
+   * il PNG usciva col contenuto disegnato al 40% nell'angolo, su una tela
+   * corretta di 1080×1350. Il difetto non si vedeva perché l'anteprima è
+   * giusta: si vede solo aprendo il file esportato.
+   *
+   * L'esportazione del pacchetto usava già i nodi fuori schermo, ed è per
+   * questo che le sue grafiche erano corrette. Ora ci passano entrambe: un solo
+   * percorso di cattura, nessuna differenza da tenere allineata.
+   */
   const elementiVista = () =>
     vista === "carosello"
-      ? SLIDE_CAROSELLO.map((s) => ({ id: s.id, nome: s.file, formato: "post", nodo: nodi.current.get(s.id) }))
+      ? SLIDE_CAROSELLO.map((s) => ({
+          id: s.id, nome: s.file, formato: "post", nodo: nodi.current.get(`pacco-${s.id}`),
+        }))
       : [{
           id: vista,
           nome: `${vista}.png`,
           formato: vista === "story" ? "story" : "post",
-          nodo: nodi.current.get(vista),
+          nodo: nodi.current.get(`pacco-${vista}`),
         }];
-
-  const esportaVista = async ({ ignoraAvvisi = false } = {}) => {
-    setDaConfermare(null);
-    lavoro.current = creaLavoroExport();
-    setAvanzamento({ fatti: 0, totale: 0, corrente: "avvio" });
-
-    const esito = await esporta({
-      elementi: elementiVista().filter((e) => e.nodo),
-      contenuto: { ...contenuto, formato: vista === "carosello" ? "carosello" : vista },
-      vociMedia,
-      problemi: tuttiIProblemi,
-      // Mai attivato d'ufficio: se ci sono avvisi, si torna a chiedere.
-      ignoraAvvisi,
-      caption: contenuto.editoriale.caption.testo,
-      lavoro: lavoro.current,
-      onAvanzamento: setAvanzamento,
-    });
-
-    setAvanzamento(null);
-    if (esito.esito === "bloccato") setDaConfermare({ tipo: "vista", ...esito });
-  };
 
   /**
    * Il pacchetto ha bisogno che tutte e dieci le grafiche esistano nel DOM alla
@@ -490,14 +492,14 @@ export default function EditorEvento() {
    * abbia disegnato, poi si fotografa: due fasi, perché lo stato React non è
    * disponibile nello stesso giro in cui lo si imposta.
    */
-  const chiediPacchetto = (ignoraAvvisi = false) => {
+  const chiediExport = (cosa, ignoraAvvisi = false) => {
     setDaConfermare(null);
-    setFasePacchetto(ignoraAvvisi ? "monta-forzato" : "monta");
+    setExport({ cosa, ignoraAvvisi, fase: "monta" });
   };
 
   useEffect(() => {
-    if (fasePacchetto !== "monta" && fasePacchetto !== "monta-forzato") return undefined;
-    const ignoraAvvisi = fasePacchetto === "monta-forzato";
+    if (export_?.fase !== "monta") return undefined;
+    const { cosa, ignoraAvvisi } = export_;
     let vivo = true;
 
     (async () => {
@@ -511,40 +513,64 @@ export default function EditorEvento() {
       await attendiUnFrame();
       if (!vivo) return;
 
-      setFasePacchetto("in corso");
+      setExport((e) => (e ? { ...e, fase: "cattura" } : e));
       lavoro.current = creaLavoroExport();
-      setAvanzamento({ fatti: 0, totale: PACCHETTO.length, corrente: "avvio" });
 
-      const esito = await esportaPacchetto({
-        elementi: PACCHETTO.map((p) => ({ ...p, nodo: nodi.current.get(`pacco-${p.id}`) })),
-        contenuto,
+      const elementi = cosa === "pacchetto"
+        ? PACCHETTO.map((p) => ({ ...p, nodo: nodi.current.get(`pacco-${p.id}`) }))
+        : elementiVista();
+      setAvanzamento({ fatti: 0, totale: elementi.length, corrente: "avvio" });
+
+      const comune = {
+        elementi,
         vociMedia,
         problemi: tuttiIProblemi,
         ignoraAvvisi,
         caption: contenuto.editoriale.caption.testo,
         lavoro: lavoro.current,
         onAvanzamento: setAvanzamento,
-      });
+      };
+
+      const esito = cosa === "pacchetto"
+        ? await esportaPacchetto({ ...comune, contenuto })
+        : await esporta({
+            ...comune,
+            elementi: elementi.filter((e) => e.nodo),
+            contenuto: { ...contenuto, formato: vista === "carosello" ? "carosello" : vista },
+          });
 
       if (!vivo) return;
-      setAvanzamento(esito.esito === "fatto" ? { pacchetto: esito.archivio, ms: esito.msTotale } : null);
-      if (esito.esito === "bloccato") setDaConfermare({ tipo: "pacchetto", ...esito });
+      setAvanzamento(esito.esito === "fatto" && esito.archivio
+        ? { pacchetto: esito.archivio, ms: esito.msTotale }
+        : null);
+      if (esito.esito === "bloccato") setDaConfermare({ tipo: cosa, ...esito });
       if (esito.esito === "incompleto") {
-        setDaConfermare({ tipo: "pacchetto", esito: "incompleto", mancanti: esito.mancanti });
+        setDaConfermare({ tipo: cosa, esito: "incompleto", mancanti: esito.mancanti });
       }
-      setFasePacchetto(null);
+      setExport(null);
     })();
 
     return () => { vivo = false; };
     // Le altre dipendenze si leggono al momento dell'uso: aggiungerle qui
     // rilancerebbe l'esportazione a ogni battitura.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fasePacchetto]);
+  }, [export_]);
 
-  const pacchettoMontato = fasePacchetto === "monta" || fasePacchetto === "monta-forzato" || fasePacchetto === "in corso";
+  /**
+   * Quali grafiche montare fuori schermo.
+   *
+   * Per il pacchetto tutte e dieci; per la vista corrente solo quelle che
+   * servono, così un singolo PNG non paga il montaggio degli altri nove.
+   */
+  const daMontare = useMemo(() => {
+    if (!export_) return [];
+    if (export_.cosa === "pacchetto") return PACCHETTO.map((p) => p.id);
+    if (vista === "carosello") return SLIDE_CAROSELLO.map((s) => s.id);
+    return [vista];
+  }, [export_, vista]);
   // Occupato durante tutto il montaggio e la cattura, non solo mentre scorre
   // l'avanzamento: fra il clic e il primo frame il pulsante resta premibile.
-  const occupato = Boolean(pacchettoMontato || (avanzamento && !avanzamento.pacchetto));
+  const occupato = Boolean(export_ || (avanzamento && !avanzamento.pacchetto));
 
   /* ================================================================ */
 
@@ -741,6 +767,16 @@ export default function EditorEvento() {
                   />
                 </Campo>
 
+                <Campo etichetta="Kicker" aiuto="La riga spaziata sopra il titolo, accanto alla barra in accento. Vuota: il blocco non compare.">
+                  <input
+                    type="text"
+                    value={contenuto.editoriale.kicker}
+                    onChange={(e) => scriviEditoriale("kicker", e.target.value)}
+                    placeholder="NORD SARDEGNA · GALLURA"
+                    className={CLASSE_CAMPO}
+                  />
+                </Campo>
+
                 <Campo etichetta="Claim" aiuto="Una riga sotto il titolo, in maiuscoletto spaziato.">
                   <textarea
                     rows={2}
@@ -867,6 +903,46 @@ export default function EditorEvento() {
                   ))}
                 </ul>
               )}
+            </section>
+
+            {/* ---- impostazioni visuali: separate dai dati editoriali ---- */}
+            <section className="border border-[var(--border-on-dark)] p-4">
+              <h3 className="mb-1 font-button text-[10px] uppercase tracking-[0.22em] text-[var(--accent-soft)]">
+                Aspetto
+              </h3>
+              <p className="mb-3 font-body text-[10px] leading-snug text-granite-mist/40">
+                Il mood cambia insieme filtro fotografico, velo e contrasto. Non tocca l'accento.
+              </p>
+              <div className="mb-3 flex flex-wrap gap-1.5">
+                {ELENCO_MOOD.map((m) => {
+                  const attivo = (contenuto.visual?.mood || "Notte") === m;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => aggiorna((c) => ({ ...c, visual: { ...c.visual, mood: m } }))}
+                      title={MOOD[m].filtroFoto}
+                      className={`border px-2.5 py-1.5 font-body text-[11px] transition-colors ${
+                        attivo
+                          ? "border-[var(--accent)] text-[var(--accent-soft)]"
+                          : "border-[var(--border-on-dark)] text-granite-mist/55 hover:border-granite-mist/40"
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  );
+                })}
+              </div>
+              <label className="flex items-center gap-2 font-body text-xs text-granite-mist/65">
+                <input
+                  type="checkbox"
+                  checked={Boolean(ritaglioAttivo?.specchiata)}
+                  disabled={!ritaglioAttivo}
+                  onChange={(e) => cambiaRitaglio({ ...ritaglioAttivo, specchiata: e.target.checked })}
+                  className="accent-[var(--accent)]"
+                />
+                Rifletti la fotografia di «{SLOT.find((x) => x.id === slotAttivo)?.nome}»
+              </label>
             </section>
 
             {/* ---- stato editoriale del contenuto ---- */}
@@ -1069,7 +1145,7 @@ export default function EditorEvento() {
               ))}
               <button
                 type="button"
-                onClick={() => esportaVista()}
+                onClick={() => chiediExport("vista")}
                 disabled={occupato}
                 className="ml-auto inline-flex items-center gap-2 border border-[var(--border-on-dark)] px-3 py-2 font-button text-[10px] uppercase tracking-[0.14em] text-granite-mist/70 transition-colors hover:border-[var(--accent)] disabled:opacity-40"
               >
@@ -1078,7 +1154,7 @@ export default function EditorEvento() {
               </button>
               <button
                 type="button"
-                onClick={() => chiediPacchetto(false)}
+                onClick={() => chiediExport("pacchetto")}
                 disabled={occupato}
                 className="btn-mech inline-flex items-center gap-2 bg-[var(--cta)] px-4 py-2 text-xs text-[var(--cta-text)] disabled:opacity-40"
               >
@@ -1126,7 +1202,7 @@ export default function EditorEvento() {
                       <button
                         type="button"
                         onClick={() =>
-                          daConfermare.tipo === "pacchetto" ? chiediPacchetto(true) : esportaVista({ ignoraAvvisi: true })
+                          chiediExport(daConfermare.tipo === "pacchetto" ? "pacchetto" : "vista", true)
                         }
                         className="btn-mech bg-[var(--cta)] px-4 py-2 text-xs text-[var(--cta-text)]"
                       >
@@ -1159,7 +1235,7 @@ export default function EditorEvento() {
             <FornitoreProblemi onProblemi={setProblemi}>
               {vista === "post" && (
                 <Anteprima formato="post" massimaAltezza={700}>
-                  <PostEvento contenuto={contenuto} immagini={immagini} riferimento={registra("post")} />
+                  <PostEvento contenuto={contenuto} immagini={immagini} traccia={traccia} riferimento={registra("post")} />
                 </Anteprima>
               )}
               {vista === "story" && (
@@ -1194,15 +1270,19 @@ export default function EditorEvento() {
                 visibili, e senza un ambito proprio le loro segnalazioni si
                 confonderebbero con quelle dell'anteprima.
               */}
-              {pacchettoMontato && (
+              {daMontare.length > 0 && (
                 <AmbitoProblemi nome="pacco">
-                  <FuoriSchermo formato="post" riferimento={registra("pacco-post")}>
-                    <PostEvento contenuto={contenuto} immagini={immagini} />
-                  </FuoriSchermo>
-                  <FuoriSchermo formato="story" riferimento={registra("pacco-story")}>
-                    <StoryEvento contenuto={contenuto} immagini={immagini} />
-                  </FuoriSchermo>
-                  {SLIDE_CAROSELLO.map((s) => (
+                  {daMontare.includes("post") && (
+                    <FuoriSchermo formato="post" riferimento={registra("pacco-post")}>
+                      <PostEvento contenuto={contenuto} immagini={immagini} traccia={traccia} />
+                    </FuoriSchermo>
+                  )}
+                  {daMontare.includes("story") && (
+                    <FuoriSchermo formato="story" riferimento={registra("pacco-story")}>
+                      <StoryEvento contenuto={contenuto} immagini={immagini} />
+                    </FuoriSchermo>
+                  )}
+                  {SLIDE_CAROSELLO.filter((s) => daMontare.includes(s.id)).map((s) => (
                     <FuoriSchermo key={s.id} formato="post" riferimento={registra(`pacco-${s.id}`)}>
                       <SlideCarosello id={s.id} contenuto={contenuto} immagini={immagini} traccia={traccia} />
                     </FuoriSchermo>

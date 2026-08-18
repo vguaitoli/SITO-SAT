@@ -16,6 +16,21 @@
  * fare per distrazione.
  */
 
+/**
+ * Accento della rubrica EVENTI — **unica definizione nel progetto**.
+ *
+ * Viene dal progetto Claude Design «La via dei giganti» (prop `accent`,
+ * default `#E08A3C`). Prima esisteva in quattro punti col valore `#E18A3C`,
+ * scritto a mano: qui, nella traccia della mappa, nella linea dell'altimetria e
+ * in `template/rubriche/eventi/parti.jsx`. Quattro copie di un colore che
+ * differiva di una cifra sul rosso — nessuno se ne accorgeva e ognuno usava la
+ * sua.
+ *
+ * `design/eventi.js` la ri-esporta come `ACCENTO`. La dipendenza va in un verso
+ * solo: i token globali sono la base e non possono dipendere da una rubrica.
+ */
+const ACCENTO_EVENTI = "#E08A3C";
+
 export const COLORI = {
   // --- dal sito, invariati ---
   fondo: "#1C1814", // obsidian
@@ -32,8 +47,8 @@ export const COLORI = {
   filo: "rgba(245, 235, 217, 0.16)",
   filoForte: "rgba(245, 235, 217, 0.3)",
 
-  // --- specifico della rubrica EVENTI ---
-  accentoEventi: "#E18A3C",
+  // --- specifico della rubrica EVENTI --- (vedi ACCENTO_EVENTI sopra)
+  accentoEventi: ACCENTO_EVENTI,
 
   // --- fondo chiaro, per la rubrica INFO ---
   fondoChiaro: "#F5EBD9",
@@ -86,7 +101,7 @@ export const MAPPA = {
   curva: "rgba(120, 92, 56, 0.5)",
   curvaForte: "rgba(120, 92, 56, 0.75)",
   traccia: "#A0612A",
-  tracciaEventi: "#E18A3C",
+  tracciaEventi: ACCENTO_EVENTI,
   tracciaAlone: "rgba(28, 24, 20, 0.85)",
   marker: "#1C1814",
   etichetta: "#1C1814",
@@ -94,8 +109,8 @@ export const MAPPA = {
 
 /** Profilo altimetrico: pulito, minimale, gli stessi due colori. */
 export const ALTIMETRIA = {
-  linea: "#E18A3C",
-  riempimento: "rgba(225, 138, 60, 0.18)",
+  linea: ACCENTO_EVENTI,
+  riempimento: "rgba(224, 138, 60, 0.18)", // ACCENTO_EVENTI al 18%
   griglia: "rgba(245, 235, 217, 0.12)",
   testo: "rgba(245, 235, 217, 0.6)",
 };

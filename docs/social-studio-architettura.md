@@ -451,8 +451,228 @@ Da realizzare in Fase 3 insieme al resto delle fondamenta di sicurezza.
 
 ## 14. Cosa resta bloccato
 
-- **Template grafico EVENTI**: non si finalizza finché non arriva
-  `Locandina-Via-dei-Giganti.dc.html`. Il PNG resta riferimento provvisorio per
-  gerarchia e proporzioni.
+- **Template grafico EVENTI**: sbloccato. `Locandina-Via-dei-Giganti.dc.html` è
+  accessibile dal progetto Claude Design integrato — vedi la sezione 15, che è
+  ora la fonte del linguaggio visuale EVENTI. Restano da allineare Story,
+  carosello e slide 08.
 - **Endpoint AI in produzione**: non si abilita prima di autenticazione e rate
   limiting.
+
+
+---
+
+## 15. Fonte del linguaggio visuale EVENTI
+
+### 15.1 Fonte primaria
+
+Il **progetto Claude Design «La via dei giganti»**
+(`027c20d9-bd4b-4afc-b0c9-3d770f26185c`), letto tramite lo strumento
+`DesignSync`, è la fonte primaria e vincolante del linguaggio visuale EVENTI:
+composizione, colori, fondi, gradienti, overlay, trattamento fotografico,
+tipografia, dimensioni, proporzioni, spaziature, gerarchie, badge, marchio,
+mappa sovrapposta, mood.
+
+`/format` **non** è una fonte. Non è un riferimento, non è un fallback, e non
+fornisce proporzioni.
+
+### 15.2 Gerarchia delle fonti
+
+1. **Progetto Claude Design integrato** — **composizione, geometria, colori,
+   parametri**. È il bersaglio.
+2. **PNG esportato** (`post-instagram-1080x1350-2.png`, master 2160×2700 a 2×) —
+   **solo riferimento atmosferico**. Non entra nel repository né nel bundle.
+3. **Design system STA** — solo per ciò che il progetto non definisce.
+
+**Il PNG è un'iterazione diversa dal `.dc.html`.** Confrontati, differiscono
+nella struttura: il PNG ha una sola striscia `date │ itinerario` sopra il
+titolo, non ha le quattro colonne dei dati, non ha i servizi inclusi, non ha il
+piede con telefono e sito, e lascia vuoto il terzo inferiore.
+
+Il `.dc.html` prevale. Il PNG si usa **soltanto** per giudicare atmosfera,
+trattamento fotografico, profondità, equilibrio fra fotografia e velo,
+leggibilità e carattere generale. **Non è un riferimento geometrico** e non si
+usa per spostare i blocchi.
+
+### 15.3 Risorse analizzate
+
+Da `list_files` sul progetto:
+
+| Percorso | Leggibile | Contenuto |
+|---|---|---|
+| `Locandina-Via-dei-Giganti.dc.html` | sì | **struttura, token e parametri del Post.** Fonte del sistema |
+| `Stories-Via-dei-Giganti.dc.html` | sì | sei schermate 1080×1920. Letto per capire i token condivisi; **non implementato** |
+| `doc-page.js` | sì | runtime di impaginazione (scaffold «omelette»). **Nessun valore di design** |
+| `support.js` | sì | runtime `<x-dc>`. Non letto: la logica dei `{{ }}` è inline nei due `.dc.html` |
+| `logo-512.png` | sì | marchio del progetto. Non scaricato: in `public/` c'è già `logo-sardegna-trail-avventura.png` |
+| `uploads/La via dei giganti.png` | sì | traccia come immagine. Non scaricata: la mappa si disegna dal GPX |
+| `uploads/la-via-dei-giganti-hero-realistico.png` | sì | fotografia dell'evento. Non scaricata: le foto vengono dalla Media Library |
+| `uploads/ChatGPT Image 9 lug 2026…png` | sì | non usata dai due `.dc.html` |
+
+### 15.4 Palette estratta
+
+| Ruolo | Valore | Dichiarazione d'origine |
+|---|---|---|
+| Fondo | `#14120F` | `background: #14120F` della sezione |
+| Testo primario | `#F7F0E6` | titolo, valori, itinerario, sito |
+| Testo secondario | `#B4A691` | etichette, payoff, inclusi, piede |
+| Testo su velo | `#DCD1BF` | claim |
+| Etichetta kicker | `#E4DACB` | `NORD SARDEGNA · GALLURA` |
+| Filetti | `rgba(228,218,203,.24)` | `border-top`/`border-bottom` |
+| Accento | `#E08A3C` | `default` della prop `accent` |
+| Accenti alternativi | `#C25A18`, `#D9C27E`, `#8FA36B` | `options` della prop `accent` |
+
+**Accento: una sola definizione.** In conversazione era stato scritto `#E18A3C`;
+il progetto dichiara `#E08A3C`. Vale il progetto, e il valore vive in **un solo
+posto**: `ACCENTO_EVENTI` in `design/tokens.js`.
+
+Prima esisteva in **quattro** copie scritte a mano, tutte `#E18A3C`:
+`COLORI.accentoEventi`, `MAPPA.tracciaEventi`, `ALTIMETRIA.linea` e
+`ACCENTO` in `template/rubriche/eventi/parti.jsx`. Ora tutte leggono la
+costante, e `design/eventi.js` la ri-esporta come `ACCENTO`. La dipendenza va in
+un verso solo — `eventi.js` → `tokens.js` — perché i token globali sono la base
+e non possono dipendere da una rubrica.
+
+Conseguenza dichiarata: Story, carosello, traccia della mappa e profilo
+altimetrico cambiano accento da `#E18A3C` a `#E08A3C`. **Solo il colore**:
+struttura e layout non sono stati toccati.
+
+### 15.5 Tipografia estratta
+
+Tre famiglie, con i ruoli che il progetto assegna. Il punto che i template
+precedenti sbagliavano: **Oswald porta anche i valori dei dati**, non solo le
+etichette.
+
+| Elemento | Famiglia | Corpo | Tracking | Interlinea |
+|---|---|---|---|---|
+| Titolo | Bebas Neue | 150 / **132** / 116 | `.015em` | `.84` |
+| Kicker | Oswald | 20 | `.3em` | — |
+| Badge disciplina | Oswald | 30 | `.2em` | — |
+| «Posti limitati» | Oswald | 13 | `.2em` | — |
+| Nome del marchio | Bebas Neue | 30 | `.06em` | `1.06` |
+| Payoff del marchio | Oswald | 12 | `.26em` | — |
+| Etichetta dato | Oswald | 12 | `.24em` | — |
+| **Valore dato** | **Oswald 500** | **27** | `.02em` | — |
+| Itinerario | Oswald | 23 | `.08em` | `1.35` |
+| Claim | Montserrat 300 | 26 | — | `1.4` |
+| Inclusi | Montserrat 300 | 19 | — | `1.45` |
+| Piede | Montserrat | 17 | — | — |
+
+Ombra del titolo: `0 8px 40px rgba(0,0,0,.55)`.
+
+### 15.6 Fondo, trattamento fotografico, gradienti, overlay
+
+**Il fondo di EVENTI non è un colore.** È una pila di quattro strati, e il
+grigio caldo visibile al centro della locandina non è dipinto da nessuno: è la
+fotografia desaturata vista attraverso il velo al 34% in quel punto. Cambiando
+fotografia cambia il grigio, e restano costanti leggibilità, atmosfera e
+gerarchia — che un `background` non saprebbe fare.
+
+| z | Strato | Parametri |
+|---|---|---|
+| 0 | Fotografia a pieno campo | `inset: 0`, `object-fit: cover`, `object-position: 50% 42%`, filtro dal mood |
+| 1 | Traccia cartografica | `opacity: .22`, `mix-blend-mode: luminosity`, maschera radiale, riquadro `-105 / -7 / 1335×848` |
+| 2 | Velo verticale | gradiente a cinque tappe dal mood |
+| 3 | Contenuto | — |
+
+Maschera della mappa: `radial-gradient(120% 100% at 50% 42%, #000 32%,
+rgba(0,0,0,.35) 66%, transparent 60%)`. Il file dichiara anche una variante
+`-webkit-` a `100% 78%`: vale la standard.
+
+### 15.7 Mood
+
+Un mood è una **coppia** filtro + velo: non sono separabili, perché il velo di
+Polvere è caldo in quanto la fotografia sotto è virata seppia.
+
+| Mood | Filtro fotografico | Velo |
+|---|---|---|
+| **Notte** (predefinito) | `grayscale(.28) contrast(1.06) saturate(.9)` | `.78 / .34 / .72 / .96 / 1` a `0 / 26 / 52 / 76 / 100%` su `rgba(20,18,15)` |
+| Polvere | `sepia(.4) saturate(1.1) contrast(1.08)` | `.74 / .26 / .78 / .97 / 1`, prime due tappe su `rgba(28,20,12)` e `rgba(70,40,16)` |
+| Inchiostro | `grayscale(1) contrast(1.14)` | `.88 / .6 / .86 / 1` su `rgba(16,15,13)` |
+
+Nessun mood cambia l'accento: un test lo verifica.
+
+### 15.8 Struttura del Post
+
+Tela 1080×1350, padding `58 / 62 / 52`.
+
+| Blocco | Ordinata | Contenuto |
+|---|---|---|
+| Intestazione | 58 | marchio a sinistra, badge disciplina + «posti limitati» a destra |
+| Kicker | 328 | barra `56×8` in accento + etichetta spaziata |
+| Titolo | 392 | due righe, **l'ultima parola in accento** |
+| Claim | 681 | larghezza 405 |
+| Dati | fino a 1298 | quattro colonne fra due filetti: `DATE · PARTENZA · STERRATO · LIVELLO` |
+| Itinerario | idem | etichetta + tappe in sequenza; servizi inclusi a destra |
+| Piede | idem | contatti a sinistra, sito a destra, sopra un filetto |
+
+**Allineamento ottico.** Titolo, claim e kicker non stanno sul margine di 62 ma
+a 46, 53 e 45. Non è un trascinamento imperfetto ripetuto tre volte: è
+l'allineamento ottico che i caratteri display richiedono.
+
+### 15.9 Traduzione in sistema
+
+Il `.dc.html` non è stato incorporato. È un documento: una fotografia, un
+evento, coordinate trascinate. Il sistema vive in:
+
+- `src/social-studio/design/eventi.js` — token, mood, velo, scala tipografica,
+  griglia, safe area, regole di badge, kicker, dati, itinerario, mappa, e
+  l'elenco esplicito di ciò che **non** contiene;
+- `src/social-studio/template/rubriche/eventi/TelaioEvento.jsx` — la pila dei
+  quattro strati, condivisibile dalle future varianti;
+- `src/social-studio/template/rubriche/eventi/PostEvento.jsx` — la variante
+  `EVENTO STANDARD / EDITORIAL`.
+
+I token globali in `design/tokens.js` non sono stati modificati. Brand Lock
+continua a proteggere `palette`, `font`, `scalaTipografica`,
+`strutturaTemplate`, `proporzioni` e `areaSicura`; `ritaglio` resta libero, e il
+ribaltamento orizzontale vive lì.
+
+### 15.10 Vincoli applicativi
+
+- **Preview = Export**: un solo albero di componenti, fotografato alla misura
+  reale. Nessuna variante «da esportazione».
+- **Ribaltamento**: nel riferimento la fotografia è specchiata, ma è una scelta
+  su quella fotografia. `ritaglio.specchiata` è non distruttivo, configurabile,
+  persistente e **spento per definizione**; le bozze salvate prima ricevono
+  `false` dalla convalida, senza migrazione.
+- **Crop**: la zona fotografica del Post è ora tutta la tela. `zonePerSlot`
+  riporta 1080×1350 per il Post, 1080×940 per la Story, 1080×700 per la slide 01
+  del carosello, che non è stata toccata.
+
+### 15.11 Elementi non presenti, quindi esclusi
+
+Il riferimento non li contiene e il sistema non li introduce:
+vignettatura laterale, texture, cornici, marcatore di rubrica in alto,
+numerazione delle slide. Sono elencati in `ASSENTI` e un test verifica che
+nessun token li reintroduca.
+
+### 15.12 Kicker
+
+La riga spaziata sopra il titolo, accanto alla barra in accento, è un dato
+**editoriale**: `editoriale.kicker`. «NORD SARDEGNA · GALLURA» è una scelta di
+racconto, non la località di partenza.
+
+Non si deriva e non si compone: vuoto per definizione, con un preset per
+`la-via-dei-giganti-2026` preso dal riferimento. Se manca, il template **non
+disegna il blocco** e il pre-flight avvisa — un testo composto dai dati
+riempirebbe la locandina di una geografia che nessuno ha scritto. Il blocco non
+dipende dalla presenza del claim. Il kicker non entra fra i dati fattuali
+inviati al provider di caption.
+
+### 15.13 Story: sei schermate, non due
+
+`Stories-Via-dei-Giganti.dc.html` contiene una Story canonica da **sei
+schermate** 1080×1920: `01 Cover`, `02 Numeri`, `03 Mappa` (su fondo chiaro
+`#E9E2D6`), `04 Tappe`, `05 Incluso`, `06 Prenota`. Questa risorsa prevale
+sull'ipotesi manuale a due schermate discussa in conversazione. Il capitolo
+Story partirà da qui. Non implementata.
+
+### 15.14 Conflitto fra riferimento e master funzionale
+
+Il Post canonico **non contiene prezzo né CTA**: al loro posto, in fondo, ci
+sono contatti e sito. Il master funzionale di Social Studio li richiede. Non
+sono stati compressi nella composizione e la gerarchia del riferimento non è
+stata alterata: il conflitto è aperto e si risolverà nelle varianti di
+conversione (Iscrizioni aperte, Ultimi posti, Sold Out, Lista d'attesa,
+Reminder, Partenza imminente). Il pre-flight continua a esigere il prezzo come
+dato dell'evento, indipendentemente dal fatto che il Post standard lo mostri.

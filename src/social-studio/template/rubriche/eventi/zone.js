@@ -14,8 +14,15 @@
 
 /** Altezza della fascia fotografica, per formato. */
 export const FASCIA = {
-  /** Post 1080×1350: 700 px, cioè il 51,9% — la frazione della locandina. */
-  post: 700,
+  /**
+   * Post: **tutta la tela**.
+   *
+   * Il riferimento canonico mette la fotografia a pieno campo con un velo
+   * sopra, non in una fascia alta. Il valore resta dichiarato perché la slide
+   * 01 del carosello usa ancora la fascia da 700 — allineare il carosello
+   * appartiene al capitolo successivo.
+   */
+  post: 1350,
   /**
    * Story 1080×1920: 940 px, il 49%.
    *
@@ -58,9 +65,9 @@ const LARGHEZZA_TELA = 1080;
 export function zonePerSlot(slot) {
   if (slot === "cover") {
     return [
-      { id: "post", nome: "Post · fascia foto", larghezza: LARGHEZZA_TELA, altezza: FASCIA.post },
+      { id: "post", nome: "Post · pieno campo", larghezza: LARGHEZZA_TELA, altezza: FASCIA.post },
       { id: "story", nome: "Story · fascia foto", larghezza: LARGHEZZA_TELA, altezza: FASCIA.story },
-      { id: "carosello-01", nome: "Carosello 01 · cover", larghezza: LARGHEZZA_TELA, altezza: FASCIA.caroselloCover },
+      { id: "carosello-01", nome: "Carosello 01 · fascia", larghezza: LARGHEZZA_TELA, altezza: FASCIA.caroselloCover },
     ];
   }
   if (slot === "cta") {

@@ -16,6 +16,11 @@ export default function Foto({
   style,
   etichettaVuoto = "Foto da caricare",
 }) {
+  // `specchiata` è un dato del ritaglio, non una proprietà del template: sta
+  // accanto a zoom e punto focale, si salva con la bozza e per definizione è
+  // spenta. Nel riferimento EVENTI una fotografia è ribaltata, ma è una scelta
+  // su quella fotografia — non una regola del format.
+  const specchiata = Boolean(ritaglio?.specchiata);
   if (!sorgente) {
     return (
       <div
@@ -60,7 +65,7 @@ export default function Foto({
           height: "100%",
           objectFit: "cover",
           objectPosition: `${x}% ${y}%`,
-          transform: `scale(${zoom})`,
+          transform: `scale(${zoom})${specchiata ? " scaleX(-1)" : ""}`,
           transformOrigin: `${x}% ${y}%`,
           filter: filtro,
           display: "block",
