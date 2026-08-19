@@ -23,8 +23,9 @@ import { analizzaGpx } from "../motori/gpx";
 import { estraiFattuali, paragrafi, verificaFattuale } from "../motori/caption/fact-lock";
 import { rigeneraCaption } from "../motori/caption/rigenera";
 import { creaProviderManuale } from "../motori/caption/provider";
-import { attendiUnFrame } from "../motori/export/cattura";
-import { creaLavoroExport, esporta, esportaPacchetto } from "../motori/export/esporta";
+import { esporta, esportaPacchetto } from "../motori/export/esporta";
+import EsitoExport from "./EsitoExport";
+import { useLavoroExport } from "./useLavoroExport";
 import { COLORI } from "../design/tokens";
 
 /**
@@ -77,17 +78,8 @@ export default function EditorEvento() {
   const [traccia, setTraccia] = useState(null);
   const [erroreGpx, setErroreGpx] = useState(null);
   const [vista, setVista] = useState("post");
-  const [avanzamento, setAvanzamento] = useState(null);
-  const [daConfermare, setDaConfermare] = useState(null);
   const [mostraRevisioni, setMostraRevisioni] = useState(false);
-  /**
-   * Che cosa si sta esportando e a che punto è.
-   *
-   * `null` | `{ cosa: "vista"|"pacchetto", ignoraAvvisi, fase: "monta"|"cattura" }`
-   */
-  const [export_, setExport] = useState(null);
 
-  const lavoro = useRef(null);
   const nodi = useRef(new Map());
   const riferimenti = useRef(new Map());
   /** Lo stato come sta nell'archivio: serve a calcolare la revisione. */
@@ -474,7 +466,7 @@ export default function EditorEvento() {
    * questo che le sue grafiche erano corrette. Ora ci passano entrambe: un solo
    * percorso di cattura, nessuna differenza da tenere allineata.
    */
-  const elementiVista = () =>
+  const elementiVista = useCallback(() =>
     vista === "carosello"
       ? SLIDE_CAROSELLO.map((s) => ({
           id: s.id, nome: s.file, formato: "post", nodo: nodi.current.get(`pacco-${s.id}`),
@@ -484,7 +476,7 @@ export default function EditorEvento() {
           nome: `${vista}.png`,
           formato: vista === "story" ? "story" : "post",
           nodo: nodi.current.get(`pacco-${vista}`),
-        }];
+        }], [vista]);
 
   /**
    * Il pacchetto ha bisogno che tutte e dieci le grafiche esistano nel DOM alla
@@ -492,34 +484,20 @@ export default function EditorEvento() {
    * abbia disegnato, poi si fotografa: due fasi, perché lo stato React non è
    * disponibile nello stesso giro in cui lo si imposta.
    */
-  const chiediExport = (cosa, ignoraAvvisi = false) => {
-    setDaConfermare(null);
-    setExport({ cosa, ignoraAvvisi, fase: "monta" });
-  };
-
-  useEffect(() => {
-    if (export_?.fase !== "monta") return undefined;
-    const { cosa, ignoraAvvisi } = export_;
-    let vivo = true;
-
-    (async () => {
-      /*
-       * Due attese: la prima copre il commit di React, la seconda il disegno.
-       * Si usa `attendiUnFrame` e non `requestAnimationFrame` nudo perché in
-       * una scheda in secondo piano i frame non scattano affatto — e allora
-       * l'esportazione non partirebbe mai, restando «in corso» per sempre.
-       */
-      await attendiUnFrame();
-      await attendiUnFrame();
-      if (!vivo) return;
-
-      setExport((e) => (e ? { ...e, fase: "cattura" } : e));
-      lavoro.current = creaLavoroExport();
-
+  /**
+   * Il coordinamento del lavoro vive in `useLavoroExport`.
+   *
+   * Qui resta solo ciò che è dell'editor: quali nodi montare e come catturarli.
+   * `esegui` viene chiamato quando le grafiche fuori schermo sono montate e
+   * disegnate, e legge lo stato al momento dell'uso — non alla creazione della
+   * richiesta.
+   */
+  const esegui = useCallback(
+    async ({ cosa, ignoraAvvisi, lavoro, onAvanzamento }) => {
       const elementi = cosa === "pacchetto"
         ? PACCHETTO.map((p) => ({ ...p, nodo: nodi.current.get(`pacco-${p.id}`) }))
         : elementiVista();
-      setAvanzamento({ fatti: 0, totale: elementi.length, corrente: "avvio" });
+      onAvanzamento({ fatti: 0, totale: elementi.length, corrente: "avvio" });
 
       const comune = {
         elementi,
@@ -527,34 +505,24 @@ export default function EditorEvento() {
         problemi: tuttiIProblemi,
         ignoraAvvisi,
         caption: contenuto.editoriale.caption.testo,
-        lavoro: lavoro.current,
-        onAvanzamento: setAvanzamento,
+        lavoro,
+        onAvanzamento,
       };
 
-      const esito = cosa === "pacchetto"
-        ? await esportaPacchetto({ ...comune, contenuto })
-        : await esporta({
+      return cosa === "pacchetto"
+        ? esportaPacchetto({ ...comune, contenuto })
+        : esporta({
             ...comune,
             elementi: elementi.filter((e) => e.nodo),
             contenuto: { ...contenuto, formato: vista === "carosello" ? "carosello" : vista },
           });
+    },
+    [contenuto, vociMedia, tuttiIProblemi, vista, elementiVista],
+  );
 
-      if (!vivo) return;
-      setAvanzamento(esito.esito === "fatto" && esito.archivio
-        ? { pacchetto: esito.archivio, ms: esito.msTotale }
-        : null);
-      if (esito.esito === "bloccato") setDaConfermare({ tipo: cosa, ...esito });
-      if (esito.esito === "incompleto") {
-        setDaConfermare({ tipo: cosa, esito: "incompleto", mancanti: esito.mancanti });
-      }
-      setExport(null);
-    })();
-
-    return () => { vivo = false; };
-    // Le altre dipendenze si leggono al momento dell'uso: aggiungerle qui
-    // rilancerebbe l'esportazione a ogni battitura.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [export_]);
+  const {
+    richiesta, avanzamento, daConfermare, occupato, chiedi: chiediExport, annulla, chiudiConferma,
+  } = useLavoroExport({ esegui });
 
   /**
    * Quali grafiche montare fuori schermo.
@@ -563,14 +531,11 @@ export default function EditorEvento() {
    * servono, così un singolo PNG non paga il montaggio degli altri nove.
    */
   const daMontare = useMemo(() => {
-    if (!export_) return [];
-    if (export_.cosa === "pacchetto") return PACCHETTO.map((p) => p.id);
+    if (!richiesta) return [];
+    if (richiesta.cosa === "pacchetto") return PACCHETTO.map((p) => p.id);
     if (vista === "carosello") return SLIDE_CAROSELLO.map((s) => s.id);
     return [vista];
-  }, [export_, vista]);
-  // Occupato durante tutto il montaggio e la cattura, non solo mentre scorre
-  // l'avanzamento: fra il clic e il primo frame il pulsante resta premibile.
-  const occupato = Boolean(export_ || (avanzamento && !avanzamento.pacchetto));
+  }, [richiesta, vista]);
 
   /* ================================================================ */
 
@@ -1162,7 +1127,7 @@ export default function EditorEvento() {
                 Esporta pacchetto evento
               </button>
               {occupato && (
-                <button type="button" onClick={() => lavoro.current?.annulla()} className="border border-[var(--border-on-dark)] px-3 py-2 font-button text-[10px] uppercase">
+                <button type="button" onClick={annulla} className="border border-[var(--border-on-dark)] px-3 py-2 font-button text-[10px] uppercase">
                   Annulla
                 </button>
               )}
@@ -1180,57 +1145,15 @@ export default function EditorEvento() {
               </p>
             )}
 
-            {/* Gli errori bloccano; gli avvisi si superano solo dicendolo. */}
-            {daConfermare && (
-              <section className="border p-4" style={{ borderColor: COLORI.accentoEventi }}>
-                {daConfermare.esito === "incompleto" ? (
-                  <p className="font-body text-xs text-granite-mist/75">
-                    Alcune grafiche non erano pronte ({daConfermare.mancanti.join(", ")}): riprova.
-                  </p>
-                ) : daConfermare.soloAvvisi ? (
-                  <>
-                    <p className="mb-2 font-body text-xs text-granite-mist/80">
-                      Il pre-flight segnala {daConfermare.controllo.avvisi.length} avvisi. Non bloccano
-                      l'esportazione, ma vanno superati consapevolmente.
-                    </p>
-                    <ul className="mb-3 space-y-1">
-                      {daConfermare.controllo.avvisi.map((a) => (
-                        <li key={a.id} className="font-body text-[11px] text-granite-mist/60">· {a.messaggio}</li>
-                      ))}
-                    </ul>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          chiediExport(daConfermare.tipo === "pacchetto" ? "pacchetto" : "vista", true)
-                        }
-                        className="btn-mech bg-[var(--cta)] px-4 py-2 text-xs text-[var(--cta-text)]"
-                      >
-                        Esporta comunque
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDaConfermare(null)}
-                        className="border border-[var(--border-on-dark)] px-4 py-2 font-button text-[10px] uppercase tracking-[0.14em] text-granite-mist/60"
-                      >
-                        Torna a correggere
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <p className="mb-2 font-body text-xs" style={{ color: "#E2857A" }}>
-                      Esportazione bloccata: {daConfermare.controllo.errori.length} errori.
-                    </p>
-                    <ul className="space-y-1">
-                      {daConfermare.controllo.errori.map((e) => (
-                        <li key={e.id} className="font-body text-[11px] text-granite-mist/65">· {e.messaggio}</li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-              </section>
-            )}
+            {/*
+              L'esito dell'esportazione: errori del pre-flight che bloccano,
+              avvisi da superare consapevolmente, o un guasto della cattura.
+            */}
+            <EsitoExport
+              daConfermare={daConfermare}
+              chiedi={chiediExport}
+              onChiudi={chiudiConferma}
+            />
 
             <FornitoreProblemi onProblemi={setProblemi}>
               {vista === "post" && (
