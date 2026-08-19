@@ -5,6 +5,7 @@ import { CATEGORIE } from "@/data/categorie";
 import { useSiteContent } from "@/content/TinaContentProvider";
 import { useI18n } from "@/i18n/I18nProvider";
 import { LOCALE_META, SUPPORTED_LOCALES } from "@/i18n/routes";
+import { availabilityTargetForPath } from "@/lib/availability-target";
 
 const navLinks = [
   { label: "Esperienze", href: "#esperienze" },
@@ -19,12 +20,18 @@ const navLinks = [
 ];
 
 export default function SiteNav() {
-  const { CTA_LABELS, SITE } = useSiteContent();
-  const { locale, t, href, localize, switchTo } = useI18n();
+  const { CTA_LABELS, SITE, events } = useSiteContent();
+  const { locale, t, href, localize, route, switchTo } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const availabilityTarget = availabilityTargetForPath(
+    location.pathname,
+    events,
+    route,
+    href("/#contatti"),
+  );
   const mobileCategories = localize(CATEGORIE).filter(
     ({ id }) => id !== "corsi-off-road" && id !== "noleggio",
   );
@@ -114,7 +121,7 @@ export default function SiteNav() {
             </a>
           )}
           <Link
-            to={href("/#contatti")}
+            to={availabilityTarget}
             className="btn-mech hidden items-center gap-2 bg-[var(--cta)] px-5 py-2.5 text-sm text-[var(--cta-text)] hover:bg-[var(--cta-hover)] md:flex"
           >
             {CTA_LABELS.primary}
@@ -164,7 +171,7 @@ export default function SiteNav() {
 
             <div className="mt-5 flex flex-col gap-2">
               <Link
-                to={href("/#contatti")}
+                to={availabilityTarget}
                 onClick={() => setOpen(false)}
                 className="btn-mech flex items-center justify-center gap-2 bg-[var(--cta)] px-5 py-3 text-sm text-[var(--cta-text)]"
               >

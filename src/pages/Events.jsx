@@ -165,7 +165,7 @@ export default function Events() {
 
           <div className="mt-16 flex flex-col gap-4 sm:flex-row">
             <Link
-              to={href("/#contatti")}
+              to={route("booking")}
               className="btn-mech inline-flex items-center justify-center bg-[#A0612A] px-8 py-4 text-base text-[#F5EBD9] hover:bg-[#b87033]"
             >
               {CTA_LABELS.primary}

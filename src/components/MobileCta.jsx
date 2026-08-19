@@ -1,17 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { MessageCircle, CalendarCheck } from "lucide-react";
 import { useSiteContent } from "@/content/TinaContentProvider";
 import { useI18n } from "@/i18n/I18nProvider";
+import { availabilityTargetForPath } from "@/lib/availability-target";
 
 /**
  * Barra CTA persistente ma discreta, solo su mobile. Compare dopo la hero e
  * offre i due canali reali: WhatsApp e verifica disponibilità.
  */
 export default function MobileCta() {
-  const { CTA_LABELS, SITE } = useSiteContent();
-  const { href } = useI18n();
+  const { CTA_LABELS, SITE, events } = useSiteContent();
+  const { href, route } = useI18n();
+  const location = useLocation();
   const [visible, setVisible] = useState(false);
+  const availabilityTarget = availabilityTargetForPath(
+    location.pathname,
+    events,
+    route,
+    href("/#contatti"),
+  );
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > window.innerHeight * 0.9);
@@ -28,7 +36,7 @@ export default function MobileCta() {
       aria-hidden={!visible}
     >
       <Link
-        to={href("/#contatti")}
+        to={availabilityTarget}
         className="flex flex-1 items-center justify-center gap-2 bg-[var(--cta)] px-2 py-3.5 text-center font-button text-xs uppercase leading-tight tracking-wider text-[var(--cta-text)]"
         tabIndex={visible ? 0 : -1}
       >
