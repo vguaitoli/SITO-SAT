@@ -99,6 +99,10 @@ export default function CatalogDetailPage({ kind }) {
   const backRoute = isEvent ? "events" : "tours";
   const concluded = isEvent && isConcluded(item);
   const contactTarget = `${route("home")}?interesse=${encodeURIComponent(`${isEvent ? "event" : "tour"}:${item.slug}`)}#contatti`;
+  const availabilityTarget =
+    isEvent && item.date && !concluded
+      ? `${route("booking")}?evento=${encodeURIComponent(item.slug)}`
+      : contactTarget;
   const includedItems = isEvent
     ? item.incluso || []
     : (homepage.included?.items || []).map((entry) => entry.label);
@@ -189,7 +193,7 @@ export default function CatalogDetailPage({ kind }) {
 
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  to={contactTarget}
+                  to={availabilityTarget}
                   className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--cta)] px-8 py-4 text-base text-[var(--cta-text)] hover:bg-[var(--cta-hover)]"
                 >
                   {CTA_LABELS.primary}
@@ -418,7 +422,7 @@ export default function CatalogDetailPage({ kind }) {
             </p>
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
               <Link
-                to={contactTarget}
+                to={availabilityTarget}
                 className="btn-mech inline-flex items-center justify-center gap-2.5 bg-[var(--cta)] px-8 py-4 text-base text-[var(--cta-text)] hover:bg-[var(--cta-hover)]"
               >
                 {CTA_LABELS.primary}

@@ -61,6 +61,12 @@
       ]
     },
     {
+      "source": "/(prenotazioni|en/booking|fr/reservation)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
+      ]
+    },
+    {
       "source": "/(privacy|cookie-policy|en/privacy|en/cookie-policy|fr/confidentialite|fr/politique-cookies)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }

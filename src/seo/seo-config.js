@@ -23,7 +23,10 @@ const NOINDEX_ROBOTS = "noindex, nofollow";
 const PRIVATE_ROBOTS = "noindex, nofollow, noarchive";
 // Pagina accessibile solo tramite link, esclusa da sitemap e prerendering.
 const PAGINE_INTERNE = [
-  { prefisso: "/feedback", titolo: "Questionario post-tour" },
+  { prefisso: "/feedback", titolo: "Questionario post-tour", locale: "it" },
+  { prefisso: "/prenotazioni", titolo: "Richiesta di prenotazione", locale: "it" },
+  { prefisso: "/en/booking", titolo: "Booking request", locale: "en" },
+  { prefisso: "/fr/reservation", titolo: "Demande de réservation", locale: "fr" },
 ];
 const TOUR_PAGES = normalizeTours(tourCatalogContent);
 const EVENT_PAGES = normalizeEvents(eventCatalogContent);
@@ -441,8 +444,8 @@ export function getSeoForPath(pathname) {
     return {
       privata: true,
       path: pathname,
-      locale: "it",
-      htmlLang: LOCALE_META.it.htmlLang,
+      locale: interna.locale,
+      htmlLang: LOCALE_META[interna.locale].htmlLang,
       title: `${interna.titolo} | ${SITE_NAME}`,
       robots: PRIVATE_ROBOTS,
       indexable: false,
