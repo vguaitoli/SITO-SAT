@@ -1,8 +1,32 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { AmbitoProblemi, ControlloCapienza, FornitoreProblemi } from "./primitivi";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AmbitoProblemi, ControlloCapienza, FornitoreProblemi, TestoAdattivo } from "./primitivi";
+
+/**
+ * Il cancello dei font, tenuto in mano.
+ *
+ * In jsdom `document.fonts` non esiste e `assicuraFontPronti()` risolve subito:
+ * la finestra fra «montato» e «misurato» non si vede, ed è proprio la finestra
+ * in cui il registro sembra vuoto perché nessuno ha ancora misurato. Qui la si
+ * apre a comando.
+ */
+const cancelloFont = vi.hoisted(() => {
+  const stato = { promessa: null, apri: null };
+  stato.reset = () => {
+    stato.promessa = new Promise((risolvi) => {
+      stato.apri = () => risolvi({ pronti: true, mancanti: [] });
+    });
+  };
+  stato.reset();
+  return stato;
+});
+
+vi.mock("../motori/font", async (importaOriginale) => ({
+  ...(await importaOriginale()),
+  assicuraFontPronti: () => cancelloFont.promessa,
+}));
 
 /**
  * Il registro delle segnalazioni.
@@ -22,6 +46,8 @@ let contenitore;
 let radice;
 
 beforeEach(() => {
+  // Un cancello nuovo per ogni prova: risolto una volta, resterebbe risolto.
+  cancelloFont.reset();
   contenitore = document.createElement("div");
   document.body.appendChild(contenitore);
   radice = createRoot(contenitore);
@@ -188,5 +214,64 @@ describe("registro dei problemi", () => {
     await act(async () => { rendi(3); });
     await assesta();
     expect(chiavi(stato.ultimo)).toEqual([]);
+  });
+});
+
+/* ================================================================== *
+ * Misure in sospeso
+ * ================================================================== */
+
+describe("misure tipografiche in sospeso", () => {
+  /*
+   * Un registro vuoto è ambiguo: «tutto misurato e niente sfora» e «nessuno ha
+   * ancora misurato» si assomigliano fino a essere indistinguibili, e sono
+   * opposti. Contare le letture uguali non li separa — due letture vuote
+   * consecutive capitano benissimo mentre i caratteri stanno arrivando. Il
+   * conteggio delle misure in sospeso li separa.
+   */
+  it("resta aperta finché i font non arrivano, e si chiude misurando", async () => {
+    const misure = { current: null };
+    await act(async () => {
+      radice.render(
+        <FornitoreProblemi misure={misure}>
+          <AmbitoProblemi nome="pacco/story/04">
+            <TestoAdattivo chiave="titolo" etichetta="Titolo" size={40} minSize={20} altezzaMassima={100}>
+              Un titolo qualunque
+            </TestoAdattivo>
+          </AmbitoProblemi>
+        </FornitoreProblemi>,
+      );
+    });
+
+    // Montato ma non misurato: il registro è vuoto e non vuol dire niente.
+    expect(misure.current).toBeTypeOf("function");
+    expect(misure.current()).toBe(1);
+
+    await act(async () => {
+      cancelloFont.apri();
+      await cancelloFont.promessa;
+    });
+
+    // Misurato davvero: ora un registro vuoto significa «niente sfora».
+    expect(misure.current()).toBe(0);
+  });
+
+  it("smontando non lascia pendenze aperte", async () => {
+    const misure = { current: null };
+    await act(async () => {
+      radice.render(
+        <FornitoreProblemi misure={misure}>
+          <TestoAdattivo chiave="t" etichetta="T" size={40} minSize={20} altezzaMassima={100}>x</TestoAdattivo>
+        </FornitoreProblemi>,
+      );
+    });
+    const leggi = misure.current;
+    // Ancora in attesa dei font, quindi ancora in sospeso.
+    expect(leggi()).toBe(1);
+
+    await act(async () => {
+      radice.render(<FornitoreProblemi misure={misure}><span /></FornitoreProblemi>);
+    });
+    expect(leggi()).toBe(0);
   });
 });

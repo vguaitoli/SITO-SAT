@@ -124,10 +124,11 @@ export async function esporta({
 /**
  * Esporta il pacchetto completo di un evento.
  *
- * Un solo ZIP con tutto ciò che serve a pubblicare: il Post 1080×1350, la Story
- * 1080×1920, le otto slide del carosello e la caption in chiaro. Chi pubblica
- * scarica un file e ha finito, invece di ripetere tre esportazioni diverse e
- * ricordarsi di copiare il testo a mano.
+ * Un solo ZIP con tutto ciò che serve a pubblicare: il Post 1080×1350, le sei
+ * schermate della Story 1080×1920, le otto slide del carosello e la caption in
+ * chiaro — quindici PNG e un file di testo. Chi pubblica scarica un file e ha
+ * finito, invece di ripetere tre esportazioni diverse e ricordarsi di copiare
+ * il testo a mano.
  *
  * **Il GPX non c'è.** Non perché non lo si aggiunga: perché
  * `vietaAssetSensibili` fa fallire l'esportazione se qualcosa che non sia un

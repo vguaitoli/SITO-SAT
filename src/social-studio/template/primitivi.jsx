@@ -15,6 +15,7 @@ import { assicuraFontPronti } from "../motori/font";
 
 const ContestoProblemi = createContext(null);
 const ContestoAmbito = createContext("");
+const ContestoMisure = createContext(null);
 
 /**
  * Raccoglie i problemi rilevati durante il disegno.
@@ -29,10 +30,71 @@ const ContestoAmbito = createContext("");
  * spariva perché il Post scriveva `null` sulla stessa chiave. `AmbitoProblemi`
  * prefissa le chiavi con il formato e la slide, e ogni componente ripulisce la
  * propria voce quando viene smontato.
+ *
+ * **Due modi di leggere il registro, e servono entrambi.** `onProblemi` avvisa
+ * l'interfaccia con un raggruppamento da 80 ms: va benissimo per ridisegnare
+ * un pannello, e sarebbe una sorgente sbagliata per una decisione che si
+ * prende adesso. Il pre-flight dell'esportazione è esattamente una decisione
+ * che si prende adesso: le grafiche vengono montate fuori schermo e mezzo
+ * frame dopo si deve sapere se sforano. `lettore` è la lettura sincrona dello
+ * stesso registro, senza ritardo e senza passare da uno stato di React.
+ *
+ * @param {object} props
+ * @param {(problemi: object[]) => void} [props.onProblemi]  notifica raggruppata
+ * @param {{current: (() => object[])|null}} [props.lettore]
+ *   Ci viene depositata la lettura sincrona del registro. È un ref perché chi
+ *   deve leggere — l'editor — sta **fuori** dal provider e non può usarne il
+ *   contesto.
+ * @param {{current: (() => number)|null}} [props.misure]
+ *   Ci viene depositato il conteggio delle misure tipografiche ancora in
+ *   sospeso. Vedi `ContestoMisure`.
  */
-export function FornitoreProblemi({ onProblemi, children }) {
+export function FornitoreProblemi({ onProblemi, lettore, misure, children }) {
   const raccolti = useRef(new Map());
   const timer = useRef(null);
+  /**
+   * Le misure non ancora eseguite.
+   *
+   * Un registro vuoto è ambiguo: può voler dire «tutto misurato e niente
+   * sfora» oppure «nessuno ha ancora misurato». Sono due situazioni opposte —
+   * nella prima si può esportare, nella seconda si esporterebbe alla cieca — e
+   * distinguerle contando le letture uguali non funziona: due letture vuote
+   * consecutive capitano benissimo mentre i font stanno ancora arrivando.
+   *
+   * Ogni `TestoAdattivo` si dichiara in sospeso appena montato e si toglie
+   * quando ha misurato davvero. Zero in sospeso è un fatto, non una scommessa.
+   */
+  const inSospeso = useRef(new Set());
+
+  /** Il registro così com'è adesso. Nessun ritardo, nessuna copia in stato. */
+  const leggi = useCallback(
+    () => [...raccolti.current.entries()].map(([chiave, p]) => ({ chiave, ...p })),
+    [],
+  );
+
+  useEffect(() => {
+    if (!lettore) return undefined;
+    lettore.current = leggi;
+    return () => {
+      lettore.current = null;
+    };
+  }, [lettore, leggi]);
+
+  /** Apre o chiude una misura in sospeso. Stabile: non ridisegna nessuno. */
+  const segnalaMisura = useCallback((chiave, pendente) => {
+    if (pendente) inSospeso.current.add(chiave);
+    else inSospeso.current.delete(chiave);
+  }, []);
+
+  const quanteMisureInSospeso = useCallback(() => inSospeso.current.size, []);
+
+  useEffect(() => {
+    if (!misure) return undefined;
+    misure.current = quanteMisureInSospeso;
+    return () => {
+      misure.current = null;
+    };
+  }, [misure, quanteMisureInSospeso]);
 
   const segnala = useCallback(
     (chiave, problema) => {
@@ -45,18 +107,30 @@ export function FornitoreProblemi({ onProblemi, children }) {
 
       // Si accumulano gli aggiornamenti di un ciclo di disegno in uno solo.
       clearTimeout(timer.current);
-      timer.current = setTimeout(() => {
-        onProblemi?.([...raccolti.current.entries()].map(([chiave, p]) => ({ chiave, ...p })));
-      }, 80);
+      timer.current = setTimeout(() => onProblemi?.(leggi()), 80);
     },
-    [onProblemi],
+    [onProblemi, leggi],
   );
 
   // Il timer sopravviverebbe allo smontaggio e chiamerebbe `onProblemi` su un
   // componente che non c'è più.
   useEffect(() => () => clearTimeout(timer.current), []);
 
-  return <ContestoProblemi.Provider value={segnala}>{children}</ContestoProblemi.Provider>;
+  return (
+    <ContestoProblemi.Provider value={segnala}>
+      <ContestoMisure.Provider value={segnalaMisura}>{children}</ContestoMisure.Provider>
+    </ContestoProblemi.Provider>
+  );
+}
+
+/**
+ * Dichiara al registro che una misura tipografica è in sospeso.
+ *
+ * Fuori da un `FornitoreProblemi` non fa niente: i template si montano anche
+ * da soli nei test, e non devono rompersi per questo.
+ */
+export function useSegnalaMisura() {
+  return useContext(ContestoMisure) || (() => {});
 }
 
 export function useSegnalaProblema() {
@@ -90,7 +164,7 @@ export function useChiaveProblema(chiave) {
  * Registra una segnalazione e la ritira allo smontaggio.
  *
  * Il ritiro è il punto: senza, passando da Story a Post restavano gli errori
- * della Story, e dopo l'esportazione del pacchetto restavano quelli dei dieci
+ * della Story, e dopo l'esportazione del pacchetto restavano quelli dei quindici
  * template smontati. Il pre-flight mostrava problemi di grafiche che non
  * esistevano più.
  */
@@ -188,6 +262,7 @@ export function TestoAdattivo({
    */
   const [respiro, setRespiro] = useState(0);
   const segnala = useSegnalaProblema();
+  const segnalaMisura = useSegnalaMisura();
   const chiaveIntera = useChiaveProblema(chiave);
   const testo = testoDa(children);
   const fontPronti = useFontPronti();
@@ -199,10 +274,23 @@ export function TestoAdattivo({
    */
   useEffect(() => () => segnala(chiaveIntera, null), [segnala, chiaveIntera]);
 
+  /*
+   * In sospeso dal montaggio fino alla prima misura vera.
+   *
+   * Dichiarato **prima** dell'effetto che misura, così dentro lo stesso commit
+   * si apre e — se la misura avviene — si chiude subito dopo. Se i font non
+   * sono ancora arrivati la misura non avviene, e questa voce resta aperta: è
+   * il modo in cui l'esportazione sa che non può ancora decidere.
+   */
+  useLayoutEffect(() => {
+    segnalaMisura(chiaveIntera, true);
+    return () => segnalaMisura(chiaveIntera, false);
+  }, [segnalaMisura, chiaveIntera]);
+
   useLayoutEffect(() => {
     const el = ref.current;
     // Finché i font non sono pronti non si misura: si userebbero le metriche
-    // del carattere di sistema.
+    // del carattere di sistema. La voce in sospeso resta aperta apposta.
     if (!el || !fontPronti) return;
 
     /**
@@ -244,6 +332,7 @@ export function TestoAdattivo({
       setCorpo(size);
       setRespiro(misuraRespiro(size));
       segnala(chiaveIntera, null);
+      segnalaMisura(chiaveIntera, false);
       return;
     }
 
@@ -280,8 +369,9 @@ export function TestoAdattivo({
             }
           : null,
     );
+    segnalaMisura(chiaveIntera, false);
     // La misura dipende solo dagli ingressi, non da `corpo`: nessun ciclo.
-  }, [testo, size, minSize, altezzaMassima, chiaveIntera, etichetta, segnala, fontPronti]);
+  }, [testo, size, minSize, altezzaMassima, chiaveIntera, etichetta, segnala, segnalaMisura, fontPronti]);
 
   return (
     <div

@@ -6,6 +6,9 @@ import {
 } from "../fondamenta/versioni";
 import { cerca, tipoAmmesso, valoriDistinti, valutaRisoluzione } from "../media/libreria";
 import { preflight } from "./preflight";
+import {
+  CAPIENZA, capienzaCaratteri, LARGHEZZA_UTILE, TIPO_STORY,
+} from "../design/eventi-story";
 
 /* ================================================================== *
  * Version History
@@ -205,10 +208,13 @@ describe("Pre-flight", () => {
     expect(esito.errori.some((e) => e.id.startsWith("foto-perduta"))).toBe(true);
   });
 
-  it("esige il GPX solo dove la mappa fa parte del format", () => {
+  it("esige il GPX dove la mappa fa parte del format", () => {
     const carosello = { ...evento(), formato: "carosello", variante: "standard" };
     expect(preflight({ contenuto: carosello, vociMedia: media }).errori.map((e) => e.id)).toContain("gpx");
-    // Sul post no: la slide del percorso non c'è.
+    // La Story ha la schermata 03 del tracciato: anche lei lo esige.
+    const story = { ...evento(), formato: "story" };
+    expect(preflight({ contenuto: story, vociMedia: media }).errori.map((e) => e.id)).toContain("gpx");
+    // Sul post no: la traccia è decorativa e la sua assenza non lascia un buco.
     expect(preflight({ contenuto: evento(), vociMedia: media }).errori.map((e) => e.id)).not.toContain("gpx");
   });
 
@@ -262,5 +268,104 @@ describe("Pre-flight", () => {
     // `media` con una forma inattesa: il controllo fotografie potrebbe rompersi.
     const esito = preflight({ contenuto: evento(), vociMedia: null });
     expect(esito.esiti.length).toBeGreaterThan(0);
+  });
+
+  /* ---------------------------------------------------------------- *
+   * Capienza delle schermate della Story
+   * ---------------------------------------------------------------- */
+
+  describe("capienza della Story", () => {
+    const story = (fattuali = {}) => {
+      const c = evento();
+      return {
+        ...c,
+        formato: "story",
+        fattuali: { ...c.fattuali, ...fattuali },
+        mappa: { ...c.mappa, gpx: { idBlob: "g1", nome: "traccia.gpx", byte: 10 } },
+      };
+    };
+    const controlla = (fattuali) =>
+      preflight({ contenuto: story(fattuali), vociMedia: media, formato: "story" });
+    const tappe = (quante, descrizione = "") =>
+      Array.from({ length: quante }, (_, i) => ({
+        id: `t${i}`, partenza: `Da ${i}`, arrivo: `A ${i}`, descrizione,
+      }));
+    const ids = (esito) => esito.avvisi.map((e) => e.id);
+
+    it("tace quando tutto entra, e lo dice", () => {
+      const esito = controlla({ tappe: tappe(CAPIENZA.tappe), inclusi: ["Guida", "Cena"] });
+      expect(ids(esito)).not.toContain("capienza-tappe");
+      expect(ids(esito)).not.toContain("capienza-inclusi");
+      expect(esito.esiti.find((e) => e.id === "capienza").livello).toBe("ok");
+    });
+
+    it("avvisa quando le tappe non entrano, dicendo quante restano fuori", () => {
+      const esito = controlla({ tappe: tappe(CAPIENZA.tappe + 3) });
+      const voce = esito.avvisi.find((e) => e.id === "capienza-tappe");
+      expect(voce).toBeDefined();
+      expect(voce.messaggio).toContain(`${CAPIENZA.tappe + 3}`);
+      expect(voce.messaggio).toContain("3 tappe resterebbero fuori");
+    });
+
+    it("al singolare quando ne resta fuori una", () => {
+      const voce = controlla({ tappe: tappe(CAPIENZA.tappe + 1) })
+        .avvisi.find((e) => e.id === "capienza-tappe");
+      expect(voce.messaggio).toContain("una tappa resterebbe fuori");
+    });
+
+    it("avvisa quando le voci di «incluso» non entrano", () => {
+      const esito = controlla({
+        inclusi: Array.from({ length: CAPIENZA.inclusi + 2 }, (_, i) => `Voce ${i}`),
+      });
+      const voce = esito.avvisi.find((e) => e.id === "capienza-inclusi");
+      expect(voce.messaggio).toContain("2 voci resterebbero fuori");
+    });
+
+    it("avvisa su requisiti troppo lunghi per il blocco", () => {
+      const max = capienzaCaratteri(TIPO_STORY.corpoRequisiti, CAPIENZA.righeRequisiti);
+      expect(ids(controlla({ requisiti: ["x".repeat(max - 10)] }))).not.toContain("capienza-requisiti");
+      expect(ids(controlla({ requisiti: ["x".repeat(max + 40)] }))).toContain("capienza-requisiti");
+    });
+
+    it("avvisa su una descrizione di tappa troppo lunga, e dice quale", () => {
+      const max = capienzaCaratteri(
+        TIPO_STORY.corpoTappa, CAPIENZA.righeDescrizioneTappa, LARGHEZZA_UTILE.tappa,
+      );
+      const elenco = tappe(3);
+      elenco[1].descrizione = "y".repeat(max + 50);
+      const esito = controlla({ tappe: elenco });
+      expect(ids(esito)).toContain("capienza-tappa-1");
+      expect(ids(esito)).not.toContain("capienza-tappa-0");
+      expect(esito.avvisi.find((e) => e.id === "capienza-tappa-1").messaggio).toContain("tappa 2");
+    });
+
+    it("non guarda le descrizioni delle tappe che non verrebbero disegnate", () => {
+      const elenco = tappe(CAPIENZA.tappe + 2);
+      elenco.at(-1).descrizione = "z".repeat(4000);
+      const esito = controlla({ tappe: elenco });
+      // La tappa in eccesso è già segnalata come omessa: dire anche che il suo
+      // testo è lungo sarebbe rumore su una tappa che non si vede.
+      expect(ids(esito)).toContain("capienza-tappe");
+      expect(ids(esito).filter((i) => i.startsWith("capienza-tappa-"))).toEqual([]);
+    });
+
+    it("l'omissione avvisa e non blocca, ma serve un «Esporta comunque»", () => {
+      const esito = controlla({ tappe: tappe(CAPIENZA.tappe + 4) });
+      // Non è un errore: un evento con sei tappe è normale, non un guasto.
+      expect(esito.errori.map((e) => e.id)).not.toContain("capienza-tappe");
+      expect(esito.puoiEsportare).toBe(true);
+      // Ma resta un avviso, e gli avvisi fermano l'export finché non si
+      // decide di superarli: l'omissione non può essere un effetto collaterale.
+      expect(esito.avvisi.length).toBeGreaterThan(0);
+    });
+
+    it("non riguarda il Post e il carosello, che hanno altre capienze", () => {
+      const conTante = { tappe: tappe(12), inclusi: Array.from({ length: 12 }, (_, i) => `V${i}`) };
+      const post = preflight({
+        contenuto: { ...evento(), fattuali: { ...evento().fattuali, ...conTante } },
+        vociMedia: media, formato: "post",
+      });
+      expect(ids(post).filter((i) => i.startsWith("capienza"))).toEqual([]);
+    });
   });
 });

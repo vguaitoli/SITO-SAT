@@ -24,15 +24,19 @@ export const FASCIA = {
    */
   post: 1350,
   /**
-   * Story 1080×1920: 940 px, il 49%.
+   * Story: **tutta la tela**, 1920 px.
    *
-   * Era 1040. La Story porta titolo, claim, tre dati, prezzo e CTA in uno
-   * spazio che i 340 px riservati all'interfaccia di Instagram accorciano già
-   * molto: con la fascia a 1040 il testo non ci stava e i blocchi si
-   * sovrapponevano. Cento pixel tolti alla fotografia li risolvono senza
-   * rimpicciolire la tipografia.
+   * La Story canonica del progetto Claude Design ha la fotografia a pieno campo
+   * sotto un velo a sei tappe, non in una fascia: il varco luminoso fra il 22%
+   * e il 40% del velo fa il lavoro che prima faceva il taglio della fascia. Le
+   * due fasce che restano — schermata dei numeri e schermata «incluso» — hanno
+   * misure proprie.
    */
-  story: 940,
+  story: 1920,
+  /** Fascia della schermata 02 «Numeri». */
+  storyNumeri: 620,
+  /** Fascia della schermata 05 «Incluso». */
+  storyIncluso: 560,
   /** Slide 01 del carosello: è la locandina, identica al Post. */
   caroselloCover: 700,
   /** Slide 08, prezzo e CTA: la fascia si accorcia per far posto ai dati. */
@@ -66,7 +70,7 @@ export function zonePerSlot(slot) {
   if (slot === "cover") {
     return [
       { id: "post", nome: "Post · pieno campo", larghezza: LARGHEZZA_TELA, altezza: FASCIA.post },
-      { id: "story", nome: "Story · fascia foto", larghezza: LARGHEZZA_TELA, altezza: FASCIA.story },
+      { id: "story", nome: "Story 01 · pieno campo", larghezza: LARGHEZZA_TELA, altezza: FASCIA.story },
       { id: "carosello-01", nome: "Carosello 01 · fascia", larghezza: LARGHEZZA_TELA, altezza: FASCIA.caroselloCover },
     ];
   }
@@ -74,6 +78,15 @@ export function zonePerSlot(slot) {
     return [
       { id: "carosello-08", nome: "Carosello 08 · CTA", larghezza: LARGHEZZA_TELA, altezza: FASCIA.caroselloCta },
     ];
+  }
+  if (slot === "storyNumeri") {
+    return [{ id: "story-02", nome: "Story 02 · fascia", larghezza: LARGHEZZA_TELA, altezza: FASCIA.storyNumeri }];
+  }
+  if (slot === "storyIncluso") {
+    return [{ id: "story-05", nome: "Story 05 · fascia", larghezza: LARGHEZZA_TELA, altezza: FASCIA.storyIncluso }];
+  }
+  if (slot === "storyPrenota") {
+    return [{ id: "story-06", nome: "Story 06 · pieno campo", larghezza: LARGHEZZA_TELA, altezza: FASCIA.story }];
   }
   if (String(slot).startsWith("esperienza")) {
     return [

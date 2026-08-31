@@ -1,6 +1,7 @@
 import { CATEGORIE, formatoValido, varianteValida } from "../design/categorie";
 import { FORMATI } from "../design/formati";
 import { FAMIGLIE_RICHIESTE } from "../design/tokens";
+import { CAPIENZA, capienzaCaratteri, LARGHEZZA_UTILE, TIPO_STORY } from "../design/eventi-story";
 import { fontMancanti } from "./font";
 import { valutaRisoluzione } from "../media/libreria";
 
@@ -106,12 +107,84 @@ function fotografie({ contenuto, vociMedia = [], formato }) {
 }
 
 function mappaEGpx({ contenuto }) {
-  // Il GPX serve solo dove la mappa fa parte del format.
-  const serve = contenuto.categoria === "eventi" && contenuto.formato === "carosello";
-  if (!serve) return [];
+  /*
+   * Il GPX serve dove la mappa fa parte del format: la slide 03 del carosello
+   * e la schermata 03 della Story, che è su carta chiara e ha il tracciato come
+   * fondo. Sul Post no: la traccia è decorativa e la sua assenza non lascia un
+   * buco.
+   */
+  if (contenuto.categoria !== "eventi") return [];
+  const dove = contenuto.formato === "carosello"
+    ? "Il carosello evento contiene la slide del percorso"
+    : contenuto.formato === "story"
+      ? "La Story contiene la schermata del tracciato"
+      : null;
+  if (!dove) return [];
   return contenuto.mappa?.gpx?.idBlob
     ? [voce("ok", "gpx", "Traccia GPX presente.")]
-    : [voce("errore", "gpx", "Il carosello evento contiene la slide del percorso: serve il file GPX.")];
+    : [voce("errore", "gpx", `${dove}: serve il file GPX.`)];
+}
+
+/**
+ * Quello che non entra nelle schermate della Story.
+ *
+ * Le schermate 04 e 05 sono costruite su cinque righe: la sesta non si
+ * stringe, esce dalla tela. Prima il template tagliava a cinque e non lo
+ * diceva — il PNG usciva pulito, con tre tappe in meno, e il difetto si
+ * scopriva pubblicando.
+ *
+ * È un **avviso**, non un errore, e la scelta è deliberata: un errore
+ * renderebbe la Story inesportabile per qualunque evento con sei tappe, che è
+ * un caso normale e non un guasto. Un avviso non si supera per sbaglio —
+ * blocca l'esportazione finché non si preme «Esporta comunque» — e quindi
+ * l'omissione resta una decisione presa, mai un effetto collaterale.
+ */
+function capienzaStory({ contenuto, formato }) {
+  if (contenuto.categoria !== "eventi" || formato !== "story") return [];
+  const f = contenuto.fattuali || {};
+  const esiti = [];
+
+  const tappe = f.tappe || [];
+  if (tappe.length > CAPIENZA.tappe) {
+    const fuori = tappe.length - CAPIENZA.tappe;
+    esiti.push(voce("avviso", "capienza-tappe",
+      `La schermata 04 mostra ${CAPIENZA.tappe} tappe su ${tappe.length}: ` +
+      `${fuori === 1 ? "una tappa resterebbe fuori" : `${fuori} tappe resterebbero fuori`} dal PNG.`));
+  }
+
+  const inclusi = f.inclusi || [];
+  if (inclusi.length > CAPIENZA.inclusi) {
+    const fuori = inclusi.length - CAPIENZA.inclusi;
+    esiti.push(voce("avviso", "capienza-inclusi",
+      `La schermata 05 mostra ${CAPIENZA.inclusi} voci di «incluso» su ${inclusi.length}: ` +
+      `${fuori === 1 ? "una voce resterebbe fuori" : `${fuori} voci resterebbero fuori`} dal PNG.`));
+  }
+
+  const requisiti = (f.requisiti || []).join(". ");
+  const maxRequisiti = capienzaCaratteri(TIPO_STORY.corpoRequisiti, CAPIENZA.righeRequisiti);
+  if (requisiti.length > maxRequisiti) {
+    esiti.push(voce("avviso", "capienza-requisiti",
+      `I requisiti occupano ${requisiti.length} caratteri: la schermata 05 ne regge circa ${maxRequisiti} ` +
+      `prima che il testo si rimpicciolisca fino a non leggersi.`));
+  }
+
+  const maxDescrizione = capienzaCaratteri(
+    TIPO_STORY.corpoTappa, CAPIENZA.righeDescrizioneTappa, LARGHEZZA_UTILE.tappa,
+  );
+  tappe.slice(0, CAPIENZA.tappe).forEach((t, i) => {
+    const d = String(t.descrizione || "");
+    if (d.length > maxDescrizione) {
+      esiti.push(voce("avviso", `capienza-tappa-${i}`,
+        `La descrizione della tappa ${i + 1} è di ${d.length} caratteri: ` +
+        `ne entrano circa ${maxDescrizione} nelle ${CAPIENZA.righeDescrizioneTappa} righe disponibili.`));
+    }
+  });
+
+  if (!esiti.length) {
+    esiti.push(voce("ok", "capienza",
+      `Tappe e voci di «incluso» entrano nelle schermate: ${tappe.length}/${CAPIENZA.tappe} e ${inclusi.length}/${CAPIENZA.inclusi}.`));
+  }
+  return esiti;
 }
 
 function caption({ contenuto }) {
@@ -153,7 +226,7 @@ function font() {
     : [voce("ok", "font", `Font pronti: ${FAMIGLIE_RICHIESTE.join(", ")}.`)];
 }
 
-const CONTROLLI = [campiObbligatori, coerenzaTemplate, fotografie, mappaEGpx, caption, sfori, font];
+const CONTROLLI = [campiObbligatori, coerenzaTemplate, fotografie, mappaEGpx, capienzaStory, caption, sfori, font];
 
 /**
  * Esegue il pre-flight.

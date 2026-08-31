@@ -180,7 +180,7 @@ export default function StressTest() {
 
       {stato === "annullato" && (
         <p className="mb-4 border-l-2 border-[var(--accent)] pl-3 font-body text-sm text-granite-mist/80">
-          Annullata a metà: l'interfaccia è rimasta reattiva e nessun file è stato scritto.
+          Annullata a metà: l&apos;interfaccia è rimasta reattiva e nessun file è stato scritto.
         </p>
       )}
 

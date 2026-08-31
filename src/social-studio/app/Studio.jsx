@@ -1,12 +1,11 @@
 import React from "react";
-import { AlertTriangle, CheckCircle2, Lock, XCircle } from "lucide-react";
+import { Lock } from "lucide-react";
 import { FornitoreArchivio } from "./ContestoArchivio";
 import StatoArchivio from "./StatoArchivio";
 import { ELENCO_CATEGORIE } from "../design/categorie";
 import { brandLockAttivo } from "../fondamenta/brand-lock";
 import StressTest from "./StressTest";
 import EditorEvento from "./EditorEvento";
-import { COLORI } from "../design/tokens";
 
 /**
  * STA Social Studio — guscio dell'applicazione.
@@ -95,10 +94,4 @@ function Rubriche() {
       </ol>
     </section>
   );
-}
-
-function Segno({ livello }) {
-  if (livello === "errore") return <XCircle size={14} className="mt-0.5 shrink-0" style={{ color: "#E2857A" }} aria-hidden="true" />;
-  if (livello === "avviso") return <AlertTriangle size={14} className="mt-0.5 shrink-0" style={{ color: COLORI.accentoEventi }} aria-hidden="true" />;
-  return <CheckCircle2 size={14} className="mt-0.5 shrink-0" style={{ color: COLORI.verdeChiaro }} aria-hidden="true" />;
 }

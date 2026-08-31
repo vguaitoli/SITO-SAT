@@ -8,14 +8,17 @@ import { useArchivio } from "./ContestoArchivio";
 import Anteprima, { FuoriSchermo } from "./Anteprima";
 import LibreriaUI from "../media/LibreriaUI";
 import Ritaglio from "../media/Ritaglio";
+import SelettoreSlot from "../media/SelettoreSlot";
+import { leggiSlot, scriviSlot, SLOT_MEDIA } from "../media/slot";
 import { contenutoVuoto, LUNGHEZZE_CAPTION, STATI, STATI_POSTI } from "../fondamenta/schema";
 import { ELENCO_MOOD, MOOD } from "../design/eventi";
+import { ELENCO_MOOD_STORY, MOOD_STORY, SCHERMATE } from "../design/eventi-story";
 import { confrontaConLaFonte, daEvento } from "../fondamenta/adapter-sito";
 import { haPreset, highlightIniziali, kickerIniziale } from "../fondamenta/preset-eventi";
 import { elencoRevisioni, registraRevisione, ripristinaRevisione } from "../fondamenta/versioni";
 import { AmbitoProblemi, FornitoreProblemi, useFontPronti } from "../template/primitivi";
 import PostEvento from "../template/rubriche/eventi/PostEvento";
-import StoryEvento from "../template/rubriche/eventi/StoryEvento";
+import StoryCanonica from "../template/rubriche/eventi/StoryCanonica";
 import SlideCarosello, { SLIDE_CAROSELLO } from "../template/rubriche/eventi/CaroselloEvento";
 import { zonePerSlot } from "../template/rubriche/eventi/zone";
 import { preflight } from "../motori/preflight";
@@ -24,8 +27,10 @@ import { estraiFattuali, paragrafi, verificaFattuale } from "../motori/caption/f
 import { rigeneraCaption } from "../motori/caption/rigenera";
 import { creaProviderManuale } from "../motori/caption/provider";
 import { esporta, esportaPacchetto } from "../motori/export/esporta";
+import { attendiUnFrame } from "../motori/export/cattura";
 import EsitoExport from "./EsitoExport";
 import { useLavoroExport } from "./useLavoroExport";
+import { etichettaExport, PACCHETTO } from "./pacchetto";
 import { COLORI } from "../design/tokens";
 
 /**
@@ -45,21 +50,14 @@ import { COLORI } from "../design/tokens";
  * da lì. Senza questo, tutto il resto è una demo.
  */
 
-const SLOT = [
-  { id: "cover", nome: "Cover" },
-  { id: "esperienza-0", nome: "Vivrai 1" },
-  { id: "esperienza-1", nome: "Vivrai 2" },
-  { id: "esperienza-2", nome: "Vivrai 3" },
-  { id: "esperienza-3", nome: "Vivrai 4" },
-  { id: "cta", nome: "Sfondo CTA" },
-];
 
-/** I file del pacchetto evento. L'ordine è quello in cui si pubblica. */
-const PACCHETTO = [
-  { id: "post", nome: "post-1080x1350.png", formato: "post" },
-  { id: "story", nome: "story-1080x1920.png", formato: "story" },
-  ...SLIDE_CAROSELLO.map((s) => ({ id: s.id, nome: `carosello/${s.file}`, formato: "post" })),
-];
+/**
+ * Quanti frame si aspetta al massimo che le grafiche siano pronte.
+ *
+ * Non è un ritardo: è il punto oltre il quale si smette di sperare e si
+ * dichiara il fallimento. Nel caso normale bastano due o tre giri.
+ */
+const FRAME_DI_ATTESA = 30;
 
 export default function EditorEvento() {
   const { events, SITE, TOUR_GROUP } = useSiteContent();
@@ -82,6 +80,17 @@ export default function EditorEvento() {
 
   const nodi = useRef(new Map());
   const riferimenti = useRef(new Map());
+  /**
+   * La lettura sincrona del registro dei problemi, depositata da
+   * `FornitoreProblemi`. L'editor sta fuori dal provider e non può usarne il
+   * contesto: il ref è il ponte.
+   */
+  const letturaProblemi = useRef(null);
+  /** Il conteggio delle misure tipografiche ancora in sospeso. */
+  const misureInSospeso = useRef(null);
+  /** Quello che serve a `esegui` e all'attesa, letto quando servono davvero. */
+  const avvisiTracciaRif = useRef([]);
+  const daMontareRif = useRef([]);
   /** Lo stato come sta nell'archivio: serve a calcolare la revisione. */
   const salvato = useRef(null);
 
@@ -281,18 +290,16 @@ export default function EditorEvento() {
   const assegna = () => {
     if (!selezionata || !contenuto) return;
     const rif = { idBlob: selezionata, zoom: 1, x: 0.5, y: 0.5 };
-    aggiorna((c) => ({ ...c, media: conRitaglio(c.media, slotAttivo, rif) }));
+    aggiorna((c) => ({ ...c, media: scriviSlot(c.media, slotAttivo, rif) }));
   };
 
-  const ritaglioAttivo = useMemo(() => {
-    if (!contenuto) return null;
-    if (slotAttivo === "cover") return contenuto.media.cover;
-    if (slotAttivo === "cta") return contenuto.media.sfondi?.cta || null;
-    return contenuto.media.esperienza?.[Number(slotAttivo.split("-")[1])] || null;
-  }, [contenuto, slotAttivo]);
+  const ritaglioAttivo = useMemo(
+    () => (contenuto ? leggiSlot(contenuto.media, slotAttivo) : null),
+    [contenuto, slotAttivo],
+  );
 
   const cambiaRitaglio = (nuovo) =>
-    aggiorna((c) => ({ ...c, media: conRitaglio(c.media, slotAttivo, nuovo) }));
+    aggiorna((c) => ({ ...c, media: scriviSlot(c.media, slotAttivo, nuovo) }));
 
   /* ================================================================ *
    * GPX: la geometria viene solo dal file
@@ -436,6 +443,66 @@ export default function EditorEvento() {
 
   const tuttiIProblemi = useMemo(() => [...problemi, ...avvisiTraccia], [problemi, avvisiTraccia]);
 
+  /**
+   * I problemi **adesso**, non quelli dell'ultimo render.
+   *
+   * `problemi` è uno stato alimentato con 80 ms di raggruppamento: perfetto per
+   * ridisegnare il pannello, sbagliato per decidere se esportare. Le grafiche
+   * del pacchetto vengono montate fuori schermo e il pre-flight gira subito
+   * dopo: uno sforo che vive solo in una Story nascosta nasce **dopo** che la
+   * richiesta è partita, e in quello stato non c'è ancora.
+   */
+  const problemiCorrenti = useCallback(
+    () => [...(letturaProblemi.current?.() || []), ...avvisiTracciaRif.current],
+    [],
+  );
+
+  /**
+   * Attende che si possa decidere, e dice se ci è riuscita.
+   *
+   * Tre condizioni, tutte verificabili, nessuna basata sul tempo:
+   *
+   * 1. **i nodi esistono** — ogni grafica richiesta è nel DOM;
+   * 2. **nessuna misura è in sospeso** — ogni `TestoAdattivo` montato ha
+   *    misurato davvero, coi font veri. È la condizione che due letture vuote
+   *    consecutive non sanno dare: un registro vuoto perché nessuno ha ancora
+   *    misurato è indistinguibile da un registro vuoto perché niente sfora;
+   * 3. **il registro non cambia più** — due letture consecutive coincidono.
+   *
+   * Il giro è limitato, e **la scadenza è un fallimento, non un via libera**.
+   * Prima usciva in silenzio e l'esportazione proseguiva come se tutto fosse a
+   * posto: si producevano quindici PNG senza sapere se il pre-flight avesse
+   * davanti lo stato completo. Ora chi chiama riceve `pronto: false` col
+   * motivo, e non si fotografa niente.
+   */
+  const attendiPronto = useCallback(async () => {
+    const stato = () => ({
+      mancanti: daMontareRif.current.filter((v) => !nodi.current.get(`pacco-${v}`)),
+      misure: misureInSospeso.current?.() ?? 0,
+      registro: JSON.stringify(problemiCorrenti()),
+    });
+
+    let precedente = null;
+    let ultimo = stato();
+    for (let giro = 0; giro < FRAME_DI_ATTESA; giro += 1) {
+      ultimo = stato();
+      if (!ultimo.mancanti.length && ultimo.misure === 0 && ultimo.registro === precedente) {
+        return { pronto: true };
+      }
+      precedente = ultimo.registro;
+      await attendiUnFrame();
+    }
+
+    ultimo = stato();
+    return {
+      pronto: false,
+      mancanti: ultimo.mancanti,
+      misureInSospeso: ultimo.misure,
+      registroInMovimento: ultimo.registro !== precedente,
+      frame: FRAME_DI_ATTESA,
+    };
+  }, [problemiCorrenti]);
+
   const controllo = useMemo(() => {
     if (!contenuto) return null;
     const formato = vista === "story" ? "story" : vista === "carosello" ? "carosello" : "post";
@@ -466,20 +533,22 @@ export default function EditorEvento() {
    * questo che le sue grafiche erano corrette. Ora ci passano entrambe: un solo
    * percorso di cattura, nessuna differenza da tenere allineata.
    */
-  const elementiVista = useCallback(() =>
-    vista === "carosello"
-      ? SLIDE_CAROSELLO.map((s) => ({
-          id: s.id, nome: s.file, formato: "post", nodo: nodi.current.get(`pacco-${s.id}`),
-        }))
-      : [{
-          id: vista,
-          nome: `${vista}.png`,
-          formato: vista === "story" ? "story" : "post",
-          nodo: nodi.current.get(`pacco-${vista}`),
-        }], [vista]);
+  const elementiVista = useCallback(() => {
+    if (vista === "carosello") {
+      return SLIDE_CAROSELLO.map((s) => ({
+        id: s.id, nome: s.file, formato: "post", nodo: nodi.current.get(`pacco-${s.id}`),
+      }));
+    }
+    if (vista === "story") {
+      return SCHERMATE.map((s) => ({
+        id: `story-${s.id}`, nome: s.file, formato: "story", nodo: nodi.current.get(`pacco-story-${s.id}`),
+      }));
+    }
+    return [{ id: "post", nome: "post.png", formato: "post", nodo: nodi.current.get("pacco-post") }];
+  }, [vista]);
 
   /**
-   * Il pacchetto ha bisogno che tutte e dieci le grafiche esistano nel DOM alla
+   * Il pacchetto ha bisogno che tutte e quindici le grafiche esistano nel DOM alla
    * loro misura reale. Si montano fuori schermo, si aspetta che il browser
    * abbia disegnato, poi si fotografa: due fasi, perché lo stato React non è
    * disponibile nello stesso giro in cui lo si imposta.
@@ -502,7 +571,9 @@ export default function EditorEvento() {
       const comune = {
         elementi,
         vociMedia,
-        problemi: tuttiIProblemi,
+        // Letti adesso, non alla creazione della richiesta: è la differenza
+        // fra vedere lo sforo di una Story nascosta e non vederlo.
+        problemi: problemiCorrenti(),
         ignoraAvvisi,
         caption: contenuto.editoriale.caption.testo,
         lavoro,
@@ -517,25 +588,33 @@ export default function EditorEvento() {
             contenuto: { ...contenuto, formato: vista === "carosello" ? "carosello" : vista },
           });
     },
-    [contenuto, vociMedia, tuttiIProblemi, vista, elementiVista],
+    [contenuto, vociMedia, vista, elementiVista, problemiCorrenti],
   );
 
   const {
     richiesta, avanzamento, daConfermare, occupato, chiedi: chiediExport, annulla, chiudiConferma,
-  } = useLavoroExport({ esegui });
+  } = useLavoroExport({ esegui, attendiPronto });
+
 
   /**
    * Quali grafiche montare fuori schermo.
    *
-   * Per il pacchetto tutte e dieci; per la vista corrente solo quelle che
-   * servono, così un singolo PNG non paga il montaggio degli altri nove.
+   * Per il pacchetto tutte e quindici; per la vista corrente solo quelle che
+   * servono, così un singolo PNG non paga il montaggio degli altri quattordici.
    */
   const daMontare = useMemo(() => {
     if (!richiesta) return [];
     if (richiesta.cosa === "pacchetto") return PACCHETTO.map((p) => p.id);
     if (vista === "carosello") return SLIDE_CAROSELLO.map((s) => s.id);
-    return [vista];
+    if (vista === "story") return SCHERMATE.map((s) => `story-${s.id}`);
+    return ["post"];
   }, [richiesta, vista]);
+
+  // Aggiornati a ogni render: `esegui` e l'attesa li leggono quando servono.
+  useEffect(() => {
+    avvisiTracciaRif.current = avvisiTraccia;
+    daMontareRif.current = daMontare;
+  });
 
   /* ================================================================ */
 
@@ -549,11 +628,11 @@ export default function EditorEvento() {
       <section className="border border-[var(--border-on-dark)] p-4">
         <h3 className="mb-3 flex items-center gap-2 font-button text-[10px] uppercase tracking-[0.22em] text-[var(--accent-soft)]">
           <FolderOpen size={13} aria-hidden="true" />
-          Bozze nell'archivio · {bozze.length}
+          Bozze nell&apos;archivio · {bozze.length}
         </h3>
         {bozze.length === 0 ? (
           <p className="mb-4 font-body text-xs text-granite-mist/45">
-            Nessuna bozza salvata. Ne resta una nell'archivio del browser appena premi «Salva».
+            Nessuna bozza salvata. Ne resta una nell&apos;archivio del browser appena premi «Salva».
           </p>
         ) : (
           <ul className="mb-4 divide-y divide-[var(--border-on-dark)]">
@@ -751,7 +830,7 @@ export default function EditorEvento() {
                   />
                 </Campo>
 
-                <Campo etichetta="Frase dei numeri" aiuto="Chiude la slide 02 del carosello.">
+                <Campo etichetta="Frase dei numeri" aiuto="Il titolo della schermata 02 della Story, e la chiusura della slide 02 del carosello.">
                   <textarea
                     rows={2}
                     value={contenuto.editoriale.fraseNumeri}
@@ -760,7 +839,7 @@ export default function EditorEvento() {
                   />
                 </Campo>
 
-                <Campo etichetta="Descrizione" aiuto="Non finisce nella grafica: fa da contesto alla caption.">
+                <Campo etichetta="Descrizione" aiuto="Chiude la schermata 02 della Story, sotto la griglia dei numeri. Fa anche da contesto alla caption.">
                   <textarea
                     rows={3}
                     value={contenuto.editoriale.descrizione}
@@ -789,7 +868,7 @@ export default function EditorEvento() {
                   </Campo>
                 </div>
 
-                <Campo etichetta="WhatsApp" aiuto="Compare nella fascia CTA della slide 08.">
+                <Campo etichetta="WhatsApp" aiuto="Compare nel piede della schermata 06 della Story e nella fascia CTA della slide 08.">
                   <input
                     type="text"
                     value={contenuto.editoriale.whatsapp}
@@ -876,7 +955,7 @@ export default function EditorEvento() {
                 Aspetto
               </h3>
               <p className="mb-3 font-body text-[10px] leading-snug text-granite-mist/40">
-                Il mood cambia insieme filtro fotografico, velo e contrasto. Non tocca l'accento.
+                Il mood cambia insieme filtro fotografico, velo e contrasto. Non tocca l&apos;accento.
               </p>
               <div className="mb-3 flex flex-wrap gap-1.5">
                 {ELENCO_MOOD.map((m) => {
@@ -898,6 +977,29 @@ export default function EditorEvento() {
                   );
                 })}
               </div>
+              <p className="mb-1.5 mt-3 font-button text-[9px] uppercase tracking-[0.18em] text-granite-mist/45">
+                Mood della Story
+              </p>
+              <div className="mb-3 flex flex-wrap gap-1.5">
+                {ELENCO_MOOD_STORY.map((m) => {
+                  const attivo = (contenuto.visual?.moodStory || "Naturale") === m;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => aggiorna((c) => ({ ...c, visual: { ...c.visual, moodStory: m } }))}
+                      title={MOOD_STORY[m].filtroFoto}
+                      className={`border px-2.5 py-1.5 font-body text-[11px] transition-colors ${
+                        attivo
+                          ? "border-[var(--accent)] text-[var(--accent-soft)]"
+                          : "border-[var(--border-on-dark)] text-granite-mist/55 hover:border-granite-mist/40"
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  );
+                })}
+              </div>
               <label className="flex items-center gap-2 font-body text-xs text-granite-mist/65">
                 <input
                   type="checkbox"
@@ -906,7 +1008,7 @@ export default function EditorEvento() {
                   onChange={(e) => cambiaRitaglio({ ...ritaglioAttivo, specchiata: e.target.checked })}
                   className="accent-[var(--accent)]"
                 />
-                Rifletti la fotografia di «{SLOT.find((x) => x.id === slotAttivo)?.nome}»
+                Rifletti la fotografia di «{SLOT_MEDIA.find((x) => x.id === slotAttivo)?.nome}»
               </label>
             </section>
 
@@ -942,26 +1044,7 @@ export default function EditorEvento() {
               <h3 className="mb-3 font-button text-[10px] uppercase tracking-[0.22em] text-[var(--accent-soft)]">
                 Assegna e inquadra
               </h3>
-              <div className="mb-3 flex flex-wrap gap-1.5">
-                {SLOT.map((s) => {
-                  const piena = Boolean(riferimentoSlot(contenuto.media, s.id)?.idBlob);
-                  return (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => setSlotAttivo(s.id)}
-                      className={`border px-2 py-1 font-button text-[9px] uppercase tracking-[0.14em] transition-colors ${
-                        slotAttivo === s.id
-                          ? "border-[var(--accent)] text-[var(--accent-soft)]"
-                          : "border-[var(--border-on-dark)] text-granite-mist/55"
-                      }`}
-                    >
-                      {s.nome}
-                      {piena && <span className="ml-1 text-[var(--wild-sage-bright)]">•</span>}
-                    </button>
-                  );
-                })}
-              </div>
+              <SelettoreSlot media={contenuto.media} attivo={slotAttivo} onSceglie={setSlotAttivo} />
               <button
                 type="button"
                 onClick={assegna}
@@ -990,7 +1073,7 @@ export default function EditorEvento() {
               {traccia && (
                 <>
                   <p className="mb-2 font-body text-[11px] text-granite-mist/50">
-                    {traccia.nomeFile} · dall'archivio, non serve ricaricarlo
+                    {traccia.nomeFile} · dall&apos;archivio, non serve ricaricarlo
                   </p>
                   <dl className="grid grid-cols-2 gap-2 font-body text-[11px] text-granite-mist/65">
                     <div><dt className="text-granite-mist/40">segmenti</dt><dd>{traccia.segmenti.length}</dd></div>
@@ -1000,7 +1083,7 @@ export default function EditorEvento() {
                     <div><dt className="text-granite-mist/40">quota</dt><dd>{traccia.metriche.quotaMin ?? "—"}–{traccia.metriche.quotaMax ?? "—"} m</dd></div>
                     <div><dt className="text-granite-mist/40">waypoint</dt><dd>{traccia.waypoint.length}</dd></div>
                     <p className="col-span-2 text-granite-mist/40">
-                      Suggerimenti dal file: non sovrascrivono i dati dell'evento.
+                      Suggerimenti dal file: non sovrascrivono i dati dell&apos;evento.
                     </p>
                   </dl>
                 </>
@@ -1115,7 +1198,7 @@ export default function EditorEvento() {
                 className="ml-auto inline-flex items-center gap-2 border border-[var(--border-on-dark)] px-3 py-2 font-button text-[10px] uppercase tracking-[0.14em] text-granite-mist/70 transition-colors hover:border-[var(--accent)] disabled:opacity-40"
               >
                 <Download size={13} aria-hidden="true" />
-                Esporta {vista}
+                {etichettaExport(vista)}
               </button>
               <button
                 type="button"
@@ -1155,16 +1238,31 @@ export default function EditorEvento() {
               onChiudi={chiudiConferma}
             />
 
-            <FornitoreProblemi onProblemi={setProblemi}>
+            <FornitoreProblemi onProblemi={setProblemi} lettore={letturaProblemi} misure={misureInSospeso}>
               {vista === "post" && (
                 <Anteprima formato="post" massimaAltezza={700}>
                   <PostEvento contenuto={contenuto} immagini={immagini} traccia={traccia} riferimento={registra("post")} />
                 </Anteprima>
               )}
               {vista === "story" && (
-                <Anteprima formato="story" massimaAltezza={700}>
-                  <StoryEvento contenuto={contenuto} immagini={immagini} riferimento={registra("story")} />
-                </Anteprima>
+                <div className="grid grid-cols-2 gap-4 xl:grid-cols-3">
+                  {SCHERMATE.map((s) => (
+                    <div key={s.id}>
+                      <p className="mb-1 font-button text-[9px] uppercase tracking-[0.16em] text-granite-mist/40">
+                        {String(s.numero).padStart(2, "0")} · {s.nome}
+                      </p>
+                      <Anteprima formato="story" massimaAltezza={420}>
+                        <StoryCanonica
+                          id={s.id}
+                          contenuto={contenuto}
+                          immagini={immagini}
+                          traccia={traccia}
+                          riferimento={registra(`story-${s.id}`)}
+                        />
+                      </Anteprima>
+                    </div>
+                  ))}
+                </div>
               )}
               {vista === "carosello" && (
                 <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
@@ -1188,7 +1286,7 @@ export default function EditorEvento() {
               )}
 
               {/*
-                Le dieci grafiche del pacchetto, a misura reale e fuori vista.
+                Le {PACCHETTO.length} grafiche del pacchetto, a misura reale e fuori vista.
                 Sotto l'ambito «pacco»: sono copie degli stessi template già
                 visibili, e senza un ambito proprio le loro segnalazioni si
                 confonderebbero con quelle dell'anteprima.
@@ -1200,11 +1298,11 @@ export default function EditorEvento() {
                       <PostEvento contenuto={contenuto} immagini={immagini} traccia={traccia} />
                     </FuoriSchermo>
                   )}
-                  {daMontare.includes("story") && (
-                    <FuoriSchermo formato="story" riferimento={registra("pacco-story")}>
-                      <StoryEvento contenuto={contenuto} immagini={immagini} />
+                  {SCHERMATE.filter((s) => daMontare.includes(`story-${s.id}`)).map((s) => (
+                    <FuoriSchermo key={s.id} formato="story" riferimento={registra(`pacco-story-${s.id}`)}>
+                      <StoryCanonica id={s.id} contenuto={contenuto} immagini={immagini} traccia={traccia} />
                     </FuoriSchermo>
-                  )}
+                  ))}
                   {SLIDE_CAROSELLO.filter((s) => daMontare.includes(s.id)).map((s) => (
                     <FuoriSchermo key={s.id} formato="post" riferimento={registra(`pacco-${s.id}`)}>
                       <SlideCarosello id={s.id} contenuto={contenuto} immagini={immagini} traccia={traccia} />
@@ -1267,27 +1365,4 @@ function Campo({ etichetta, aiuto, children }) {
       )}
     </label>
   );
-}
-
-/** Il riferimento del ritaglio di uno slot. */
-function riferimentoSlot(media, slot) {
-  if (slot === "cover") return media?.cover || null;
-  if (slot === "cta") return media?.sfondi?.cta || null;
-  return media?.esperienza?.[Number(slot.split("-")[1])] || null;
-}
-
-/** Media con il ritaglio di uno slot sostituito. Non muta l'originale. */
-function conRitaglio(media, slot, nuovo) {
-  const copia = { ...media };
-  if (slot === "cover") {
-    copia.cover = nuovo;
-  } else if (slot === "cta") {
-    copia.sfondi = { ...copia.sfondi, cta: nuovo };
-  } else {
-    const i = Number(slot.split("-")[1]);
-    const esperienza = [...(copia.esperienza || [])];
-    esperienza[i] = nuovo;
-    copia.esperienza = esperienza;
-  }
-  return copia;
 }

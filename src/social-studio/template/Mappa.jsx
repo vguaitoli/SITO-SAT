@@ -1,8 +1,17 @@
 import React, { useMemo } from "react";
 import base from "@/data/mappa-sardegna.json";
-import { riquadro, semplificaPerDisegno } from "../motori/gpx";
-import { creaVista, riquadroMinimo, tracciaPath } from "../motori/proiezione";
+import { riquadro } from "../motori/gpx";
+import { creaVista, riquadroMinimo, semplificaProiettato, tracciaPath } from "../motori/proiezione";
 import { COLORI, FONT, MAPPA } from "../design/tokens";
+
+/**
+ * Errore massimo ammesso fra la traccia disegnata e quella vera, in pixel.
+ *
+ * Mezzo pixel: sotto la soglia in cui l'occhio o il PNG possano distinguerli.
+ * È il numero che dà la garanzia, e per questo sta qui con un nome invece di
+ * comparire dentro un'espressione.
+ */
+export const TOLLERANZA_DISEGNO_PX = 0.5;
 
 /**
  * Mappa topografica con la traccia del percorso.
@@ -11,9 +20,11 @@ import { COLORI, FONT, MAPPA } from "../design/tokens";
  * generate a build time (src/data/mappa-sardegna.json). Nessun tile esterno,
  * nessuna chiave API, nessuna estetica da mappa stradale.
  *
- * La traccia è quella del GPX. Viene semplificata solo per il disegno, con una
- * tolleranza pari a mezzo pixel alla scala corrente: a schermo è indistinguibile
- * dall'originale, e i punti originali restano intatti nel modello.
+ * La traccia è quella del GPX. Viene semplificata **solo per il disegno**, e la
+ * semplificazione avviene dopo la proiezione, in pixel: l'errore massimo sul
+ * canvas è mezzo pixel, e resta mezzo pixel a qualunque latitudine, scala,
+ * zoom, spostamento, rotazione e misura di tela. I punti originali restano
+ * intatti nel modello, nell'archivio e nelle metriche.
  */
 export default function MappaPercorso({
   segmenti = [],
@@ -21,6 +32,12 @@ export default function MappaPercorso({
   larghezza,
   altezza,
   bordi = true,
+  /**
+   * Fondo del mare. `null` lo rende trasparente: serve alla schermata su carta
+   * della Story, dove la mappa deve galleggiare sul fondo chiaro invece di
+   * stendere il proprio rettangolo scuro sopra.
+   */
+  fondo = MAPPA.mare,
 }) {
   const cfg = configurazione;
 
@@ -44,21 +61,33 @@ export default function MappaPercorso({
     });
   }, [segmenti, cfg.margine, cfg.zoom, cfg.spostamento, cfg.rotazione, larghezza, altezza]);
 
-  const { proietta, scala } = vista;
+  const { proietta } = vista;
   const proiettaAnello = (anello) => anello.map(([lon, lat]) => proietta(lon, lat));
 
-  // Mezzo pixel espresso in gradi di longitudine: sotto questa soglia due punti
-  // finiscono comunque sullo stesso pixel.
-  const tolleranza = 0.5 / scala / 360;
-
+  /*
+   * Si proietta prima e si semplifica dopo.
+   *
+   * L'ordine è la correzione. Semplificare in gradi obbligava a convertire
+   * mezzo pixel in una distanza geografica, e quella conversione era sbagliata
+   * di un fattore 360 — `mercatore` normalizza già la longitudine, quindi
+   * `scala` è pixel per unità di mondo e non serviva dividere di nuovo. Ne
+   * risultava una tolleranza infinitesima, che lasciava in piedi quasi tutti i
+   * vertici della traccia e costringeva la cattura a ridisegnarli due volte per
+   * ogni grafica con la mappa.
+   *
+   * In pixel la conversione non serve affatto: la tolleranza **è** già
+   * l'errore che si vuole garantire, e `tracciaPath` scrive le coordinate per
+   * intero perché il limite valga sul path davvero disegnato.
+   */
   const tracce = useMemo(
     () =>
       segmenti
-        .map((seg) => semplificaPerDisegno(seg, tolleranza))
-        .filter((seg) => seg.length > 1)
-        .map((seg) => tracciaPath(seg.map((p) => proietta(p.lon, p.lat)))),
+        .map((seg) => seg.map((p) => proietta(p.lon, p.lat)))
+        .map((punti) => semplificaProiettato(punti, TOLLERANZA_DISEGNO_PX))
+        .filter((punti) => punti.length > 1)
+        .map(tracciaPath),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [segmenti, tolleranza, vista],
+    [segmenti, vista],
   );
 
   const primoPunto = segmenti[0]?.[0];
@@ -83,7 +112,7 @@ export default function MappaPercorso({
 
       <g clipPath={`url(#${idClip})`}>
         {/* Mare */}
-        <rect x={0} y={0} width={larghezza} height={altezza} fill={MAPPA.mare} />
+        {fondo && <rect x={0} y={0} width={larghezza} height={altezza} fill={fondo} />}
 
         {cfg.mostraIsola && (
           <>

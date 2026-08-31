@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { useLavoroExport } from "./useLavoroExport";
+import { fileDelPacchetto } from "./pacchetto";
 import PannelloEsito from "./PannelloEsito";
 import EsitoExport from "./EsitoExport";
 
@@ -38,17 +39,60 @@ afterEach(() => {
 /** Attesa immediata invece dei frame del browser: i test non disegnano. */
 const subito = () => Promise.resolve();
 
-/** Monta l'hook e ne espone lo stato e i comandi. */
-function monta(esegui, attendiDisegno = subito) {
-  const spia = { stato: null, chiamate: [], segnali: [] };
+/**
+ * Attende che la fase diventi quella attesa, cedendo il controllo fra un
+ * tentativo e l'altro.
+ *
+ * Prima qui c'era un `setTimeout(0)` singolo, nella speranza che React avesse
+ * già committato il cambio di fase. Non è una garanzia: una volta su venti
+ * circa la lettura arrivava prima del commit e il test falliva dicendo
+ * `expected ['monta'] to deeply equal ['cattura']`. Era il test a misurare il
+ * proprio ritardo, non l'hook a sbagliare.
+ *
+ * I denti restano: se la fase non arriva mai, si restituisce quella che c'è e
+ * l'asserzione fallisce come deve.
+ */
+async function attendiFase(spia, attesa, giri = 60) {
+  for (let i = 0; i < giri; i += 1) {
+    if (spia.stato.richiesta?.fase === attesa) return attesa;
+    await new Promise((r) => setTimeout(r, 0));
+  }
+  return spia.stato.richiesta?.fase ?? null;
+}
+
+/**
+ * Monta l'hook e ne espone lo stato e i comandi.
+ *
+ * `esegui` è ricreata a ogni render, come nell'editor vero: è quella
+ * riscrittura continua che rende impossibile metterla fra le dipendenze
+ * dell'effetto, ed è il motivo per cui l'hook la legge da un riferimento.
+ */
+function monta(esegui, attendiDisegno = subito, attendiPronto) {
+  const spia = { stato: null, chiamate: [], segnali: [], ordine: [], marcheViste: [] };
   function Sonda() {
+    /*
+     * Sta al posto di ciò che l'editor ha davvero dentro `esegui`: l'array dei
+     * problemi. Cambia con un render, e ogni render crea una `esegui` nuova che
+     * si porta dietro il valore di quel momento. Vedere qui il valore vecchio
+     * significa aver chiamato la chiusura vecchia.
+     */
+    const [marca, setMarca] = useState("prima-del-montaggio");
+    spia.cambiaMarca = setMarca;
     const lavoro = useLavoroExport({
       esegui: async (ctx) => {
+        spia.ordine.push("esegui");
+        spia.marcheViste.push(marca);
         spia.chiamate.push({ cosa: ctx.cosa, ignoraAvvisi: ctx.ignoraAvvisi });
         spia.segnali.push(ctx.lavoro);
         return esegui(ctx, spia);
       },
       attendiDisegno,
+      attendiPronto: attendiPronto
+        ? async () => {
+            spia.ordine.push("pronto");
+            return attendiPronto(spia);
+          }
+        : undefined,
     });
     spia.stato = lavoro;
     return null;
@@ -84,6 +128,19 @@ function cancello() {
   };
 }
 
+/**
+ * Un cancello che, aprendosi, **dichiara** la prontezza.
+ *
+ * Prima questi test usavano `() => g.attendi()`, che si risolve con
+ * `undefined`: passavano perché l'hook trattava il silenzio come un via libera.
+ * Ora il silenzio è un no, e un test che vuole verificare il percorso positivo
+ * deve dire di sì come lo direbbe l'editor.
+ */
+const prontoQuandoApre = (g) => async () => {
+  await g.attendi();
+  return { pronto: true };
+};
+
 /** Lascia girare le promesse e i re-render che ne derivano. */
 const assesta = async () => {
   await act(async () => {
@@ -107,7 +164,9 @@ describe("useLavoroExport", () => {
 
   it("un pacchetto completato libera lo stato", async () => {
     const spia = monta(async () => ({
-      esito: "fatto", archivio: { nome: "pacco.zip", byte: 10, quanti: 11 }, msTotale: 1234,
+      // Il conteggio viene dal pacchetto vero: scritto a mano invecchiava, e
+      // ha invecchiato — diceva 11 quando i file erano già sedici.
+      esito: "fatto", archivio: { nome: "pacco.zip", byte: 10, quanti: fileDelPacchetto().length }, msTotale: 1234,
     }));
     await act(async () => spia.stato.chiedi("pacchetto"));
     await assesta();
@@ -184,11 +243,7 @@ describe("useLavoroExport", () => {
      */
     const fasi = [];
     const spia = monta(async (_ctx, s) => {
-      // Si aspetta che React abbia committato il cambio di fase, altrimenti si
-      // leggerebbe lo stato del render precedente e il test misurerebbe il
-      // proprio ritardo invece del comportamento dell'hook.
-      await new Promise((r) => setTimeout(r, 0));
-      fasi.push(s.stato.richiesta?.fase);
+      fasi.push(await attendiFase(s, "cattura"));
       return { esito: "fatto" };
     });
     await act(async () => spia.stato.chiedi("vista"));
@@ -331,7 +386,6 @@ describe("useLavoroExport", () => {
   });
 
   it("un valore lanciato che non è un Error diventa comunque un messaggio", async () => {
-    // eslint-disable-next-line prefer-promise-reject-errors
     const spia = monta(async () => { throw "quota del disco esaurita"; });
     await act(async () => spia.stato.chiedi("vista"));
     await assesta();
@@ -397,6 +451,88 @@ describe("PannelloEsito", () => {
     expect(el.textContent).toMatch(/non è riuscita/i);
     expect(el.textContent).toMatch(/nessun file/i);
     expect(el.querySelectorAll("button")).toHaveLength(2);
+  });
+
+  it("spiega perché non era pronto e offre di riprovare", () => {
+    let riprovato = 0;
+    const el = rendi(
+      {
+        tipo: "pacchetto",
+        esito: "nonPronto",
+        mancanti: ["story-tappe", "story-incluso"],
+        misureInSospeso: 4,
+        registroInMovimento: true,
+        frame: 30,
+      },
+      { onRiprova: () => { riprovato += 1; } },
+    );
+
+    expect(el.querySelector("[data-esito]").dataset.esito).toBe("nonPronto");
+    expect(el.textContent).toMatch(/non erano pronte/i);
+    expect(el.textContent).toMatch(/nessun file/i);
+    // Dice cosa mancava: senza, «riprova» sarebbe un invito a indovinare.
+    expect(el.textContent).toContain("story-tappe");
+    expect(el.textContent).toContain("4 misure");
+    expect(el.textContent).toContain("30 frame");
+
+    const riprova = [...el.querySelectorAll("button")].find((b) => /riprova/i.test(b.textContent));
+    expect(riprova).toBeTruthy();
+    act(() => riprova.click());
+    expect(riprovato).toBe(1);
+  });
+
+  it("dice quando il controllo di prontezza non ha risposto", () => {
+    const el = rendi({
+      tipo: "pacchetto",
+      esito: "nonPronto",
+      malformato: "undefined",
+      messaggio: "Il controllo di prontezza non ha dichiarato l'esito: senza un sì esplicito l'esportazione non parte.",
+    });
+    expect(el.querySelector("[data-esito]").dataset.esito).toBe("nonPronto");
+    expect(el.textContent).toMatch(/non ha dichiarato l'esito/i);
+    expect(el.textContent).toContain("undefined");
+    expect(el.textContent).toMatch(/difetto del programma/i);
+    expect([...el.querySelectorAll("button")].some((b) => /riprova/i.test(b.textContent))).toBe(true);
+  });
+
+  it("non elenca ciò che non è mancato", () => {
+    const el = rendi({ tipo: "pacchetto", esito: "nonPronto", mancanti: [], misureInSospeso: 0, registroInMovimento: true, frame: 30 });
+    expect(el.textContent).not.toMatch(/misure di testo/i);
+    expect(el.textContent).not.toMatch(/non ancora montate/i);
+    expect(el.textContent).toMatch(/stavano ancora cambiando/i);
+  });
+
+  it("elenca due errori con lo stesso id senza chiavi duplicate", () => {
+    /*
+     * Il pacchetto esegue il pre-flight una volta per formato e somma gli
+     * esiti: senza GPX arrivano due voci con id `gpx` e messaggi diversi, una
+     * per il carosello e una per la Story. Con `key={e.id}` React ne trovava
+     * due uguali — lo diceva in console, e con chiavi duplicate può omettere o
+     * duplicare figli: un errore nascosto proprio nel pannello degli errori.
+     */
+    const avvisi = [];
+    const errOrig = console.error;
+    console.error = (...a) => avvisi.push(a.map(String).join(" "));
+    try {
+      const el = rendi({
+        tipo: "pacchetto",
+        esito: "bloccato",
+        controllo: {
+          errori: [
+            { livello: "errore", id: "gpx", messaggio: "Il carosello evento contiene la slide del percorso: serve il file GPX." },
+            { livello: "errore", id: "gpx", messaggio: "La Story contiene la schermata del tracciato: serve il file GPX." },
+          ],
+          avvisi: [],
+        },
+      });
+      // Entrambi i messaggi si vedono: non se ne perde nessuno.
+      expect(el.textContent).toContain("Il carosello evento contiene");
+      expect(el.textContent).toContain("La Story contiene");
+      expect(el.querySelectorAll("li")).toHaveLength(2);
+    } finally {
+      console.error = errOrig;
+    }
+    expect(avvisi.filter((m) => /same key/i.test(m))).toEqual([]);
   });
 
   it("regge un errore senza messaggio", () => {
@@ -579,5 +715,279 @@ describe("una retry che incontra avvisi nuovi torna a chiedere", () => {
     await act(async () => spia.stato.chiedi("vista", true));
     await assesta();
     expect(visti).toEqual([false, false, true]);
+  });
+});
+
+/* ================================================================== *
+ * Prontezza delle grafiche
+ * ================================================================== */
+
+describe("attesa di prontezza", () => {
+  /*
+   * Il secondo difetto del ciclo: la richiesta nasce prima che le grafiche
+   * fuori schermo esistano, e le loro segnalazioni nascono montandole. Se
+   * l'hook chiamasse `esegui` appena finiti i due frame, il pre-flight
+   * deciderebbe su un registro non ancora popolato — e uno sforo presente solo
+   * in una Story nascosta non fermerebbe niente.
+   */
+
+  it("aspetta la prontezza prima di eseguire, non dopo", async () => {
+    const spia = monta(fatto, subito, () => ({ pronto: true }));
+    await act(async () => spia.stato.chiedi("pacchetto"));
+    await assesta();
+
+    expect(spia.ordine).toEqual(["pronto", "esegui"]);
+  });
+
+  it("non esegue finché la prontezza non è arrivata", async () => {
+    const g = cancello();
+    const spia = monta(fatto, subito, prontoQuandoApre(g));
+    await act(async () => spia.stato.chiedi("pacchetto"));
+    await assesta();
+
+    // Fermi sull'attesa: niente cattura, e l'editor è ancora occupato.
+    expect(spia.chiamate).toHaveLength(0);
+    expect(spia.stato.occupato).toBe(true);
+
+    await act(async () => { g.apri(); });
+    await assesta();
+    expect(spia.chiamate).toHaveLength(1);
+    expect(spia.stato.richiesta).toBeNull();
+  });
+
+  it("annullando durante l'attesa, la cattura non parte", async () => {
+    const g = cancello();
+    const spia = monta(fatto, subito, prontoQuandoApre(g));
+    await act(async () => spia.stato.chiedi("pacchetto"));
+    await assesta();
+
+    await act(async () => spia.stato.annulla());
+    await act(async () => { g.apri(); });
+    await assesta();
+
+    expect(spia.chiamate).toHaveLength(0);
+    expect(spia.stato.richiesta).toBeNull();
+    expect(spia.stato.occupato).toBe(false);
+  });
+
+  it("la fase resta «monta» finché si aspetta", async () => {
+    const g = cancello();
+    const spia = monta(fatto, subito, prontoQuandoApre(g));
+    await act(async () => spia.stato.chiedi("pacchetto"));
+    await assesta();
+
+    expect(spia.stato.richiesta?.fase).toBe("monta");
+    await act(async () => { g.apri(); });
+    await assesta();
+  });
+
+  /* ---------------------------------------------------------------- *
+   * Quando la prontezza fallisce
+   * ---------------------------------------------------------------- */
+
+  it("un esito «non pronto» ferma tutto prima della cattura", async () => {
+    const spia = monta(fatto, subito, () => ({
+      pronto: false, mancanti: ["story-tappe"], misureInSospeso: 3, registroInMovimento: false, frame: 30,
+    }));
+    await act(async () => spia.stato.chiedi("pacchetto"));
+    await assesta();
+
+    /*
+     * Prima la scadenza dell'attesa era una risoluzione silenziosa, e l'hook la
+     * leggeva come un via libera: si esportava senza poter dimostrare che il
+     * pre-flight avesse davanti lo stato completo.
+     */
+    expect(spia.chiamate).toHaveLength(0);
+    expect(spia.ordine).toEqual(["pronto"]);
+    expect(spia.stato.daConfermare).toMatchObject({
+      tipo: "pacchetto", esito: "nonPronto", mancanti: ["story-tappe"], misureInSospeso: 3,
+    });
+  });
+
+  it("dopo un «non pronto» lo stato è libero e si può riprovare", async () => {
+    let pronto = false;
+    const spia = monta(fatto, subito, () => ({ pronto, mancanti: pronto ? [] : ["post"] }));
+    await act(async () => spia.stato.chiedi("pacchetto"));
+    await assesta();
+
+    expect(spia.stato.richiesta).toBeNull();
+    expect(spia.stato.occupato).toBe(false);
+    expect(spia.stato.avanzamento).toBeNull();
+
+    // La causa sparisce, e «Riprova» riparte come la prima volta.
+    pronto = true;
+    await act(async () => spia.stato.chiedi("pacchetto", false));
+    await assesta();
+
+    expect(spia.chiamate).toEqual([{ cosa: "pacchetto", ignoraAvvisi: false }]);
+    expect(spia.stato.daConfermare).toBeNull();
+  });
+
+  it("`pronto: true` non è un caso speciale: si esporta e basta", async () => {
+    const spia = monta(fatto, subito, () => ({ pronto: true }));
+    await act(async () => spia.stato.chiedi("pacchetto"));
+    await assesta();
+    expect(spia.chiamate).toHaveLength(1);
+    expect(spia.stato.daConfermare).toBeNull();
+  });
+
+  /* ---------------------------------------------------------------- *
+   * Il contratto: solo un sì esplicito autorizza
+   * ---------------------------------------------------------------- */
+
+  describe("solo `{ pronto: true }` apre il varco", () => {
+    /*
+     * Guardare `pronto === false` non basta: tratta il silenzio come consenso.
+     * Un esito assente e un «tutto bene» diventano indistinguibili, ed è
+     * esattamente così che una funzione caduta in fondo senza `return`
+     * autorizzava quindici PNG che nessuno aveva verificato.
+     *
+     * Chi non risponde non acconsente. Qui si prova una forma sbagliata per
+     * volta, perché è una per volta che si presentano.
+     */
+    const rifiutati = [
+      ["undefined", () => undefined],
+      ["null", () => null],
+      ["un oggetto vuoto", () => ({})],
+      ["`pronto: false`", () => ({ pronto: false, mancanti: ["post"] })],
+      ["`pronto` non booleano", () => ({ pronto: "sì" })],
+      ["`pronto: true` di stringa", () => ({ pronto: "true" })],
+      ["una stringa", () => "pronto"],
+      ["un numero", () => 1],
+      ["un booleano nudo", () => true],
+    ];
+
+    it.each(rifiutati)("con %s non esporta", async (_nome, prontezza) => {
+      const spia = monta(fatto, subito, prontezza);
+      await act(async () => spia.stato.chiedi("pacchetto"));
+      await assesta();
+
+      // Niente `esegui`, quindi niente html2canvas, niente ZIP, niente download.
+      expect(spia.chiamate).toHaveLength(0);
+      expect(spia.ordine).toEqual(["pronto"]);
+      expect(spia.stato.daConfermare).toMatchObject({ tipo: "pacchetto", esito: "nonPronto" });
+    });
+
+    it.each(rifiutati)("dopo %s lo stato resta libero e riprovabile", async (_nome, prontezza) => {
+      let risposta = prontezza;
+      const spia = monta(fatto, subito, () => risposta());
+      await act(async () => spia.stato.chiedi("pacchetto"));
+      await assesta();
+
+      expect(spia.stato.richiesta).toBeNull();
+      expect(spia.stato.occupato).toBe(false);
+      expect(spia.stato.avanzamento).toBeNull();
+
+      // «Riprova» riparte come la prima volta: gli avvisi non si saltano.
+      risposta = () => ({ pronto: true });
+      await act(async () => spia.stato.chiedi("pacchetto", false));
+      await assesta();
+
+      expect(spia.chiamate).toEqual([{ cosa: "pacchetto", ignoraAvvisi: false }]);
+      expect(spia.stato.daConfermare).toBeNull();
+    });
+
+    it("con `{ pronto: true }` esporta, e basta quello", async () => {
+      const spia = monta(fatto, subito, () => ({ pronto: true }));
+      await act(async () => spia.stato.chiedi("pacchetto"));
+      await assesta();
+
+      expect(spia.chiamate).toEqual([{ cosa: "pacchetto", ignoraAvvisi: false }]);
+      expect(spia.stato.daConfermare).toBeNull();
+      expect(spia.stato.occupato).toBe(false);
+    });
+
+    it("una forma malformata si distingue da un rifiuto motivato", async () => {
+      const spia = monta(fatto, subito, () => undefined);
+      await act(async () => spia.stato.chiedi("pacchetto"));
+      await assesta();
+
+      // Non ha motivi da mostrare: si dice che non ha risposto, e si può riprovare.
+      expect(spia.stato.daConfermare.malformato).toBe("undefined");
+      expect(spia.stato.daConfermare.messaggio).toMatch(/non ha dichiarato l'esito/i);
+    });
+
+    it("un rifiuto motivato conserva i propri motivi", async () => {
+      const spia = monta(fatto, subito, () => ({
+        pronto: false, mancanti: ["story-tappe"], misureInSospeso: 2, frame: 30,
+      }));
+      await act(async () => spia.stato.chiedi("pacchetto"));
+      await assesta();
+
+      expect(spia.stato.daConfermare).toMatchObject({
+        esito: "nonPronto", mancanti: ["story-tappe"], misureInSospeso: 2, frame: 30,
+      });
+      expect(spia.stato.daConfermare.malformato).toBeUndefined();
+    });
+
+    it("un esito non può riscrivere i propri discriminanti", async () => {
+      /*
+       * L'esito arriva da fuori. Se potesse portarsi dietro `esito: "fatto"`,
+       * il pannello mostrerebbe un'esportazione riuscita che non è avvenuta —
+       * e «Riprova» sparirebbe insieme al motivo. I discriminanti si scrivono
+       * dopo i dettagli, e vincono.
+       */
+      const spia = monta(fatto, subito, () => ({
+        pronto: false, tipo: "altro", esito: "fatto", mancanti: ["post"],
+      }));
+      await act(async () => spia.stato.chiedi("pacchetto"));
+      await assesta();
+
+      expect(spia.stato.daConfermare.esito).toBe("nonPronto");
+      expect(spia.stato.daConfermare.tipo).toBe("pacchetto");
+      // I dettagli veri restano: è solo l'identità del risultato a non essere
+      // negoziabile.
+      expect(spia.stato.daConfermare.mancanti).toEqual(["post"]);
+      // E soprattutto: l'export resta fermo.
+      expect(spia.chiamate).toHaveLength(0);
+      expect(spia.stato.richiesta).toBeNull();
+      expect(spia.stato.occupato).toBe(false);
+    });
+
+    it("una prontezza che esplode non diventa un via libera", async () => {
+      const spia = monta(fatto, subito, () => { throw new Error("il controllo è caduto"); });
+      await act(async () => spia.stato.chiedi("pacchetto"));
+      await assesta();
+
+      expect(spia.chiamate).toHaveLength(0);
+      expect(spia.stato.daConfermare).toMatchObject({ esito: "errore", messaggio: "il controllo è caduto" });
+      expect(spia.stato.occupato).toBe(false);
+    });
+  });
+
+  it("senza `attendiPronto` il ciclo resta quello di prima", async () => {
+    const spia = monta(fatto);
+    await act(async () => spia.stato.chiedi("vista"));
+    await assesta();
+    expect(spia.chiamate).toHaveLength(1);
+    expect(spia.stato.richiesta).toBeNull();
+  });
+});
+
+describe("`esegui` letta al momento dell'uso", () => {
+  /*
+   * L'effetto dipende dal solo id — e deve continuare a dipenderne, altrimenti
+   * torna il difetto monta → cattura. Ma allora tratterrebbe la `esegui` del
+   * render in cui l'id è cambiato: quella creata **prima** che le grafiche
+   * esistessero. Si legge da un riferimento, aggiornato a ogni render.
+   */
+  it("chiama l'ultima, non quella del render in cui è nata la richiesta", async () => {
+    const g = cancello();
+    const spia = monta(fatto, subito, prontoQuandoApre(g));
+    await act(async () => spia.stato.chiedi("pacchetto"));
+    await assesta();
+
+    // Mentre si aspetta la prontezza, l'editor ridisegna: è esattamente ciò
+    // che succede quando i template appena montati registrano i loro problemi.
+    await act(async () => spia.cambiaMarca("dopo-il-montaggio"));
+
+    await act(async () => { g.apri(); });
+    await assesta();
+
+    // Trattenendo la chiusura vecchia si leggerebbe «prima-del-montaggio»,
+    // cioè il registro di quando le grafiche non esistevano ancora.
+    expect(spia.marcheViste).toEqual(["dopo-il-montaggio"]);
+    expect(spia.stato.richiesta).toBeNull();
+    expect(spia.stato.occupato).toBe(false);
   });
 });

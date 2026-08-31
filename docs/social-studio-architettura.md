@@ -500,13 +500,26 @@ Da `list_files` sul progetto:
 | Percorso | Leggibile | Contenuto |
 |---|---|---|
 | `Locandina-Via-dei-Giganti.dc.html` | sì | **struttura, token e parametri del Post.** Fonte del sistema |
-| `Stories-Via-dei-Giganti.dc.html` | sì | sei schermate 1080×1920. Letto per capire i token condivisi; **non implementato** |
+| `Stories-Via-dei-Giganti.dc.html` | sì | sei schermate 1080×1920. **Fonte del sistema Story**, implementato nel capitolo 5.3 |
 | `doc-page.js` | sì | runtime di impaginazione (scaffold «omelette»). **Nessun valore di design** |
 | `support.js` | sì | runtime `<x-dc>`. Non letto: la logica dei `{{ }}` è inline nei due `.dc.html` |
-| `logo-512.png` | sì | marchio del progetto. Non scaricato: in `public/` c'è già `logo-sardegna-trail-avventura.png` |
-| `uploads/La via dei giganti.png` | sì | traccia come immagine. Non scaricata: la mappa si disegna dal GPX |
-| `uploads/la-via-dei-giganti-hero-realistico.png` | sì | fotografia dell'evento. Non scaricata: le foto vengono dalla Media Library |
-| `uploads/ChatGPT Image 9 lug 2026…png` | sì | non usata dai due `.dc.html` |
+| `logo-512.png` | parziale | marchio del progetto, 512×512. Non copiato: in `public/` c'è già `logo-sardegna-trail-avventura.png`, anch'esso 512×512 |
+| `uploads/La via dei giganti.png` | parziale | traccia come immagine, 2400×1800. Non copiata: la mappa si disegna dal GPX |
+| `uploads/la-via-dei-giganti-hero-realistico.png` | parziale | fotografia dell'evento, 1122×1402. Non copiata: le foto vengono dalla Media Library |
+| `uploads/ChatGPT Image 9 lug 2026…png` | — | non usata dai due `.dc.html` |
+
+**I tre binari non sono decodificabili per intero.** `get_file` ne ha
+restituiti 196.608 byte ciascuno — **192 KiB**, non 256 — con `truncated: true`.
+Un PNG troncato non si apre: nessuno dei tre è stato renderizzato. Quello che
+sopravvive al troncamento è l'intestazione IHDR nei primi 33 byte, e da lì
+vengono le dimensioni dichiarate qui sopra.
+
+Non è stato un giro a vuoto. La mappa è **2400×1800, cioè 4:3**, e il
+riferimento la dispone con `width: 1240px` lasciando l'altezza automatica: il
+riquadro reale è **1240×930**. Era stato ipotizzato quadrato — leggere
+l'intestazione ha corretto l'ipotesi, ed è il valore che sta in `MAPPA_STORY`.
+
+Nessuno di questi file è stato copiato nel repository o sotto `public/`.
 
 ### 15.4 Palette estratta
 
@@ -636,8 +649,10 @@ ribaltamento orizzontale vive lì.
   persistente e **spento per definizione**; le bozze salvate prima ricevono
   `false` dalla convalida, senza migrazione.
 - **Crop**: la zona fotografica del Post è ora tutta la tela. `zonePerSlot`
-  riporta 1080×1350 per il Post, 1080×940 per la Story, 1080×700 per la slide 01
-  del carosello, che non è stata toccata.
+  riporta 1080×1350 per il Post, 1080×1920 per la Story — anch'essa a pieno
+  campo dal capitolo 5.3 — e 1080×700 per la slide 01 del carosello, che non è
+  stata toccata. Le fasce della Story sono due sole: 1080×620 per la schermata
+  02 e 1080×560 per la 05, ciascuna con il proprio slot (§15.17).
 
 ### 15.11 Elementi non presenti, quindi esclusi
 
@@ -659,15 +674,319 @@ riempirebbe la locandina di una geografia che nessuno ha scritto. Il blocco non
 dipende dalla presenza del claim. Il kicker non entra fra i dati fattuali
 inviati al provider di caption.
 
-### 15.13 Story: sei schermate, non due
+### 15.13 Story: sei schermate
 
-`Stories-Via-dei-Giganti.dc.html` contiene una Story canonica da **sei
-schermate** 1080×1920: `01 Cover`, `02 Numeri`, `03 Mappa` (su fondo chiaro
-`#E9E2D6`), `04 Tappe`, `05 Incluso`, `06 Prenota`. Questa risorsa prevale
-sull'ipotesi manuale a due schermate discussa in conversazione. Il capitolo
-Story partirà da qui. Non implementata.
+Fonte: `Stories-Via-dei-Giganti.dc.html`, letto integralmente. Sei schermate
+1080×1920, in sequenza fissa. Prevale sull'ipotesi manuale a due schermate
+discussa in conversazione.
 
-### 15.14 Conflitto fra riferimento e master funzionale
+#### Ruoli delle risorse del progetto
+
+| Risorsa | Ruolo | Nell'app |
+|---|---|---|
+| `Stories-Via-dei-Giganti.dc.html` | **vincolante**: struttura, geometria, colori, tipografia, sequenza | tradotto in parametri |
+| `doc-page.js` | impianto di impaginazione. Pagina fissa 1080×1920 con `overflow: hidden` | **non copiato**, nessuna dipendenza |
+| `support.js` | runtime `<x-dc>`, interpolazione `{{ }}`. Unici colori: cornice del runtime | **non copiato**, nessuna dipendenza |
+| `logo-512.png` | riferimento del marchio | si usa il logo STA già in `public/` |
+| `la-via-dei-giganti-hero-realistico.png` | riferimento di crop e trattamento | fotografia dalla Media Library |
+| `La via dei giganti.png` | riferimento visuale del tracciato | mappa disegnata dal GPX locale |
+
+Nessun `.dc.html`, runtime, immagine, URL o identificativo del progetto entra
+nel repository, in `public/` o nel bundle.
+
+#### Fondi, che non sono uno solo
+
+Quattro fondi diversi, e vanno distinti perché il fondo è la firma della
+schermata:
+
+| Schermata | Fondo | Padding |
+|---|---|---|
+| 01 Cover | `#14120F` | `190 / 80 / 200` |
+| 02 Numeri | `#14120F` | `0` (fascia foto + corpo) |
+| 03 Mappa | **`#E9E2D6`, chiaro** | `190 / 80 / 200` |
+| 04 Tappe | **`#17140F`** | `220 / 80` |
+| 05 Incluso | `#14120F` | `0` (fascia foto + corpo) |
+| 06 Prenota | `#14120F` | `190 / 80 / 200` |
+
+La 03 è su carta: inchiostri `#1F1B16`, `#4A4034`, `#7A6A55`, filetti
+`rgba(31,27,22,.28)`.
+
+#### Veli, uno per schermata
+
+Ogni schermata ha il proprio gradiente. Non sono varianti dello stesso: la 01
+si apre scura, si schiarisce al 22–40% per lasciare respirare la fotografia, e
+richiude in fondo.
+
+| Schermata | Tappe del velo |
+|---|---|
+| 01 | `.72` 0% · `.12` 22% · `.1` 40% · `.74` 62% · `.97` 82% · pieno 100% |
+| 02 (fascia) | `.5` 0% · `0` 34% · `.9` 88% · pieno 100% |
+| 03 (chiaro) | `.92` 0% · `.2` 20% · `0` 46% · `.86` 76% · pieno 92% |
+| 05 (fascia) | `.55` 0% · `.05` 30% · `.85` 86% · pieno 100% |
+| 06 | `.68` 0% · `.18` 24% · `.82` 54% · `.99` 76% · pieno 100% |
+
+#### Fotografia
+
+| Schermata | Inquadratura | Ribaltata | Filtro |
+|---|---|---|---|
+| 01 | `50% 58%` piena tela | sì | dal mood |
+| 02 | `50% 78%`, fascia 620 | sì | `saturate(.9) contrast(1.06)` |
+| 05 | `50% 30%`, fascia 560 | **no** | `saturate(.88) contrast(1.05)` |
+| 06 | `50% 46%` piena tela | sì | dal mood |
+
+Il ribaltamento resta un dato del ritaglio, spento per definizione: nel
+riferimento è una scelta su quella fotografia.
+
+#### Mood della Story — diversi da quelli del Post
+
+| Mood | Filtro Story | Filtro Post (Locandina) |
+|---|---|---|
+| **Naturale** | `saturate(.92) contrast(1.08)` | *non esiste* |
+| **Notte** | *non esiste* | `grayscale(.28) contrast(1.06) saturate(.9)` |
+| Polvere | `sepia(.3) saturate(1.12) contrast(1.08)` | `sepia(.4) saturate(1.1) contrast(1.08)` |
+| Inchiostro | `grayscale(1) contrast(1.14)` | `grayscale(1) contrast(1.14)` |
+
+**Tutti e tre differiscono.** Solo `Inchiostro` coincide. I due insiemi restano
+separati e dichiarati: unirli richiederebbe una decisione, non un'inferenza.
+Nel file la prop dichiara `default: "Inchiostro"` mentre il codice ricade su
+`Naturale`: contraddizione del riferimento, risolta scegliendo `Naturale` come
+predefinito e dichiarandolo qui.
+
+#### Tipografia
+
+Bebas ai titoli, Oswald a kicker/etichette/valori, Montserrat al corpo — la
+stessa divisione della locandina, a corpi più grandi perché la tela è 1920.
+
+| Ruolo | Famiglia | Corpo | Tracking | Interlinea |
+|---|---|---|---|---|
+| Titolo cover | Bebas | 168 | `.015em` | `.84` |
+| Titolo schermata | Bebas | 104 / 100 | — | `.88` |
+| Valore dato | Bebas | 80 (64 se va a capo) | — | `.95` / `1` |
+| Prezzo | Bebas | 150 | — | `.9` |
+| Numero tappa | Bebas | 62 | — | `1` |
+| Valore mappa | Bebas | 58 | — | `1` |
+| Kicker | Oswald | 24 | `.28em` | — |
+| Etichetta sezione | Oswald | 20 | `.28em` | — |
+| Etichetta dato | Oswald | 18 / 17 | `.24em` | — |
+| Badge | Oswald | 26 | `.2em` | — |
+| Data | Oswald | 30 | `.06em` | — |
+| Titolo tappa | Oswald | 38 | `.06em` | — |
+| Itinerario (03) | Oswald | 34 | `.07em` | `1.35` |
+| Etichetta dei posti | Oswald 600 | 40 | `.1em` | — |
+| Claim cover | Montserrat 300 | 36 | — | `1.4` |
+| Corpo | Montserrat 300 | 32 / 30 / 29 / 27 | — | `1.45` / `1.5` / `1.4` |
+| Voce inclusi | Montserrat | 32 | — | — |
+| Piede | Montserrat | 26 | — | — |
+
+Marchio: logo 118 (108 sulla 06), nome Bebas 34 `.06em` `lh 1.05`, payoff
+Oswald 15 `.26em` colore `#574F40`. Kicker: barra `64×8` in accento.
+
+#### Griglia dei numeri (02)
+
+Due colonne, `gap: 1px` su fondo `rgba(228,218,203,.2)`: **il filetto è lo
+spazio fra le celle**, non un bordo. Celle `#14120F`, padding `44 / 38`.
+
+#### Animazioni: solo a schermo
+
+Il riferimento anima ken burns e ingresso dei testi. `doc-page.js` le azzera in
+stampa (`animation-duration: .001s`, `fill-mode: both`), quindi lo stato
+statico è **quello finale** — per il ken burns, `scale(1.12)`.
+
+Le Story esportate sono immagini ferme: le animazioni non si traducono. Lo zoom
+finale del ken burns **non** viene incorporato, perché competerebbe con lo zoom
+del ritaglio che l'utente controlla. Decisione dichiarata, non inferita.
+
+### 15.14 Mapping: progetto Claude Design → campi di Social Studio
+
+Nessun testo e nessun numero dell'evento è scritto nel codice. Ogni elemento
+del riferimento corrisponde a un campo generico.
+
+| Elemento del riferimento | Nel riferimento | Campo |
+|---|---|---|
+| Kicker | «NORD SARDEGNA · GALLURA» | `editoriale.kicker` |
+| Titolo | «La via dei giganti» | `editoriale.titoloBreve` → `fattuali.nome` |
+| Claim | «Quattro giorni di sterrato…» | `editoriale.claim` |
+| Badge disciplina | «MAXIENDURO» | `fattuali.categoria` → `fattuali.mezzo` |
+| Data | «29 ott — 1 nov» | `periodoBreve(fattuali)` |
+| Titolo 02 | «Un anello di 550 km» | `editoriale.fraseNumeri` |
+| Durata | «4 giorni» | `fattuali.durata` |
+| Sterrato | «85%» | `fattuali.sterrato` |
+| Partenza | «Olbia» | `fattuali.partenza` |
+| Livello | «Medio avanzato» | `fattuali.livello` |
+| Chiusura 02 | «Dalle spiagge…» | `editoriale.descrizione` |
+| Titolo 03 | «L'anello dei giganti» | `editoriale.titoloBreve` |
+| Itinerario | «Olbia · Tempio · …» | `fattuali.tappe` → `fattuali.puntiInteresse` |
+| KM | «550» | `fattuali.km` |
+| Tappe (conteggio) | «4» | `fattuali.tappe.length` |
+| Punti di interesse | «Punta Contratta, …» | `fattuali.puntiInteresse` |
+| Elenco tappe | quattro righe | `fattuali.tappe[]` |
+| Inclusi | quattro voci | `fattuali.inclusi[]` |
+| «Cosa serve a te» | requisiti | `fattuali.requisiti[]` |
+| Prezzo | «580 €» | `fattuali.prezzo` |
+| Nota prezzo | «Mezza pensione…» | `editoriale.fraseNumeri` → primi inclusi |
+| Etichetta dei posti | «Posti limitati» | `editoriale.statoPosti`, quattro stati (§15.15) |
+| CTA | «Scrivici in DM…» | `editoriale.cta` |
+| Contatti | telefono e handle | `editoriale.whatsapp` |
+| Sito | dominio | `fattuali.url` |
+| Fotografie | hero del progetto | Media Library, per schermata |
+| Mappa | PNG del progetto | disegnata dal GPX locale |
+| Marchio | `logo-512.png` | logo STA in `public/` |
+
+Dove un campo manca, il blocco **non si disegna**: non si inventa e non si
+compone da altri dati. Il pre-flight segnala ciò che è assente.
+
+### 15.15 Adattamenti deliberati al riferimento
+
+Il progetto Claude Design è vincolante, ma è stato composto su **una**
+fotografia. La Media Library non garantisce niente di quella fotografia, e in
+tre punti la trascrizione fedele produceva un risultato peggiore del
+riferimento invece che uguale. Sono deviazioni dichiarate, non sviste.
+
+| Elemento | Riferimento | In Social Studio | Perché |
+|---|---|---|---|
+| Payoff del marchio, Cover | `#574F40` | `#B4A691` (`INCHIOSTRO.secondario`) | Sulla foto del progetto quell'area è scura e il grigio-bruno si legge. Su una cover luminosa scompare: il payoff resta nel DOM e non nell'immagine. Nessun token nuovo — è un colore della palette canonica |
+| Inquadratura della foto in prestito | una foto per schermata | il punto focale della schermata, non quello della cover | Quando una schermata ripiega sulla cover, il punto focale scelto sulla tela intera inquadra un pezzo di cielo dentro una fascia alta 620 px |
+| Etichetta dei posti | «Posti limitati» | quattro stati, con tre risalti | Il riferimento mostra un solo caso. Lo schema ne dichiara quattro, e un evento esaurito non deve sembrare prenotabile |
+
+`PAYOFF_RIFERIMENTO` resta esportato accanto al valore che lo sostituisce: il
+dato del progetto non si perde, si dichiara come non usato.
+
+### 15.16 Capienza delle schermate
+
+Le schermate 04 e 05 sono costruite su **cinque righe**. La sesta non si
+stringe: esce dalla tela. Il template tagliava a cinque con `slice(0, 5)` e non
+lo diceva a nessuno — il PNG usciva pulito, con tre tappe in meno, e il difetto
+si scopriva pubblicando.
+
+| Voce | Capienza | Dove è dichiarata |
+|---|---|---|
+| Tappe, schermata 04 | 5 elementi | `CAPIENZA.tappe` |
+| Voci di «incluso», schermata 05 | 5 elementi | `CAPIENZA.inclusi` |
+| Requisiti, schermata 05 | 5 righe (~305 caratteri) | `CAPIENZA.righeRequisiti` |
+| Descrizione di una tappa | 2 righe (~116 caratteri) | `CAPIENZA.righeDescrizioneTappa` |
+
+I limiti in caratteri non sono misure: `capienzaCaratteri()` li ricava dal corpo
+del carattere e dalla larghezza utile con un fattore medio di glifo, e servono a
+**avvisare prima** che il template venga montato. La misura vera la fa
+`TestoAdattivo` sul nodo reale, e le sue segnalazioni restano l'ultima parola.
+
+Il controllo `capienzaStory` del pre-flight produce **avvisi**, non errori. È
+una scelta: un errore renderebbe la Story inesportabile per qualunque evento
+con sei tappe, che è un caso normale e non un guasto. Un avviso non si supera
+per sbaglio — ferma l'esportazione finché non si preme «Esporta comunque» — e
+quindi l'omissione resta una decisione presa, mai un effetto collaterale.
+
+A differenza del carosello, che usa il primitivo `ControlloCapienza` durante il
+disegno, la Story controlla **i dati**: così il pre-flight dice la verità anche
+sul pacchetto, dove conta ciò che i sei nodi conterranno e non ciò che è già
+montato.
+
+### 15.17 Slot fotografici
+
+Una sola tabella, in `media/slot.js`, e nessun ripiego per esclusione.
+
+| Slot | Dove vive | Schermata |
+|---|---|---|
+| `cover` | `media.cover` | Post, Story 01, carosello 01 |
+| `esperienza-0…3` | `media.esperienza[N]` | carosello 05 |
+| `cta` | `media.sfondi.cta` | carosello 08 |
+| `storyNumeri` | `media.sfondi.storyNumeri` | Story 02 |
+| `storyIncluso` | `media.sfondi.storyIncluso` | Story 05 |
+| `storyPrenota` | `media.sfondi.storyPrenota` | Story 06 |
+
+Prima questa logica esisteva in tre copie dentro l'editor — `ritaglioAttivo`,
+`riferimentoSlot`, `conRitaglio` — e tutte e tre finivano con lo stesso
+ripiego: qualunque slot non fosse `cover` o `cta` veniva trattato come
+`esperienza-N`. Per i tre slot della Story quel ripiego calcolava
+`Number("storyNumeri".split("-")[1])`, cioè `NaN`. L'assegnazione scriveva in
+`esperienza[NaN]`, la lettura tornava `undefined`, l'indicatore restava spento e
+il crop non si applicava. Nessun errore, nessun messaggio: la fotografia
+semplicemente non arrivava.
+
+Il **ripiego sulla cover** vale solo dove manca una fotografia dedicata, e
+riguarda il disegno, non l'indicatore: chi compone deve vedere quali slot ha
+davvero riempito.
+
+### 15.18 Guida del Link Sticker
+
+`ZONA_STICKER` (200 px) è la banda che Instagram copre col campo «rispondi» e
+con lo sticker del link. Ogni schermata la lascia libera col padding basso, ma
+finché non si vedeva bisognava fidarsi.
+
+La schermata 06 mostra una guida tratteggiata con la scritta «Spazio per il
+Link Sticker», marcata `data-solo-anteprima="true"`. È lo stesso segno che
+`cattura` spegne prima di fotografare: si vede componendo, e non esiste nel PNG.
+
+### 15.19 Il pre-flight del pacchetto vede ciò che nasce montando
+
+Un difetto discendeva dalla correzione precedente, ed è il tipo di difetto che
+non lascia tracce: **produce un file, e il file sembra a posto.**
+
+La sequenza è questa. Si preme «Esporta pacchetto evento»; nasce la richiesta;
+nel render successivo le quindici grafiche vengono montate fuori schermo; e
+sono proprio quelle a generare le loro segnalazioni, perché `TestoAdattivo`
+misura sul nodo reale. L'effetto di `useLavoroExport` dipende dal **solo id** —
+e deve continuare a dipenderne, altrimenti torna il difetto monta → cattura del
+5.2.1 — quindi tratteneva la `esegui` del render in cui l'id era cambiato, cioè
+di *prima* che quelle grafiche esistessero. Dentro quella chiusura l'array
+`problemi` era ancora quello vecchio.
+
+Risultato: uno sforo presente soltanto in una Story o in una slide nascosta non
+raggiungeva il pre-flight. Il pacchetto veniva catturato, lo ZIP scaricato, e
+dentro c'era una grafica con un testo che non entra.
+
+**Tre pezzi, e servono tutti e tre.**
+
+| Pezzo | Dove | Cosa garantisce |
+|---|---|---|
+| `lettore` del registro | `FornitoreProblemi` | lettura **sincrona** dei problemi, senza passare dal raggruppamento da 80 ms né da uno stato di React |
+| `misure` in sospeso | `FornitoreProblemi` ← `TestoAdattivo` | distingue «tutto misurato e niente sfora» da «nessuno ha ancora misurato» |
+| `attendiPronto` | `useLavoroExport` ← editor | non si decide finché le tre condizioni non valgono, e **dichiara** se non ci riesce |
+| `eseguiRif` | `useLavoroExport` | si chiama sempre l'ultima `esegui`, restando dipendenti dal solo id |
+
+Il registro aveva già due letture possibili, e la scelta fra le due era il
+punto: `onProblemi` raggruppa 80 ms ed è giusto per ridisegnare un pannello;
+sbagliato per decidere se esportare, perché la decisione si prende mezzo frame
+dopo il montaggio. `lettore` è la stessa mappa letta adesso.
+
+#### Le tre condizioni della prontezza
+
+`attendiPronto` **non è un tempo**. Guarda una volta per frame, e prosegue solo
+quando valgono tutte e tre:
+
+1. **i nodi esistono** — ogni grafica richiesta è nel DOM;
+2. **nessuna misura è in sospeso** — ogni `TestoAdattivo` montato ha misurato
+   davvero, coi caratteri veri;
+3. **il registro non cambia più** — due letture consecutive coincidono.
+
+La seconda condizione è quella che mancava, ed è quella che le altre due non
+sanno dare. Un registro vuoto è ambiguo: «tutto misurato e niente sfora» e
+«nessuno ha ancora misurato» si assomigliano fino a essere indistinguibili, e
+sono opposti. Due letture vuote consecutive capitano benissimo mentre i font
+stanno ancora arrivando — e `TestoAdattivo` non misura finché non sono
+arrivati, perché misurare col carattere di sistema dà metriche sbagliate. Ogni
+`TestoAdattivo` si dichiara quindi in sospeso dal montaggio e si toglie dentro
+lo stesso effetto di layout in cui misura, **dopo** aver segnalato: chiudere
+prima lascerebbe una finestra in cui il registro sembra assestato e non lo è.
+
+#### La scadenza è un fallimento, non un via libera
+
+Il giro è limitato a `FRAME_DI_ATTESA` (30). Alla scadenza `attendiPronto`
+restituisce `{ pronto: false }` con il motivo — nodi mancanti, misure in
+sospeso, registro ancora in movimento — e `useLavoroExport` si ferma lì:
+nessuna `esegui`, nessun `html2canvas`, nessuno ZIP, nessun download. Il
+pannello lo dice e offre «Riprova».
+
+Prima usciva in silenzio, e una risoluzione silenziosa veniva letta come un via
+libera: si producevano quindici PNG senza poter dimostrare che il pre-flight
+avesse davanti lo stato completo. **Se non possiamo dimostrarlo, il file non si
+fa** — un PNG di cui non sappiamo il contenuto è peggio di un PNG mancante.
+
+Il pre-flight gira comunque **prima** della cattura, in `esporta` e in
+`esportaPacchetto`: quando un problema nuovo blocca o richiede conferma, non
+viene eseguito `html2canvas` e non viene scaricato niente.
+
+### 15.20 Conflitto fra riferimento e master funzionale
 
 Il Post canonico **non contiene prezzo né CTA**: al loro posto, in fondo, ci
 sono contatti e sito. Il master funzionale di Social Studio li richiede. Non

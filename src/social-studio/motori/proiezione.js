@@ -121,10 +121,84 @@ export function riquadroMinimo(r, gradiMinimi = 0.05) {
   return { minLon: cx - w, maxLon: cx + w, minLat: cy - h, maxLat: cy + h };
 }
 
-/** Costruisce l'attributo `d` di un path SVG da punti già proiettati. */
+/**
+ * Semplifica una polilinea **già proiettata**, con tolleranza in pixel.
+ *
+ * Douglas–Peucker sui punti dello schermo, non su latitudine e longitudine. La
+ * differenza non è di comodità: è l'unica forma in cui la garanzia si possa
+ * enunciare e verificare. «Errore massimo mezzo pixel sul canvas» è una frase
+ * che ha senso solo in pixel — in gradi dipenderebbe dalla latitudine, dalla
+ * non linearità di Mercatore in y, dalla scala, dallo zoom, dalla rotazione e
+ * dalla misura della tela, e cambierebbe a ogni formato.
+ *
+ * Il difetto che questo sostituisce era proprio lì. Convertire mezzo pixel in
+ * una distanza geografica divideva per 360 una seconda volta: `mercatore`
+ * normalizza già la longitudine con `(lon + 180) / 360`, quindi `scala` è in
+ * pixel per unità di mondo e `0.5 / scala` **è già** mezzo pixel. La tolleranza
+ * risultava 360 volte più piccola del dovuto e non toglieva quasi nulla: non
+ * era una semplificazione, era un arrotondamento, e la cattura si trovava a
+ * ridisegnare una polilinea con tutti i vertici della traccia per ogni grafica
+ * con la mappa.
+ *
+ * Iterativo, non ricorsivo: una traccia GPX può avere decine di migliaia di
+ * punti e la versione ricorsiva manderebbe in overflow lo stack.
+ *
+ * @param {[number, number][]} punti  punti proiettati, in pixel
+ * @param {number} tolleranza         errore massimo ammesso, in pixel
+ * @returns {[number, number][]}  sottoinsieme dei punti dati, nell'ordine
+ */
+export function semplificaProiettato(punti, tolleranza) {
+  if (punti.length < 3 || !(tolleranza > 0)) return punti;
+
+  const distanza = (p, a, b) => {
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const len2 = dx * dx + dy * dy;
+    if (len2 === 0) return Math.hypot(p[0] - a[0], p[1] - a[1]);
+    const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len2));
+    return Math.hypot(p[0] - (a[0] + t * dx), p[1] - (a[1] + t * dy));
+  };
+
+  // Primo e ultimo punto non si toccano mai: un anello chiuso resta chiuso.
+  const tieni = new Uint8Array(punti.length);
+  tieni[0] = 1;
+  tieni[punti.length - 1] = 1;
+  const pila = [[0, punti.length - 1]];
+  while (pila.length) {
+    const [inizio, fine] = pila.pop();
+    let max = 0;
+    let indice = -1;
+    for (let i = inizio + 1; i < fine; i += 1) {
+      const d = distanza(punti[i], punti[inizio], punti[fine]);
+      if (d > max) {
+        max = d;
+        indice = i;
+      }
+    }
+    if (indice !== -1 && max > tolleranza) {
+      tieni[indice] = 1;
+      pila.push([inizio, indice], [indice, fine]);
+    }
+  }
+  return punti.filter((_, i) => tieni[i]);
+}
+
+/**
+ * Costruisce l'attributo `d` di un path SVG da punti già proiettati.
+ *
+ * Le coordinate si scrivono per intero. Sembra formattazione e invece è parte
+ * della garanzia: quantizzarle a un decimale spostava ogni vertice fino a
+ * 0,05 px per asse, e quello spostamento si sommava all'errore della
+ * semplificazione senza essere compreso nella tolleranza. Il limite valeva sui
+ * punti calcolati ma non sul path realmente disegnato, che lo superava.
+ *
+ * `String(numero)` produce la rappresentazione decimale più corta che, riletta,
+ * restituisce lo stesso valore: fedeltà esatta e nessuna cifra di troppo. Così
+ * il limite di {@link semplificaProiettato} è anche il limite del disegno, senza
+ * margini nascosti. Il costo è qualche carattere in più nell'attributo `d`, su
+ * una polilinea che la semplificazione ha già ridotto di oltre il 90%.
+ */
 export function tracciaPath(puntiProiettati) {
   if (!puntiProiettati.length) return "";
-  return puntiProiettati
-    .map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`)
-    .join(" ");
+  return puntiProiettati.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x} ${y}`).join(" ");
 }

@@ -178,6 +178,14 @@ export const visual = z.object({
    * I tre nomi vengono dal progetto Claude Design. Non toccano l'accento.
    */
   mood: z.enum(["Notte", "Polvere", "Inchiostro"]).default("Notte"),
+  /**
+   * Mood della Story: i suoi tre non sono quelli del Post.
+   *
+   * Il progetto Claude Design dichiara insiemi diversi per locandina e Story —
+   * «Naturale» al posto di «Notte», e «Polvere» con valori propri. Restano due
+   * campi perché sono due decisioni.
+   */
+  moodStory: z.enum(["Naturale", "Polvere", "Inchiostro"]).default("Naturale"),
   tono: z.enum(["dark", "light", "mixed"]).default("dark"),
   tipo: z.enum(["photo", "graphic", "mixed"]).default("mixed"),
   soggetto: z.array(z.enum(["person", "bike", "landscape", "group", "technical", "food"])).default([]),

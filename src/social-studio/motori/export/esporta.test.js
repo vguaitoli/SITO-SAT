@@ -15,7 +15,7 @@ describe("vietaAssetSensibili", () => {
   it("lascia passare i PNG e la caption", () => {
     const file = [
       { nome: "01-cover.png", dati: vuoto },
-      { nome: "story-1080x1920.png", dati: vuoto },
+      { nome: "story/03-mappa.png", dati: vuoto },
       { nome: "caption.txt", dati: vuoto },
     ];
     expect(vietaAssetSensibili(file)).toHaveLength(3);
