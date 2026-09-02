@@ -1,4 +1,5 @@
 import { CATEGORIE, formatoValido, varianteValida } from "../design/categorie";
+import { templateDisponibile } from "../design/registro-template";
 import { FORMATI } from "../design/formati";
 import { FAMIGLIE_RICHIESTE } from "../design/tokens";
 import { CAPIENZA, capienzaCaratteri, LARGHEZZA_UTILE, TIPO_STORY } from "../design/eventi-story";
@@ -65,6 +66,29 @@ function coerenzaTemplate({ contenuto }) {
   }
   if (rubrica.provvisoria) {
     esiti.push(voce("avviso", "provvisoria", `La grafica di ${rubrica.nome} è provvisoria: in attesa del sorgente di riferimento.`));
+  }
+
+  /*
+   * Approvata non vuol dire costruita.
+   *
+   * `categorie.js` dichiara ventidue varianti su otto rubriche: è il piano
+   * editoriale, e i tre controlli qui sopra verificano che la combinazione sia
+   * fra quelle previste. Di template scritti però ce ne sono tre, e senza
+   * questo controllo l'esportazione partirebbe per una combinazione senza
+   * renderer — producendo un PNG vuoto, o peggio una grafica ripiegata su
+   * un'altra rubrica, che sembra giusta.
+   *
+   * Si aggiunge **solo** se rubrica, formato e variante erano già validi:
+   * altrimenti la stessa mancanza verrebbe detta due volte, una come «variante
+   * non approvata» e una come «template non implementato», e il pannello
+   * conterebbe due errori dove il problema è uno.
+   */
+  if (!esiti.some((e) => e.livello === "errore") && !templateDisponibile(contenuto.categoria, contenuto.formato, contenuto.variante)) {
+    esiti.push(voce(
+      "errore",
+      "template-non-implementato",
+      `Nessun template implementato per ${rubrica.nome} · ${contenuto.formato} · ${contenuto.variante}: la variante è prevista, ma la grafica non è ancora stata costruita.`,
+    ));
   }
   return esiti;
 }

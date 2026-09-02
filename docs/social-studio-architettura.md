@@ -1090,3 +1090,167 @@ stata alterata: il conflitto è aperto e si risolverà nelle varianti di
 conversione (Iscrizioni aperte, Ultimi posti, Sold Out, Lista d'attesa,
 Reminder, Partenza imminente). Il pre-flight continua a esigere il prezzo come
 dato dell'evento, indipendentemente dal fatto che il Post standard lo mostri.
+
+---
+
+## 16. Fase 6 — audit multi-rubrica e registro fail-closed
+
+### 16.1 Che cosa era già multi-rubrica, e che cosa non lo era
+
+L'audit del capitolo 6.1 ha letto il sorgente invece di dedurlo. Il risultato è
+meno drammatico del previsto: buona parte dell'impianto è già generico.
+
+| Già pronto | Perché |
+|---|---|
+| `template/Telaio.jsx` | legge `CATEGORIE[categoria]`, ricava accento, velo, fondo chiaro e densità grafica da `pesoFoto`, e **lancia** su rubrica sconosciuta |
+| `motori/export/*` | zero riferimenti a `"eventi"`: ricevono elementi e caption, non conoscono il format |
+| `template/primitivi.jsx`, `Foto`, `Mappa`, `Altimetria` | prendono dati, non categoria |
+| `fondamenta/archivio-locale.js` | `elenca(filtro)` è già generico; è l'editor a passare `{categoria:"eventi"}` |
+| `fondamenta/migrazioni.js` | catena e test presenti, `MIGRAZIONI` vuoto: la strada per una v2 esiste |
+| `design/tokens.js`, `formati.js`, `categorie.js` | tutte e otto le rubriche già dichiarate |
+
+| Ancora legato a EVENTI | Dove |
+|---|---|
+| `app/EditorEvento.jsx` | 1 412 righe; importa `SCHERMATE`, `SLIDE_CAROSELLO`, `PACCHETTO`, `daEvento` |
+| `app/pacchetto.js` | `PACCHETTO` è una costante di modulo: Post + 6 Story + 8 slide |
+| `media/slot.js` | i nove slot sono nomi di schermate EVENTI |
+| `fondamenta/adapter-sito.js` | espone solo `daEvento` |
+| `fondamenta/schema.js` | `fattuali` mescola comune, commerciale e specifico EVENTI |
+| `design/formati.js` | `carosello.slide = 8` è un numero unico globale |
+| `template/rubriche/` | esiste solo `eventi/` |
+
+### 16.2 Perché lo schema **non** è stato migrato in 6.2
+
+L'audit aveva proposto di spostare i campi EVENTI sotto `specifico.eventi` con
+una migrazione v1 → v2 «additiva». Non lo è: `contenuto.fattuali` è letto
+direttamente da editor, template, pre-flight, caption engine, archivio e test.
+Spostare la chiave rompe i consumer anche se nessun dato va perso — e
+`z.record(z.unknown())` non è una convalida per rubrica, è l'assenza di
+convalida.
+
+Quindi: `VERSIONE_SCHEMA` resta **1**, `MIGRAZIONI` resta vuoto, `fattuali`
+resta dov'è. Lo schema si estenderà quando il primo modulo nuovo porterà campi
+concreti non rappresentabili, e allora la migrazione avrà un caso d'uso vero da
+soddisfare invece di un'astrazione da inseguire. EVENTI conserva integralmente
+la forma attuale.
+
+### 16.3 Varianti previste contro template implementati
+
+`design/categorie.js` dichiara **ventidue varianti** su otto rubriche. Sono
+approvate: è il piano editoriale del profilo. I template costruiti sono **tre**.
+
+Confondere le due cose ha una conseguenza precisa: il pre-flight autorizza
+l'esportazione di una combinazione senza renderer, e il difetto si scopre
+davanti a un PNG vuoto — o peggio, davanti a una grafica ripiegata su un'altra
+rubrica, che sembra giusta.
+
+`design/registro-template.js` tiene le due liste separate. È un modulo **puro**,
+senza React, e dichiara le sole combinazioni con un renderer reale:
+
+```
+eventi / post      / standard
+eventi / story     / standard
+eventi / carosello / standard
+```
+
+`locandina` e `minimale` **non** ci sono: sono approvate per EVENTI, ma oggi non
+esiste un dispatch verso renderer distinti. Il registro si convalida da sé
+all'import — una voce che nomina rubrica, formato o variante non approvati in
+`categorie.js` impedisce il caricamento del modulo.
+
+**Niente ripieghi.** `templateDisponibile` risponde `false`; `richiediTemplate`
+lancia nominando la combinazione chiesta e quelle esistenti;
+`formatiImplementati` e `variantiImplementate` restituiscono elenchi vuoti. Una
+combinazione mancante non diventa `standard` e non diventa EVENTI.
+
+`COMBINAZIONI_IMPLEMENTATE` è **lo stesso** array che il registro usa, non una
+copia: congelato, con ogni descrittore congelato. Una copia si sarebbe potuta
+modificare senza toccare il registro, e l'elenco pubblico avrebbe potuto
+raccontare qualcosa di diverso dal comportamento reale — il difetto peggiore di
+un registro. Congelando l'originale non c'è nulla da tenere in sincronia. La
+convalida vive in `costruisciIndice`, esportata perché è il mestiere del modulo
+e non un gancio per i test: rifiuta rubriche, formati e varianti non approvati,
+**e** le combinazioni dichiarate due volte, che altrimenti il `Set`
+assorbirebbe in silenzio facendo dire all'elenco un numero sbagliato.
+
+### 16.3.1 I due registri, e perché servono entrambi
+
+`app/registro-editor.js` sta in un file separato per una ragione tecnica:
+quello dei template è puro e lo legge il pre-flight, questo importa componenti.
+Uniti, `preflight.js` si tirerebbe dietro `EditorEvento`, che importa il
+pre-flight, e il ciclo si chiuderebbe. La catena reale è aciclica:
+`registro-editor → EditorEvento → preflight → registro-template → categorie`.
+
+Una rubrica è **disponibile** solo quando possiede tutti e due i lati: un
+editor registrato **e** almeno un template implementato. I due registri possono
+divergere, e nessuno dei due stati intermedi è utile a chi lavora:
+
+- **editor senza template** — si apre una schermata, si scrive una bozza, e
+  l'esportazione viene fermata dal pre-flight con `template-non-implementato`:
+  dopo che il lavoro è stato fatto;
+- **template senza editor** — la grafica esiste e non c'è modo di riempirla.
+
+Dichiarare «disponibile» in uno di quei due stati promette un flusso che si
+interrompe a metà. `editorDisponibile` verifica entrambi i registri,
+`editorPerRubrica` restituisce `null` se manca un lato, e `statoRubrica`
+distingue tre casi — `disponibile`, `pianificata`, `sconosciuta` — perché
+«prevista e non ancora completa» e «id inesistente» sono due cose diverse per
+chi legge.
+
+Il pre-flight, in `coerenzaTemplate`, aggiunge l'errore
+`template-non-implementato` **solo** se rubrica, formato e variante erano già
+validi: altrimenti la stessa mancanza verrebbe detta due volte.
+
+### 16.4 Prima di abilitare un secondo editor
+
+`EditorEvento` tiene stato non salvato al proprio interno. Passare da una
+rubrica all'altra lo smonterebbe, e il lavoro in corso andrebbe perso senza un
+avviso. La navigazione fra editor **non è abilitata** in 6.2: prima serve una
+protezione esplicita per le modifiche non salvate, o un keep-alive verificato.
+Per questo lo Studio mostra le sette rubriche come «Da implementare» e non
+apribili, invece di offrire un selettore che funziona a metà.
+
+### 16.5 Autorità visive
+
+- **EVENTI** conserva esclusivamente la grafica derivata dal progetto Claude
+  Design integrato. Non si trasferisce alle altre rubriche: né il layout, né
+  l'accento `#E08A3C`, né i mood, né la struttura delle otto slide, né i badge
+  e le CTA specifici.
+- **TOUR** userà come riferimento il sistema visivo del sito, in particolare
+  «Scegli la tua avventura» (`src/components/Categorie.jsx`).
+- Le altre rubriche useranno il design system STA, i pesi foto/grafica di
+  `categorie.js` e le indicazioni del prompt master. Dove manca una decisione
+  visiva significativa, va sottoposta e non inventata.
+
+### 16.6 Fonti dei dati, per rubrica
+
+| Rubrica | Fonte | Nota |
+|---|---|---|
+| **TOUR** | `content/tours/index.json` — 9 itinerari reali | `normalizeTours` già rinomina in `durata, km, livello, sterrato, periodo, prezzo, descrizione, tappe`. `src/data/categorie.js` resta fonte **editoriale/visiva** e non va fusa con gli itinerari: contiene anche voci che non sono tour |
+| **GUIDE** | `content/homepage/index.json → guides.items` | due persone, con `name, role, description, image`. Citazione, specializzazione, mezzo o territorio, se serviranno, saranno **campi manuali espliciti**: mai dedotti |
+| **INFO** | `homepage.faq` (7 Q&A), `homepage.included`, `homepage.journey`, `content/settings` | il sito resta la fonte delle risposte già pubblicate. Carosello **da 3 a 6 slide**: incompatibile con l'attuale `FORMATI.carosello.slide = 8`, da risolvere quando INFO verrà costruita |
+| **TRAIL, SARDEGNA, GARAGE, CREW** | nessuna fonte fattuale | inserimento **manuale**. Nessun adapter fittizio, nessun dato dedotto dalle fotografie. TRAIL potrà riusare GPX, mappa e altimetria, senza renderli obbligatori |
+
+### 16.7 Il perimetro esterno, aggiornato
+
+Il worktree contiene lavoro che non appartiene a Social Studio e che non va
+assorbito. Al 2 settembre 2026 gli elementi esterni sono **40**:
+
+| Insieme | File | Impronta |
+|---|---|---|
+| esterni originari | 28 | `aeb9bb08ab657196` |
+| nuovi | 12 | `56c14df79f40e6ba` |
+| **complessivi** | **40** | **`372f72192f98a21c`** |
+
+I 12 nuovi sono `scripts/build-stories.mjs` e gli 11 file sotto `docs/stories/`.
+Appartengono a un flusso diverso — la produzione delle Story su pagina HTML — e
+non fanno parte del Social Studio: non vanno modificati, ripristinati, spostati
+né inclusi nei suoi commit.
+
+**Sugli asset.** `docs/stories/assets/` contiene copie di asset del progetto
+Claude Design (`logo-512.png`, `hero-la-via-dei-giganti.jpg`,
+`mappa-la-via-dei-giganti.jpg`). Sono file **non tracciati** appartenenti a
+quell'altro perimetro. La politica del Social Studio non cambia: nel suo
+sorgente e nei suoi commit gli asset Claude Design restano esclusi, e di quel
+progetto entrano solo citazioni testuali. Un eventuale commit di
+`docs/stories/` richiede un'autorizzazione a parte.

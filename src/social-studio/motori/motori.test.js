@@ -359,6 +359,80 @@ describe("Pre-flight", () => {
     expect(problemi).toHaveLength(2);
   });
 
+  /* ---- template previsti contro template costruiti ---- */
+
+  /*
+   * Il pre-flight verificava che la combinazione fosse **approvata**; adesso
+   * verifica anche che sia **costruita**. Sono due domande diverse: la prima la
+   * risponde il piano editoriale in `categorie.js`, la seconda il registro dei
+   * template. Senza la seconda, l'esportazione partirebbe per una variante che
+   * nessuno ha ancora disegnato.
+   */
+  const conTemplate = (categoria, formato, variante) =>
+    preflight({
+      contenuto: { ...evento(), categoria, formato, variante },
+      vociMedia: media,
+      formato,
+    }).esiti;
+
+  const idDi = (esiti) => esiti.map((e) => e.id);
+
+  it("le tre combinazioni EVENTI standard passano il controllo", () => {
+    for (const formato of ["post", "story", "carosello"]) {
+      const esiti = conTemplate("eventi", formato, "standard");
+      expect(idDi(esiti)).not.toContain("template-non-implementato");
+      expect(idDi(esiti)).not.toContain("formato");
+      expect(idDi(esiti)).not.toContain("variante");
+    }
+  });
+
+  it("eventi/post/locandina è approvata ma non costruita: bloccata", () => {
+    const esiti = conTemplate("eventi", "post", "locandina");
+    const voce = esiti.find((e) => e.id === "template-non-implementato");
+    expect(voce).toBeTruthy();
+    expect(voce.livello).toBe("errore");
+    // Il messaggio nomina la combinazione e spiega la differenza.
+    expect(voce.messaggio).toMatch(/Eventi · post · locandina/);
+    expect(voce.messaggio).toMatch(/prevista/);
+    // E non è stata scambiata per una variante non approvata.
+    expect(idDi(esiti)).not.toContain("variante");
+  });
+
+  it("una combinazione TOUR pianificata è bloccata, senza ripieghi", () => {
+    const esiti = conTemplate("tour", "post", "standard");
+    expect(idDi(esiti)).toContain("template-non-implementato");
+    // Formato e variante sono approvati per TOUR: l'unica cosa che manca è il
+    // template, e il pre-flight lo dice così invece di inventare un ripiego.
+    expect(idDi(esiti)).not.toContain("formato");
+    expect(idDi(esiti)).not.toContain("variante");
+    expect(idDi(esiti)).not.toContain("rubrica");
+    const esito = preflight({
+      contenuto: { ...evento(), categoria: "tour", formato: "post", variante: "standard" },
+      vociMedia: media,
+      formato: "post",
+    });
+    expect(esito.puoiEsportare).toBe(false);
+  });
+
+  it("un formato non previsto non produce anche il doppione del template", () => {
+    // TOUR non prevede il carosello: l'errore è uno, «formato», e basta.
+    const esiti = conTemplate("tour", "carosello", "standard");
+    expect(idDi(esiti)).toContain("formato");
+    expect(idDi(esiti)).not.toContain("template-non-implementato");
+  });
+
+  it("una variante non approvata non produce anche il doppione del template", () => {
+    const esiti = conTemplate("eventi", "post", "inventata");
+    expect(idDi(esiti)).toContain("variante");
+    expect(idDi(esiti)).not.toContain("template-non-implementato");
+  });
+
+  it("una rubrica inesistente si fermava già prima, e continua", () => {
+    const esiti = conTemplate("inesistente", "post", "standard");
+    expect(idDi(esiti)).toContain("rubrica");
+    expect(idDi(esiti)).not.toContain("template-non-implementato");
+  });
+
   it("avvisa quando manca il kicker del Post standard", () => {
     const c = evento();
     const senza = preflight({ contenuto: { ...c, formato: "post" }, vociMedia: media });

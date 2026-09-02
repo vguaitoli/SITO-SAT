@@ -2,10 +2,10 @@ import React from "react";
 import { Lock } from "lucide-react";
 import { FornitoreArchivio } from "./ContestoArchivio";
 import StatoArchivio from "./StatoArchivio";
-import { ELENCO_CATEGORIE } from "../design/categorie";
+import { CATEGORIE, ELENCO_CATEGORIE } from "../design/categorie";
 import { brandLockAttivo } from "../fondamenta/brand-lock";
 import StressTest from "./StressTest";
-import EditorEvento from "./EditorEvento";
+import { editorPerRubrica, statoRubrica } from "./registro-editor";
 
 /**
  * STA Social Studio — guscio dell'applicazione.
@@ -30,7 +30,7 @@ export default function Studio() {
         <main className="mx-auto max-w-6xl space-y-8 px-6 py-8 lg:px-10">
           <StatoArchivio />
           <Rubriche />
-          <EditorEvento />
+          <EditorAperto />
           <StressTest />
         </main>
       </div>
@@ -55,11 +55,88 @@ function Intestazione() {
             Brand Lock {lucchetto ? "attivo" : "disattivato"}
           </span>
           <span className="font-button text-[10px] uppercase tracking-[0.2em] text-granite-mist/35">
-            Fase 5.1
+            {ETICHETTA_RUBRICA_APERTA}
           </span>
         </div>
       </div>
     </header>
+  );
+}
+
+/**
+ * La rubrica su cui si lavora oggi.
+ *
+ * Sostituisce il vecchio «Fase 5.1», che era il numero di un capitolo di
+ * lavorazione e invecchiava a ogni checkpoint. Questa dicitura dice invece che
+ * cosa si sta usando, e cambia solo quando cambia davvero.
+ */
+const RUBRICA_APERTA = "eventi";
+const ETICHETTA_RUBRICA_APERTA =
+  `Rubrica ${CATEGORIE[RUBRICA_APERTA].numero} / ${CATEGORIE[RUBRICA_APERTA].nome.toUpperCase()}`;
+
+/**
+ * L'editor della rubrica aperta, risolto dal registro.
+ *
+ * Nessun ripiego: se la rubrica non ha un editor non si monta niente e lo si
+ * dice. Montare l'editor EVENTI su un'altra rubrica creerebbe bozze con la
+ * categoria sbagliata e campi che non le appartengono.
+ */
+function EditorAperto() {
+  const Editor = editorPerRubrica(RUBRICA_APERTA);
+  if (!Editor) {
+    return (
+      <section className="border border-[var(--border-on-dark)] p-5">
+        <p className="font-body text-xs text-granite-mist/60">
+          Nessun editor per la rubrica «{RUBRICA_APERTA}».
+        </p>
+      </section>
+    );
+  }
+  return <Editor />;
+}
+
+/**
+ * Una rubrica nell'elenco delle otto.
+ *
+ * Mostra due cose che non vanno confuse: le varianti **previste**, che sono il
+ * piano editoriale dichiarato in `categorie.js`, e lo stato, che dice cosa si
+ * può davvero aprire oggi. Sette rubriche su otto sono previste e non ancora
+ * costruite, e la card lo dice invece di lasciarlo intendere.
+ */
+function CardRubrica({ rubrica: c }) {
+  const disponibile = statoRubrica(c.id) === "disponibile";
+  return (
+    <li
+      className="bg-[var(--obsidian)] p-4"
+      data-rubrica={c.id}
+      data-stato={disponibile ? "disponibile" : "da-implementare"}
+      aria-disabled={!disponibile}
+      style={disponibile ? undefined : { opacity: 0.45 }}
+    >
+      <div className="flex items-baseline justify-between">
+        <span className="font-button text-[10px] uppercase tracking-[0.2em] text-granite-mist/40">
+          {c.numero}
+        </span>
+        <span
+          className="h-2 w-2 rounded-full"
+          style={{ background: c.accento }}
+          title={`Accento ${c.accento}`}
+        />
+      </div>
+      <span className="mt-1 block font-heading text-xl leading-none">{c.nome}</span>
+      <span className="mt-2 block font-body text-[11px] leading-snug text-granite-mist/50">
+        {c.pesoFoto}% foto · {c.pesoGrafica}% grafica
+      </span>
+      <span className="mt-1 block font-body text-[11px] text-granite-mist/35">
+        {c.varianti.length} varianti previste
+      </span>
+      <span
+        className="mt-2 inline-block font-button text-[10px] uppercase tracking-[0.16em]"
+        style={{ color: disponibile ? c.accento : "rgba(245,235,217,0.3)" }}
+      >
+        {disponibile ? "Disponibile" : "Da implementare"}
+      </span>
+    </li>
   );
 }
 
@@ -71,25 +148,7 @@ function Rubriche() {
       </h2>
       <ol className="grid grid-cols-2 gap-px bg-[var(--border-on-dark)] sm:grid-cols-4">
         {ELENCO_CATEGORIE.map((c) => (
-          <li key={c.id} className="bg-[var(--obsidian)] p-4">
-            <div className="flex items-baseline justify-between">
-              <span className="font-button text-[10px] uppercase tracking-[0.2em] text-granite-mist/40">
-                {c.numero}
-              </span>
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ background: c.accento }}
-                title={`Accento ${c.accento}`}
-              />
-            </div>
-            <span className="mt-1 block font-heading text-xl leading-none">{c.nome}</span>
-            <span className="mt-2 block font-body text-[11px] leading-snug text-granite-mist/50">
-              {c.pesoFoto}% foto · {c.pesoGrafica}% grafica
-            </span>
-            <span className="mt-1 block font-body text-[11px] text-granite-mist/35">
-              {c.varianti.length} varianti
-            </span>
-          </li>
+          <CardRubrica key={c.id} rubrica={c} />
         ))}
       </ol>
     </section>
