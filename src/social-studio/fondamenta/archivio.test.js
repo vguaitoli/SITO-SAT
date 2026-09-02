@@ -37,6 +37,33 @@ describe("schema", () => {
     expect(c.fattuali.origine).toEqual({ prezzo: "sito", km: "manuale" });
   });
 
+  it("un campo aggiunto dopo arriva vuoto sulle bozze già salvate", () => {
+    /*
+     * `fattuali.area` è stata aggiunta per TOUR e non esisteva quando le bozze
+     * EVENTI sono state salvate. L'aggiunta è additiva: la convalida in lettura
+     * applica il valore predefinito e nulla di quello che c'era si perde. È il
+     * motivo per cui `VERSIONE_SCHEMA` resta 1 e non serve una migrazione.
+     */
+    const salvataPrima = {
+      id: "cnt-prima-di-area",
+      versioneSchema: 1,
+      categoria: "eventi",
+      formato: "post",
+      creato: "2026-01-01T00:00:00.000Z",
+      modificato: "2026-01-01T00:00:00.000Z",
+      titolo: "Bozza salvata prima",
+      fattuali: { nome: "Evento", prezzo: "580 €", km: "395 km", tappe: [] },
+      editoriale: { cta: "Scrivici" },
+    };
+    const riletta = convalidaContenuto(salvataPrima);
+    expect(riletta.fattuali.area).toBe("");
+    expect(riletta.fattuali.nome).toBe("Evento");
+    expect(riletta.fattuali.prezzo).toBe("580 €");
+    expect(riletta.editoriale.cta).toBe("Scrivici");
+    expect(riletta.versioneSchema).toBe(VERSIONE_SCHEMA);
+    expect(MIGRAZIONI).toEqual({});
+  });
+
   it("rifiuta una categoria inesistente con un messaggio leggibile", () => {
     expect(() => convalidaContenuto({ ...contenutoVuoto(), categoria: "motociclismo" }))
       .toThrow(/categoria/i);
@@ -139,6 +166,17 @@ describe("contratto SocialStorage", () => {
 });
 
 describe("archivio in memoria", () => {
+  it("una bozza salvata senza area la rilegge vuota dall'archivio", async () => {
+    // La stessa proprietà, ma attraverso il percorso reale di lettura.
+    const archivio = creaArchivioMemoria();
+    const c = contenutoVuoto({ categoria: "eventi", formato: "post" });
+    const senzaArea = { ...c, fattuali: { ...c.fattuali } };
+    delete senzaArea.fattuali.area;
+    await archivio.salva(senzaArea);
+    const riletta = await archivio.leggi(senzaArea.id);
+    expect(riletta.fattuali.area).toBe("");
+  });
+
   it("salva, rilegge ed elenca", async () => {
     const a = creaArchivioMemoria();
     const c = { ...contenutoVuoto({ categoria: "eventi" }), titolo: "La Via dei Giganti" };

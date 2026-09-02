@@ -99,6 +99,13 @@ export const fattuali = z.object({
   partecipantiMin: z.string().default(""),
   partecipantiMax: z.string().default(""),
   /**
+   * Area geografica dell'itinerario. Prevista dal brief TOUR, **vuota per
+   * scelta**: il sito non la espone con semantica affidabile — `interest` è un
+   * elenco di punti di interesse, non un'area — e ricavarla dal nome o dalle
+   * tappe produrrebbe un dato inventato che sembra misurato. Si compila a mano.
+   */
+  area: z.string().default(""),
+  /**
    * Località di partenza. Viene da `startLocation` del sito e l'adapter la
    * importava già, ma questo schema non la dichiarava: la convalida la
    * scartava in silenzio a ogni salvataggio, e `estraiFattuali` la leggeva

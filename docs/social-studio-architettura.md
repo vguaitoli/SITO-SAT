@@ -1254,3 +1254,80 @@ quell'altro perimetro. La politica del Social Studio non cambia: nel suo
 sorgente e nei suoi commit gli asset Claude Design restano esclusi, e di quel
 progetto entrano solo citazioni testuali. Un eventuale commit di
 `docs/stories/` richiede un'autorizzazione a parte.
+
+---
+
+## 17. TOUR — il contratto con i dati del sito
+
+Il capitolo 6.3A implementa **solo** il contratto: l'adapter e l'estensione
+minima dello schema. Nessun editor, template, preview, export, caption o Media
+Library, e TOUR non è selezionabile.
+
+### 17.1 Chi è la fonte, e di che cosa
+
+| | |
+|---|---|
+| **fonte primaria dei dati** | il sito, attraverso `normalizeTours()` |
+| **autorità visiva futura** | il sistema del sito, in particolare «Scegli la tua avventura» (`src/components/Categorie.jsx` su `src/data/categorie.js`) |
+| **fuori gioco in questo capitolo** | il progetto Claude Design: la direzione visiva TOUR viene dal sito STA |
+
+L'adapter riceve un tour **già normalizzato** e non legge
+`content/tours/index.json` in produzione. Quel file entra solo nel test di
+contratto, dove serve a dimostrare che il catalogo reale passa la convalida.
+
+`src/data/categorie.js` e `Categorie.jsx` descrivono **dieci categorie di
+esperienza** — carattere della disciplina, claim, foto — e due di quelle voci
+(`Corsi Off-road`, `Noleggio`) non sono nemmeno tour. Sono autorità visive, non
+dati operativi del singolo itinerario: claim, descrizioni generali e fotografie
+di categoria **non** vengono importati nella scheda. Il file stesso lo dichiara:
+«senza inventare dati operativi dei tour».
+
+Nessun asset, fotografia o file del sito viene copiato nel Social Studio, e
+nessun binario viene generato o spostato.
+
+### 17.2 `area`, e perché resta vuota
+
+Il brief TOUR prevede un campo `area`. Il sito non lo espone con semantica
+affidabile: `interest` è un elenco di punti di interesse, non un'area, e
+ricavarla dal nome o dalle tappe significherebbe inventare un dato che sembra
+misurato. Quindi `fattuali.area` esiste nello schema con valore predefinito `""`
+e si compila a mano.
+
+L'aggiunta è **additiva**: `VERSIONE_SCHEMA` resta **1**, `migrazioni.js` non
+viene toccato, e le bozze EVENTI già salvate continuano a convalidarsi
+ricevendo `area: ""` dalla convalida in lettura. Nessun altro valore predefinito
+cambia.
+
+### 17.3 Che cosa l'adapter importa, e che cosa lascia vuoto
+
+`fondamenta/adapter-tour.js` è un modulo indipendente: `adapter-sito.js` resta
+l'adapter EVENTI e non diventa generico, così il comportamento EVENTI non può
+cambiare per un lavoro fatto su TOUR.
+
+I campi lasciati vuoti non sono dimenticanze. `mezzo` non si copia da `type`
+perché `Su Misura` dimostra che i due concetti non coincidono; `dataFine` non si
+calcola dalla durata; `lunchIncluded` non diventa una frase italiana dentro
+`inclusi`; i titoli delle tappe non si spezzano in partenza e arrivo — sul sito
+sono titoli editoriali, non tratte. `fattuali.origine` marca `"sito"` **solo** i
+campi realmente importati e valorizzati: un campo vuoto o manuale non deve
+sembrare importato.
+
+La `descrizione` del sito diventa il testo editoriale iniziale, e resta separata
+dai fatti. `claim`, `kicker`, `fraseNumeri` e `cta` restano vuoti: sono scelte
+di scrittura, non dati.
+
+### 17.4 L'istantanea e lo scostamento
+
+`fonte.istantanea` conserva la forma confrontabile del tour, senza `updatedAt`
+— che cambia a ogni salvataggio del CMS e renderebbe il confronto rumoroso.
+Delle tappe conserva `title`, `desc`, `foto` e `fotoAlt`: quattro campi, perché
+una foto di tappa sostituita è un cambiamento reale che l'istantanea EVENTI, che
+tiene solo il titolo, non vedrebbe.
+
+Il percorso fotografico nell'istantanea è **solo un riferimento testuale**: non
+entra in `media`, non entra in IndexedDB, non entra in `public/`.
+
+`riallineaTourAllaFonte` aggiorna soltanto `fonte` — tipo, slug, istantanea e
+`importatoIl`. Non tocca `fattuali`, `editoriale`, `media`, `visual` o `mappa`:
+riallineare non è reimportare, e il lavoro editoriale non si perde per aver
+accettato che il sito è cambiato. Nessuna funzione muta gli oggetti ricevuti.
