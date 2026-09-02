@@ -108,3 +108,57 @@ export function zonePerSlot(slot) {
  * 150 px lasciano 28 px di respiro sopra il marchio.
  */
 export const BANDA_MARCHIO = 150;
+
+/**
+ * Il profilo altimetrico nella slide 03 del carosello.
+ *
+ * Le tre misure sommano esattamente a `bandaPercorso`, e non è una coincidenza:
+ * accendere il profilo deve ridisporre **solo l'interno** di quella banda, senza
+ * spostare di un pixel il filetto, le tappe, la percentuale di sterrato o il
+ * marchio. Se la somma non tornasse, il fondo della slide scivolerebbe e
+ * l'opzione smetterebbe di essere un'opzione.
+ *
+ *   mappaConProfilo + distanza + blocco === bandaPercorso
+ *   532             + 20       + 168    === 720
+ *
+ * Stanno qui e non nel template per la stessa ragione delle fasce fotografiche:
+ * una misura scritta due volte prima o poi diverge.
+ */
+export const PROFILO_ALTIMETRICO = {
+  /** Altezza della banda della slide 03, profilo acceso o spento. */
+  bandaPercorso: 720,
+  /** La mappa quando il profilo è spento: tutta la banda. */
+  mappaSenzaProfilo: 720,
+  /** La mappa quando il profilo è acceso. */
+  mappaConProfilo: 532,
+  /** Aria fra la mappa e il profilo. */
+  distanza: 20,
+  /** Intestazione con le letture, più il grafico. */
+  blocco: 168,
+  /** La riga delle letture: etichetta piccola sopra, numero sotto. */
+  intestazione: 46,
+  /**
+   * Aria fra le letture e il disegno.
+   *
+   * Non è decorazione. Il picco del profilo tocca per definizione il bordo alto
+   * del grafico, e la lettura della quota massima sta proprio lì sopra: senza
+   * uno stacco dichiarato i due si incontrano, e sul PNG reale si sono
+   * incontrati per nove pixel. Lo stacco vale a prescindere da dove cada il
+   * picco, che è l'unico modo di garantirlo.
+   */
+  distanzaIntestazione: 14,
+  /** Solo il disegno, dentro il blocco: 46 + 14 + 108 = 168. */
+  grafico: 108,
+  /**
+   * Quanto la spezzata sta lontana dai bordi del proprio riquadro.
+   *
+   * Il minimo e il massimo cadono per costruzione sul bordo, e un tratto da 3 px
+   * centrato lì ne lascia metà fuori: sul PNG reale la quota zero usciva di
+   * cinque pixel dal blocco e si confondeva con la linea di base, facendo
+   * sembrare interrotto un profilo che è continuo. Le interruzioni devono essere
+   * solo quelle vere.
+   */
+  rientro: 4,
+  /** Errore massimo ammesso fra la spezzata disegnata e quella vera, in pixel. */
+  tolleranzaPx: 0.5,
+};

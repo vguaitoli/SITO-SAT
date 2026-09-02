@@ -354,17 +354,112 @@ segmenti [{lon, lat, quota}]   ← geometria ESCLUSIVAMENTE dal file
    ↓  calcolaMetriche()        distanza, D+, D−, quota min/max
 suggerimenti                   mostrati accanto ai campi, mai applicati da soli
    ↓  utente conferma o ignora
-   ↓  riquadro() + creaVista() Web Mercator, fit automatico con margine
-   ↓  semplificaPerDisegno()   tolleranza = mezzo pixel alla scala corrente
-path SVG                       i punti originali restano intatti nell'archivio
+   │
+   ├─ mappa ──────────────────────────────────────────────────────────
+   │    ↓  riquadro() + creaVista()   Web Mercator, fit con margine
+   │    ↓  proietta()                 da gradi a pixel
+   │    ↓  semplificaProiettato()     Douglas–Peucker IN PIXEL, 0,5 px
+   │    ↓  tracciaPath()              coordinate per intero, nessun arrotondamento
+   │  path SVG
+   │
+   └─ profilo altimetrico (opzionale) ─────────────────────────────────
+        ↓  profiloAltimetrico()       distanza cumulativa + quota, per tratti
+        ↓  proiettaProfilo()          da metri a pixel dentro il riquadro
+        ↓  semplificaProiettato()     stessa funzione, stesso limite
+        ↓  tracciaPath()              un path per tratto, mai un collegamento
+      path SVG
 ```
 
 Il GPX non viene mai riscritto. La semplificazione è derivata e ricalcolata a
 ogni cambio di zoom; se si esporta a scala maggiore, la traccia guadagna
 dettaglio invece di perderlo.
 
+L'ordine **proietta prima, semplifica dopo** non è una preferenza: «errore
+massimo mezzo pixel» è una frase che ha senso solo in pixel. In gradi
+dipenderebbe da latitudine, scala, zoom, rotazione e misura della tela, e
+cambierebbe a ogni formato. E le coordinate si scrivono per intero, perché il
+limite deve valere sul path **realmente serializzato**: quantizzarle a un
+decimale aggiungeva un errore che la tolleranza non comprendeva.
+
 Le località sono **solo etichette**: non partecipano alla geometria. Si possono
 aggiungere a mano o proporre dai waypoint del file, sempre modificabili.
+
+### 9.1 Profilo altimetrico
+
+Opzionale, spento per default (`contenuto.mappa.mostraAltimetria`), e presente
+in un solo posto: la **slide 03 del carosello**. Non è una nona slide — il
+carosello resta di otto e il pacchetto di sedici file. Accendendolo si ridispone
+soltanto l'interno della banda del percorso: la mappa si accorcia esattamente di
+quanto occupano il profilo e la sua aria, così filetto, tappe, sterrato e
+marchio non si spostano di un pixel. Le misure stanno in `zone.js`
+(`PROFILO_ALTIMETRICO`) e la loro somma è verificata da un test.
+
+Quello che il file non dice, il grafico non lo disegna:
+
+| Situazione | Comportamento |
+|---|---|
+| quota mancante | il tratto **si interrompe**; nessuna interpolazione |
+| due segmenti GPX | due path distinti; nessuna linea di collegamento |
+| distanza fra segmenti | **non** si conta: quel tratto non è stato registrato |
+| quota `0` | è un dato valido — il controllo è `=== null`, mai la verità del valore |
+| quote negative | valide |
+| profilo piatto | disegnato a metà altezza, non a zero |
+| nessuna quota utilizzabile | il componente segnala un **errore** che ferma l'export |
+| quote parziali | **avviso**: il grafico avrà interruzioni, e sono reali |
+
+Le letture mostrate — quota minima e massima, D+, D−, chilometri — vengono dal
+GPX e sono etichettate come tali. I chilometri commerciali dell'evento sono un
+altro dato e restano intoccati; l'avviso che confronta i due non cambia.
+
+**Dove vive il giudizio.** Il pre-flight controlla ciò che si vede nel
+contenuto: opzione accesa senza GPX è un errore. Le quote invece le legge solo
+il componente che prova a disegnarle, e la sua segnalazione arriva al pre-flight
+attraverso `sfori`, sia nell'editor sia in `esporta()`. Il motivo è che né
+`preflight()` né `esporta()` ricevono la traccia analizzata: duplicare quel
+giudizio in due punti significherebbe farlo divergere. Un profilo richiesto e
+impossibile non esce mai in silenzio.
+
+**Quando `Altimetria` viene montato.** Tre condizioni distinte, e la distinzione
+è il punto:
+
+| | dove vive | |
+|---|---|---|
+| `richiesto` | contenuto | l'ha chiesto chi scrive |
+| `haRiferimento` | contenuto | nella bozza c'è un GPX salvato |
+| `segmenti` | stato dell'editor | la traccia è ricostruita **adesso** |
+
+La regola è `richiesto && haRiferimento`. I `segmenti` **non** entrano nella
+condizione di montaggio, e non è una svista: fra il riferimento e la traccia
+c'è una finestra in cui il primo esiste e la seconda no — la reidratazione
+dall'archivio è asincrona, il blob può essere stato sfrattato, il file può
+essere illeggibile. Montare solo con `segmenti.length > 0` significava non
+montare proprio nei casi in cui il profilo era **richiesto ma impossibile**:
+senza componente non c'era nessuno a dirlo, il pre-flight vedeva un `gpx.idBlob`
+regolare, e l'opzione spariva in silenzio dall'esportazione.
+
+Montando comunque, `Altimetria` riceve un elenco vuoto, non disegna, e registra
+l'errore. Che si ritira da sé — `useSegnalazione` lo toglie allo smontaggio e
+al cambio di stato — appena la traccia arriva o l'opzione viene spenta. Senza
+riferimento GPX il componente non si monta affatto: lì l'errore è del pre-flight
+puro, che lo dice già due volte, e una terza voce sarebbe rumore.
+
+**Una segnalazione per grafica, non per istanza.** Il registro indicizza per
+istanza React, e deve farlo: durante un'esportazione del pacchetto la slide 03
+è montata due volte — l'anteprima visibile come `carosello/03`, la copia fuori
+schermo come `pacco/carosello/03` — e se condividessero una chiave lo
+smontaggio dell'una cancellerebbe la segnalazione dell'altra.
+
+Ma di slide 03 ce n'è **una**. `sfori()` normalizza la chiave togliendo il solo
+prefisso iniziale `pacco/` e deduplica su **livello + chiave logica +
+messaggio**, poi costruisce l'id come `sforo-<chiave logica>`. Senza, lo stesso
+errore compariva due volte, e il conteggio dipendeva dalla vista aperta
+nell'editor: col carosello a schermo due copie, col Post o la Story una sola —
+lo stesso export riportava numeri diversi a seconda di dove si stava guardando.
+
+I tre campi servono tutti e tre. Lo stesso messaggio su grafiche diverse sono
+due problemi da sistemare; la stessa grafica con messaggi diversi pure; e la
+stessa grafica con lo stesso messaggio ma livelli diversi resta doppia, perché
+un errore blocca e un avviso no, e fonderli ne perderebbe uno.
 
 ---
 

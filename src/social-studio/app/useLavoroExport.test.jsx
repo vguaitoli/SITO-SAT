@@ -439,6 +439,83 @@ describe("PannelloEsito", () => {
     return contenitore;
   };
 
+  /* ---- singolare e plurale ---- */
+
+  /*
+   * «Esportazione bloccata: 1 errori.» Un dettaglio, ma è la prima riga che si
+   * legge quando qualcosa non va, ed è scritta male proprio nel momento in cui
+   * si guarda con più attenzione. Il conteggio a uno non è nemmeno un caso
+   * raro: dopo la 5.4.2 è diventato il caso normale, perché il doppione della
+   * copia fuori schermo non c'è più.
+   */
+  const errori = (quanti) =>
+    Array.from({ length: quanti }, (_, i) => ({ id: `e${i}`, livello: "errore", messaggio: `Errore numero ${i + 1}.` }));
+  const avvisi = (quanti) =>
+    Array.from({ length: quanti }, (_, i) => ({ id: `a${i}`, livello: "avviso", messaggio: `Avviso numero ${i + 1}.` }));
+
+  it("un errore si dice al singolare", () => {
+    const el = rendi({ tipo: "vista", esito: "bloccato", controllo: { errori: errori(1), avvisi: [] } });
+    expect(el.textContent).toContain("Esportazione bloccata: 1 errore.");
+    expect(el.textContent).not.toContain("1 errori");
+  });
+
+  it("due errori si dicono al plurale", () => {
+    const el = rendi({ tipo: "vista", esito: "bloccato", controllo: { errori: errori(2), avvisi: [] } });
+    expect(el.textContent).toContain("Esportazione bloccata: 2 errori.");
+  });
+
+  it("un avviso si dice al singolare, per tutta la frase", () => {
+    const el = rendi({ tipo: "vista", esito: "bloccato", soloAvvisi: true, controllo: { errori: [], avvisi: avvisi(1) } });
+    // La frase intera, non il solo primo periodo: «1 avviso. Non bloccano»
+    // era corretto a metà, che è il modo più facile di sbagliare.
+    expect(el.textContent).toContain(
+      "Il pre-flight segnala 1 avviso. Non blocca l'esportazione, ma va superato consapevolmente.",
+    );
+    expect(el.textContent).not.toContain("1 avvisi");
+    expect(el.textContent).not.toContain("Non bloccano");
+    expect(el.textContent).not.toContain("vanno superati");
+  });
+
+  it("due avvisi si dicono al plurale, per tutta la frase", () => {
+    const el = rendi({ tipo: "vista", esito: "bloccato", soloAvvisi: true, controllo: { errori: [], avvisi: avvisi(2) } });
+    expect(el.textContent).toContain(
+      "Il pre-flight segnala 2 avvisi. Non bloccano l'esportazione, ma vanno superati consapevolmente.",
+    );
+  });
+
+  it("una grafica non montata si dice al singolare", () => {
+    const el = rendi({ tipo: "pacchetto", esito: "nonPronto", mancanti: ["story-tappe"], misureInSospeso: 0, frame: 30 });
+    expect(el.textContent).toContain("Grafica non ancora montata: story-tappe.");
+    expect(el.textContent).not.toContain("Grafiche non ancora montate");
+  });
+
+  it("due grafiche non montate si dicono al plurale", () => {
+    const el = rendi({ tipo: "pacchetto", esito: "nonPronto", mancanti: ["story-tappe", "story-incluso"], misureInSospeso: 0, frame: 30 });
+    expect(el.textContent).toContain("Grafiche non ancora montate: story-tappe, story-incluso.");
+  });
+
+  it("una grafica incompleta si dice al singolare", () => {
+    const el = rendi({ tipo: "pacchetto", esito: "incompleto", mancanti: ["story"] });
+    expect(el.textContent).toContain("Una grafica non era pronta (story): riprova.");
+    expect(el.textContent).not.toContain("Alcune grafiche");
+  });
+
+  it("due grafiche incomplete si dicono al plurale", () => {
+    const el = rendi({ tipo: "pacchetto", esito: "incompleto", mancanti: ["story", "post"] });
+    expect(el.textContent).toContain("Alcune grafiche non erano pronte (story, post): riprova.");
+  });
+
+  it("una misura in sospeso si dice al singolare", () => {
+    const el = rendi({ tipo: "pacchetto", esito: "nonPronto", misureInSospeso: 1, mancanti: [], frame: 30 });
+    expect(el.textContent).toContain("1 misura di testo non ancora eseguita");
+    expect(el.textContent).not.toContain("1 misure");
+  });
+
+  it("due misure in sospeso si dicono al plurale", () => {
+    const el = rendi({ tipo: "pacchetto", esito: "nonPronto", misureInSospeso: 2, mancanti: [], frame: 30 });
+    expect(el.textContent).toContain("2 misure di testo non ancora eseguite");
+  });
+
   it("mostra il guasto della cattura senza toccare `controllo`", () => {
     /*
      * L'oggetto di errore **non ha** `controllo`. Prima cadeva nel ramo del

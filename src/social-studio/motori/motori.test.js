@@ -218,6 +218,147 @@ describe("Pre-flight", () => {
     expect(preflight({ contenuto: evento(), vociMedia: media }).errori.map((e) => e.id)).not.toContain("gpx");
   });
 
+  /* ---- profilo altimetrico ---- */
+
+  const conGpx = (extra = {}) => ({
+    ...evento(),
+    formato: "carosello",
+    variante: "standard",
+    mappa: { ...contenutoVuoto({ categoria: "eventi", formato: "carosello" }).mappa, gpx: { idBlob: "gpx-1", nome: "t.gpx", byte: 10 }, ...extra },
+  });
+
+  it("con il profilo spento non aggiunge nessun problema", () => {
+    const esito = preflight({ contenuto: conGpx({ mostraAltimetria: false }), vociMedia: media, formato: "carosello" });
+    expect(esito.esiti.map((e) => e.id)).not.toContain("altimetria");
+  });
+
+  it("con il profilo acceso e il GPX presente non blocca", () => {
+    const esito = preflight({ contenuto: conGpx({ mostraAltimetria: true }), vociMedia: media, formato: "carosello" });
+    expect(esito.errori.map((e) => e.id)).not.toContain("altimetria");
+    expect(esito.esiti.find((e) => e.id === "altimetria").livello).toBe("ok");
+  });
+
+  it("il profilo acceso senza GPX è un errore, non un avviso", () => {
+    const senza = { ...conGpx({ mostraAltimetria: true }), mappa: { ...conGpx({ mostraAltimetria: true }).mappa, gpx: null } };
+    const esito = preflight({ contenuto: senza, vociMedia: media, formato: "carosello" });
+    expect(esito.errori.map((e) => e.id)).toContain("altimetria");
+    expect(esito.puoiEsportare).toBe(false);
+  });
+
+  it("il profilo riguarda il carosello, non il Post né la Story", () => {
+    // La slide 03 del carosello è l'unico posto in cui il profilo compare:
+    // altrove l'opzione accesa non deve inventare né errori né avvisi.
+    for (const formato of ["post", "story"]) {
+      const c = { ...conGpx({ mostraAltimetria: true }), formato };
+      const esito = preflight({ contenuto: c, vociMedia: media, formato });
+      expect(esito.esiti.map((e) => e.id)).not.toContain("altimetria");
+    }
+  });
+
+  it("un profilo impossibile segnalato dal template blocca l'esportazione", () => {
+    /*
+     * Le quote non si leggono qui: il pre-flight non riceve la traccia, e
+     * `esporta()` nemmeno. A dirlo è il componente che prova a disegnarla, e la
+     * sua segnalazione arriva attraverso `problemi`. Questo test fissa proprio
+     * quel passaggio: senza, un profilo impossibile uscirebbe dall'export in
+     * silenzio, con la slide 03 priva del grafico e nessuno ad avvisare.
+     */
+    const esito = preflight({
+      contenuto: conGpx({ mostraAltimetria: true }),
+      vociMedia: media,
+      formato: "carosello",
+      problemi: [{ chiave: "carosello/03/altimetria", livello: "errore", messaggio: "Profilo altimetrico richiesto, ma la traccia GPX non contiene quote." }],
+    });
+    expect(esito.puoiEsportare).toBe(false);
+    expect(esito.errori.some((e) => /altimetric/i.test(e.messaggio))).toBe(true);
+  });
+
+  /* ---- una segnalazione per grafica, non per istanza ---- */
+
+  /*
+   * Due identità che non vanno confuse.
+   *
+   * La **chiave del registro** identifica l'istanza React: `carosello/03` è
+   * l'anteprima visibile, `pacco/carosello/03` è la copia fuori schermo che
+   * verrà catturata. Sono due montaggi distinti e devono restare distinti, o
+   * lo smontaggio dell'uno cancellerebbe la segnalazione dell'altro.
+   *
+   * L'**identità editoriale** è invece una sola: c'è una slide 03 del
+   * carosello, non due. Chi legge il pannello non deve sapere quante copie del
+   * template sono montate — e con la vecchia lettura lo scopriva, perché lo
+   * stesso errore compariva due volte, e il conteggio cambiava a seconda della
+   * vista aperta nell'editor.
+   */
+  const doppione = (chiave, livello = "errore", messaggio = "Profilo altimetrico richiesto, ma la traccia GPX non contiene quote.") =>
+    ({ chiave, livello, messaggio });
+
+  const sforiDi = (problemi) =>
+    preflight({ contenuto: evento(), vociMedia: media, formato: "post", problemi })
+      .esiti.filter((e) => e.id.startsWith("sforo-"));
+
+  it("anteprima e copia del pacchetto sono una segnalazione sola", () => {
+    const esiti = sforiDi([
+      doppione("carosello/03/altimetria"),
+      doppione("pacco/carosello/03/altimetria"),
+    ]);
+    expect(esiti).toHaveLength(1);
+    // L'id canonico è quello senza prefisso: il `pacco/` è un dettaglio di
+    // montaggio, non un pezzo del nome della grafica.
+    expect(esiti[0].id).toBe("sforo-carosello/03/altimetria");
+    expect(esiti[0].livello).toBe("errore");
+  });
+
+  it("vale anche per gli avvisi", () => {
+    const esiti = sforiDi([
+      doppione("story/04/voci", "avviso", "Le tappe: 6 voci, il layout ne regge 5."),
+      doppione("pacco/story/04/voci", "avviso", "Le tappe: 6 voci, il layout ne regge 5."),
+    ]);
+    expect(esiti).toHaveLength(1);
+    expect(esiti[0].id).toBe("sforo-story/04/voci");
+    expect(esiti[0].livello).toBe("avviso");
+  });
+
+  it("lo stesso messaggio su grafiche diverse resta due segnalazioni", () => {
+    // Sei tappe che non entrano nella Story e sei che non entrano nel carosello
+    // sono due problemi da sistemare, non uno raccontato due volte.
+    const esiti = sforiDi([
+      doppione("story/04/voci", "avviso", "Sei voci, il layout ne regge cinque."),
+      doppione("carosello/04/voci", "avviso", "Sei voci, il layout ne regge cinque."),
+    ]);
+    expect(esiti).toHaveLength(2);
+    expect(esiti.map((e) => e.id).sort()).toEqual(["sforo-carosello/04/voci", "sforo-story/04/voci"]);
+  });
+
+  it("la stessa grafica con messaggi diversi resta due segnalazioni", () => {
+    const esiti = sforiDi([
+      doppione("carosello/03/altimetria", "errore", "Primo problema."),
+      doppione("pacco/carosello/03/altimetria", "errore", "Secondo problema."),
+    ]);
+    expect(esiti).toHaveLength(2);
+  });
+
+  it("la stessa grafica con livelli diversi resta due segnalazioni", () => {
+    // Un avviso e un errore non sono la stessa cosa: fondendoli si perderebbe
+    // quello che blocca oppure quello che informa.
+    const esiti = sforiDi([
+      doppione("carosello/03/altimetria", "avviso", "Stesso testo."),
+      doppione("pacco/carosello/03/altimetria", "errore", "Stesso testo."),
+    ]);
+    expect(esiti).toHaveLength(2);
+    expect(esiti.map((e) => e.livello).sort()).toEqual(["avviso", "errore"]);
+  });
+
+  it("non tocca l'elenco dei problemi né i suoi oggetti", () => {
+    const problemi = [
+      doppione("carosello/03/altimetria"),
+      doppione("pacco/carosello/03/altimetria"),
+    ];
+    const copia = JSON.parse(JSON.stringify(problemi));
+    preflight({ contenuto: evento(), vociMedia: media, formato: "post", problemi });
+    expect(problemi).toEqual(copia);
+    expect(problemi).toHaveLength(2);
+  });
+
   it("avvisa quando manca il kicker del Post standard", () => {
     const c = evento();
     const senza = preflight({ contenuto: { ...c, formato: "post" }, vociMedia: media });

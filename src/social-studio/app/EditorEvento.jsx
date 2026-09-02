@@ -23,6 +23,7 @@ import SlideCarosello, { SLIDE_CAROSELLO } from "../template/rubriche/eventi/Car
 import { zonePerSlot } from "../template/rubriche/eventi/zone";
 import { preflight } from "../motori/preflight";
 import { analizzaGpx } from "../motori/gpx";
+import { profiloAltimetrico } from "../motori/altimetria";
 import { estraiFattuali, paragrafi, verificaFattuale } from "../motori/caption/fact-lock";
 import { rigeneraCaption } from "../motori/caption/rigenera";
 import { creaProviderManuale } from "../motori/caption/provider";
@@ -325,6 +326,18 @@ export default function EditorEvento() {
       setErroreGpx(e.message);
     }
   };
+
+  /**
+   * Il profilo ricavato dalla traccia, solo per spiegare l'interruttore.
+   *
+   * Non serve a disegnare — quello lo fa il template — ma a dire in anticipo
+   * che cosa succederà: se le quote mancano, l'utente lo scopre qui e non
+   * davanti a un'esportazione bloccata.
+   */
+  const profiloTraccia = useMemo(
+    () => (traccia ? profiloAltimetrico(traccia.segmenti) : null),
+    [traccia],
+  );
 
   /**
    * La traccia caricata e i chilometri dichiarati devono somigliarsi.
@@ -1088,6 +1101,37 @@ export default function EditorEvento() {
                   </dl>
                 </>
               )}
+
+              {/*
+                Il profilo altimetrico è una scelta editoriale, non un default:
+                molti eventi hanno un dislivello che non racconta nulla. Resta
+                spento finché non lo si accende, anche nelle bozze già salvate.
+              */}
+              <label className="mt-3 flex items-start gap-2 border-t border-[var(--border-on-dark)] pt-3 font-body text-xs text-granite-mist/65">
+                <input
+                  type="checkbox"
+                  checked={Boolean(contenuto.mappa?.mostraAltimetria)}
+                  onChange={(e) =>
+                    aggiorna((c) => ({
+                      ...c,
+                      mappa: { ...c.mappa, mostraAltimetria: e.target.checked },
+                    }))
+                  }
+                  className="mt-[3px] accent-[var(--accent)]"
+                />
+                <span>
+                  Mostra profilo altimetrico
+                  <span className="mt-1 block text-[11px] text-granite-mist/40">
+                    {!contenuto.mappa?.gpx?.idBlob
+                      ? "Serve prima un file GPX: senza traccia non c'è nulla da disegnare."
+                      : !profiloTraccia?.utilizzabile
+                        ? "Questo file non ha quote utilizzabili: servono almeno due punti consecutivi con quota. Con l'opzione accesa l'esportazione si ferma."
+                        : profiloTraccia.parziale
+                          ? `${profiloTraccia.puntiSenzaQuota.toLocaleString("it-IT")} punti senza quota: il grafico avrà ${profiloTraccia.tratti.length} tratti interrotti, e le interruzioni sono reali.`
+                          : `Slide 03 del carosello · quota ${profiloTraccia.quotaMin}–${profiloTraccia.quotaMax} m dal GPX.`}
+                  </span>
+                </span>
+              </label>
             </section>
 
             <section className="border border-[var(--border-on-dark)] p-4">

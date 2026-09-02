@@ -3,6 +3,7 @@ import { Bed, Check, Coffee, Compass, Fuel, Gift, Luggage, Satellite, ShieldChec
 import Telaio from "../../Telaio";
 import Foto from "../../Foto";
 import Mappa from "../../Mappa";
+import Altimetria from "../../Altimetria";
 import { AmbitoProblemi, Cella, ControlloCapienza, Filo, TestoAdattivo } from "../../primitivi";
 import { FORMATI } from "../../../design/formati";
 import { COLORI, FONT, FOTO } from "../../../design/tokens";
@@ -10,7 +11,7 @@ import {
   ACCENTO, BadgeData, BadgeDisciplina, FasciaFoto, MarchioSuFoto, Percorso, Piede, Prezzo, SOFT, Stats, StatoPosti,
 } from "./parti";
 import { periodoBreve, periodoLeggibile } from "./date";
-import { BANDA_MARCHIO, CELLA_ESPERIENZA, FASCIA, GRIGLIA_ESPERIENZA } from "./zone";
+import { BANDA_MARCHIO, CELLA_ESPERIENZA, FASCIA, GRIGLIA_ESPERIENZA, PROFILO_ALTIMETRICO } from "./zone";
 
 /**
  * Carosello evento — otto slide da 1080×1350, struttura fissa.
@@ -226,6 +227,42 @@ function ContenutoSlide({ contenuto, immagini = {}, traccia, riferimento, meta }
       return Number.isFinite(n) ? `${Math.max(0, 100 - n)}%` : null;
     })();
 
+    /*
+     * Il profilo è opzionale e ridispone soltanto l'interno della banda del
+     * percorso: la mappa si accorcia esattamente di quanto occupano il profilo e
+     * la sua aria, così il filetto, le tappe, lo sterrato e il marchio non si
+     * spostano di un pixel. Con l'opzione spenta la slide è quella di prima,
+     * bit per bit.
+     *
+     * Le tre condizioni qui sotto sono separate apposta, perché rispondono a
+     * domande diverse e prima erano fuse in una sola:
+     *
+     * - `richiesto` — l'ha chiesto chi scrive, sta nel contenuto;
+     * - `haRiferimento` — nella bozza c'è un GPX, salvato e ritrovabile;
+     * - `segmenti` — la traccia è stata **ricostruita adesso**, in questa
+     *   sessione, ed è un fatto momentaneo: la reidratazione dall'archivio è
+     *   asincrona, il blob può essere sparito, il file può essere illeggibile.
+     *
+     * La versione precedente montava il profilo solo con `segmenti.length > 0`,
+     * e quindi proprio nei casi in cui il profilo era **richiesto ma
+     * impossibile** non montava niente: senza componente non c'era nessuno a
+     * dirlo, e il pre-flight vedeva un `gpx.idBlob` regolare e autorizzava.
+     * L'opzione spariva in silenzio dall'export.
+     *
+     * Ora basta che sia richiesto e che il riferimento esista: `Altimetria` si
+     * monta comunque e decide da sé, con `profiloAltimetrico()`, se c'è
+     * qualcosa da disegnare. Il giudizio resta in un posto solo. Se manca anche
+     * il riferimento non si monta: lì l'errore è del pre-flight puro, che lo
+     * dice già due volte — una per il GPX e una per il profilo — e un terzo
+     * messaggio sarebbe rumore.
+     */
+    const richiesto = Boolean(contenuto.mappa?.mostraAltimetria);
+    const haRiferimento = Boolean(contenuto.mappa?.gpx?.idBlob);
+    const conProfilo = richiesto && haRiferimento;
+    const altezzaMappa = conProfilo
+      ? PROFILO_ALTIMETRICO.mappaConProfilo
+      : PROFILO_ALTIMETRICO.mappaSenzaProfilo;
+
     return (
       <Telaio {...comuni} etichetta={meta.titolo}>
         <Corpo titolo="Il percorso" sottotitolo={dati.km ? `${dati.km} · ${dati.sterrato || ""}`.trim() : ""}>
@@ -234,7 +271,7 @@ function ContenutoSlide({ contenuto, immagini = {}, traccia, riferimento, meta }
               segmenti={segmenti}
               configurazione={contenuto.mappa}
               larghezza={UTILE}
-              altezza={720}
+              altezza={altezzaMappa}
             />
             {!segmenti.length && (
               <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -244,6 +281,17 @@ function ContenutoSlide({ contenuto, immagini = {}, traccia, riferimento, meta }
               </div>
             )}
           </div>
+
+          {conProfilo && (
+            <div style={{ marginTop: PROFILO_ALTIMETRICO.distanza }}>
+              {/*
+                Senza traccia ricostruita passa un elenco vuoto: `Altimetria`
+                non disegna nulla e registra l'errore, che si ritira da sé
+                appena la traccia arriva.
+              */}
+              <Altimetria segmenti={segmenti} larghezza={UTILE} metriche={traccia?.metriche} />
+            </div>
+          )}
 
           <div style={{ marginTop: "auto", paddingTop: 24 }}>
             <Filo style={{ marginBottom: 20 }} />

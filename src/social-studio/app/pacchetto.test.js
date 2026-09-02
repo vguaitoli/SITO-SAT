@@ -119,24 +119,42 @@ async function nomiNelloZip(blob) {
 }
 
 const scaricati = [];
+/**
+ * Quante volte è partita la cattura.
+ *
+ * Serve a distinguere «bloccato prima di cominciare» da «fatto e poi buttato
+ * via»: senza questo contatore, un pacchetto che cattura quindici grafiche e
+ * poi si accorge di non poterle salvare sarebbe indistinguibile da uno fermato
+ * dal pre-flight, e i quindici secondi di lavoro sprecato non li vedrebbe
+ * nessuno.
+ */
+const catture = { volte: 0, grafiche: 0 };
 
 vi.mock("../motori/export/cattura", async (importaOriginale) => {
   const originale = await importaOriginale();
   return {
     ...originale,
     // Un PNG finto: qui si verifica il pacchetto, non html2canvas.
-    catturaSequenza: async (elementi) => ({
-      file: elementi.map((e) => ({
-        nome: e.nome,
-        blob: new Blob([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], { type: "image/png" }),
-        ms: 1,
-      })),
-      msTotale: elementi.length,
-      memoria: null,
-    }),
+    catturaSequenza: async (elementi) => {
+      catture.volte += 1;
+      catture.grafiche += elementi.length;
+      return {
+        file: elementi.map((e) => ({
+          nome: e.nome,
+          blob: new Blob([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], { type: "image/png" }),
+          ms: 1,
+        })),
+        msTotale: elementi.length,
+        memoria: null,
+      };
+    },
     scarica: (blob, nome) => scaricati.push({ blob, nome }),
   };
 });
+
+/** Il messaggio del profilo impossibile, uno solo per non farlo divergere. */
+const IMPOSSIBILE =
+  "Profilo altimetrico richiesto, ma la traccia GPX non contiene un tratto di almeno due punti consecutivi con quota.";
 
 const CAPTION =
   "Due giorni di sterrato in Sardegna, con guida e cena inclusa. " +
@@ -175,6 +193,8 @@ const VOCI_MEDIA = [
 describe("esportazione del pacchetto", () => {
   beforeEach(() => {
     scaricati.length = 0;
+    catture.volte = 0;
+    catture.grafiche = 0;
   });
 
   const conNodi = () => PACCHETTO.map((p) => ({ ...p, nodo: { id: p.id } }));
@@ -193,10 +213,56 @@ describe("esportazione del pacchetto", () => {
     });
   };
 
+  it("un profilo richiesto e impossibile ferma il pacchetto prima di catturare", async () => {
+    /*
+     * Il percorso completo, con il motore vero: `Altimetria` non riesce a
+     * disegnare e registra la propria segnalazione; quella arriva a
+     * `esportaPacchetto` dentro `problemi`; `sfori()` la trasforma in un errore
+     * di pre-flight; l'errore blocca.
+     *
+     * `ignoraAvvisi` è acceso apposta: un avviso si supera consapevolmente, un
+     * errore no, e questo deve restare un errore.
+     *
+     * Il contatore è la parte che conta. Verificare solo che non ci sia il
+     * download lascerebbe passare un pacchetto che cattura tutte e quindici le
+     * grafiche e poi le butta: stesso esito visibile, quindici secondi di
+     * lavoro sprecato e la ventola accesa per niente.
+     */
+    const contenuto = schedaPronta();
+    const esito = await esegui(conNodi(), {
+      contenuto: { ...contenuto, mappa: { ...contenuto.mappa, mostraAltimetria: true } },
+      // Le due istanze montate davvero durante un'esportazione del pacchetto:
+      // l'anteprima visibile e la copia fuori schermo. Stesso problema, due
+      // chiavi di registro — chi legge il pannello deve vederne uno.
+      problemi: [
+        { chiave: "carosello/03/altimetria", livello: "errore", messaggio: IMPOSSIBILE },
+        { chiave: "pacco/carosello/03/altimetria", livello: "errore", messaggio: IMPOSSIBILE },
+      ],
+    });
+
+    expect(esito.esito).toBe("bloccato");
+    expect(esito.controllo.puoiEsportare).toBe(false);
+
+    const suProfilo = esito.controllo.errori.filter((e) => e.messaggio === IMPOSSIBILE);
+    expect(suProfilo).toHaveLength(1);
+    expect(suProfilo[0].id).toBe("sforo-carosello/03/altimetria");
+    expect(esito.controllo.errori.some((e) => e.id.includes("pacco/"))).toBe(false);
+
+    expect(catture.volte).toBe(0);
+    expect(catture.grafiche).toBe(0);
+    expect(scaricati).toEqual([]);
+    expect(esito.archivio).toBeUndefined();
+  });
+
   it("scrive sedici file: quindici PNG e la caption", async () => {
     const esito = await esegui(conNodi());
     expect(esito.esito).toBe("fatto");
     expect(esito.archivio.quanti).toBe(16);
+    // Il contatore è vivo: qui la cattura parte davvero, una volta sola, su
+    // tutte e quindici le grafiche. Senza questa riga, uno zero nel test del
+    // blocco potrebbe voler dire soltanto che il contatore non funziona.
+    expect(catture.volte).toBe(1);
+    expect(catture.grafiche).toBe(QUANTE_GRAFICHE);
 
     const nomi = await nomiNelloZip(scaricati[0].blob);
     expect(nomi).toHaveLength(16);

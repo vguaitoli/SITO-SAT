@@ -35,6 +35,21 @@ import { COLORI } from "../design/tokens";
  * può anche omettere o duplicare elementi, cioè nascondere un errore proprio
  * nel pannello che deve mostrarli.
  */
+/**
+ * Concordanza: singolare solo quando il numero è esattamente uno.
+ *
+ * Serve dove la quantità si scrive («1 errore», «2 avvisi»). Dove invece il
+ * numero non compare — «Grafica non ancora montata: story-tappe» — l'accordo si
+ * fa con un ternario in chiaro: passare da qui per poi togliere la cifra
+ * sarebbe più corto da leggere e più difficile da capire.
+ *
+ * «Esportazione bloccata: 1 errori» è la prima riga che si legge quando
+ * qualcosa non va, cioè nel momento in cui si guarda con più attenzione. E il
+ * conteggio a uno non è un caso di confine: da quando le segnalazioni sono
+ * deduplicate per grafica invece che per istanza montata, è il caso normale.
+ */
+const conta = (quanti, uno, molti) => `${quanti} ${quanti === 1 ? uno : molti}`;
+
 export default function PannelloEsito({ daConfermare, onRiprova, onEsportaComunque, onChiudi }) {
   if (!daConfermare) return null;
 
@@ -95,12 +110,15 @@ export default function PannelloEsito({ daConfermare, onRiprova, onEsportaComunq
           </p>
           <ul className="mb-3 space-y-1 font-body text-[11px] leading-snug text-granite-mist/65">
             {daConfermare.mancanti?.length > 0 && (
-              <li>· Grafiche non ancora montate: {daConfermare.mancanti.join(", ")}.</li>
+              <li>
+                · {daConfermare.mancanti.length === 1 ? "Grafica non ancora montata" : "Grafiche non ancora montate"}:{" "}
+                {daConfermare.mancanti.join(", ")}.
+              </li>
             )}
             {daConfermare.misureInSospeso > 0 && (
               <li>
-                · {daConfermare.misureInSospeso} misure di testo non ancora eseguite: probabilmente i
-                caratteri non erano ancora caricati.
+                · {conta(daConfermare.misureInSospeso, "misura di testo non ancora eseguita", "misure di testo non ancora eseguite")}:
+                probabilmente i caratteri non erano ancora caricati.
               </li>
             )}
             {daConfermare.registroInMovimento && (
@@ -139,7 +157,8 @@ export default function PannelloEsito({ daConfermare, onRiprova, onEsportaComunq
       ) : daConfermare.esito === "incompleto" ? (
         <>
           <p className="mb-3 font-body text-xs text-granite-mist/75">
-            Alcune grafiche non erano pronte ({(daConfermare.mancanti || []).join(", ")}): riprova.
+            {(daConfermare.mancanti || []).length === 1 ? "Una grafica non era pronta" : "Alcune grafiche non erano pronte"}{" "}
+            ({(daConfermare.mancanti || []).join(", ")}): riprova.
           </p>
           <div className="flex gap-2">
             <button
@@ -163,8 +182,10 @@ export default function PannelloEsito({ daConfermare, onRiprova, onEsportaComunq
           <p className="mb-2 flex items-start gap-2 font-body text-xs text-granite-mist/80">
             <AlertTriangle size={14} className="mt-0.5 flex-none" style={{ color: COLORI.accentoEventi }} aria-hidden="true" />
             <span>
-              Il pre-flight segnala {daConfermare.controllo.avvisi.length} avvisi. Non bloccano
-              l&apos;esportazione, ma vanno superati consapevolmente.
+              Il pre-flight segnala {conta(daConfermare.controllo.avvisi.length, "avviso", "avvisi")}.{" "}
+              {daConfermare.controllo.avvisi.length === 1
+                ? "Non blocca l'esportazione, ma va superato consapevolmente."
+                : "Non bloccano l'esportazione, ma vanno superati consapevolmente."}
             </span>
           </p>
           <ul className="mb-3 space-y-1">
@@ -192,7 +213,7 @@ export default function PannelloEsito({ daConfermare, onRiprova, onEsportaComunq
       ) : (
         <>
           <p className="mb-2 font-body text-xs" style={{ color: "#E2857A" }}>
-            Esportazione bloccata: {(daConfermare.controllo?.errori || []).length} errori.
+            Esportazione bloccata: {conta((daConfermare.controllo?.errori || []).length, "errore", "errori")}.
           </p>
           <ul className="space-y-1">
             {(daConfermare.controllo?.errori || []).map((e) => (

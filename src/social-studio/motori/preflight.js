@@ -126,6 +126,29 @@ function mappaEGpx({ contenuto }) {
 }
 
 /**
+ * Il profilo altimetrico è opzionale, ma quando è acceso deve poter esistere.
+ *
+ * Qui sta soltanto il controllo che si può fare **sul contenuto**: l'opzione
+ * accesa senza un GPX caricato. Se la traccia c'è ma non ha quote utilizzabili,
+ * a dirlo è il componente che prova a disegnarla — è l'unico che le legge
+ * davvero, e la sua segnalazione arriva qui attraverso `sfori`, su entrambi i
+ * percorsi, editor ed esportazione. Duplicare quel giudizio in due posti
+ * significherebbe farlo divergere, e mostrarlo due volte nel pannello.
+ *
+ * Il profilo vive nella slide 03 del carosello. Sul Post e sulla Story non
+ * compare, quindi lì l'opzione accesa non chiede nulla in più del GPX che il
+ * format già richiede.
+ */
+function profiloAltimetrico({ contenuto, formato }) {
+  if (contenuto.categoria !== "eventi") return [];
+  if (!contenuto.mappa?.mostraAltimetria) return [];
+  if (formato !== "carosello") return [];
+  return contenuto.mappa?.gpx?.idBlob
+    ? [voce("ok", "altimetria", "Profilo altimetrico richiesto: traccia GPX presente.")]
+    : [voce("errore", "altimetria", "Profilo altimetrico richiesto: senza file GPX non c'è nulla da disegnare. Carica la traccia o spegni l'opzione.")];
+}
+
+/**
  * Quello che non entra nelle schermate della Story.
  *
  * Le schermate 04 e 05 sono costruite su cinque righe: la sesta non si
@@ -205,10 +228,55 @@ function caption({ contenuto }) {
   return esiti.length ? esiti : [voce("ok", "caption", `Caption di ${parole} parole.`)];
 }
 
+/**
+ * La grafica di cui parla una segnalazione, non l'istanza che l'ha prodotta.
+ *
+ * Il registro dei problemi indicizza per **istanza React**, ed è giusto così:
+ * `carosello/03` è l'anteprima visibile, `pacco/carosello/03` è la copia fuori
+ * schermo che verrà catturata, e devono restare due chiavi diverse perché lo
+ * smontaggio dell'una non cancelli la segnalazione dell'altra.
+ *
+ * Ma l'**identità editoriale** è una sola: di slide 03 del carosello ce n'è una.
+ * Il prefisso `pacco/` distingue due renderer dello stesso artefatto, non due
+ * problemi. Usarlo come nome della grafica faceva comparire lo stesso errore due
+ * volte, e — peggio — faceva dipendere il conteggio dalla vista aperta
+ * nell'editor: col carosello a schermo due copie, col Post o la Story una sola.
+ * Lo stesso export riportava numeri diversi a seconda di dove si stava
+ * guardando.
+ *
+ * Si toglie **solo** il prefisso iniziale, e una volta sola: tutto il resto
+ * della chiave è nome vero.
+ */
+const chiaveLogica = (chiave) => String(chiave ?? "").replace(/^pacco\//, "");
+
+/**
+ * Le segnalazioni raccolte dai template, una per grafica.
+ *
+ * La deduplica guarda **tre** cose insieme — livello, chiave logica e
+ * messaggio — e non basta che ne coincidano due:
+ *
+ * - stesso messaggio su grafiche diverse sono due problemi da sistemare
+ *   (sei tappe che non entrano nella Story e sei che non entrano nel carosello);
+ * - stessa grafica con messaggi diversi sono due problemi;
+ * - stessa grafica e stesso messaggio ma livelli diversi sono due cose diverse,
+ *   perché una blocca e l'altra informa: fonderle ne perderebbe una.
+ *
+ * L'ordine di arrivo è conservato e l'elenco in ingresso non viene toccato.
+ */
 function sfori({ problemi = [] }) {
-  return problemi.map((p) =>
-    voce(p.livello === "errore" ? "errore" : "avviso", `sforo-${p.chiave}`, p.messaggio),
-  );
+  const viste = new Set();
+  const esiti = [];
+  for (const p of problemi) {
+    const logica = chiaveLogica(p.chiave);
+    const livello = p.livello === "errore" ? "errore" : "avviso";
+    // Il separatore è un carattere che in una chiave o in un messaggio non
+    // compare: senza, «a» + «bc» e «ab» + «c» darebbero la stessa impronta.
+    const impronta = `${livello}\u0000${logica}\u0000${p.messaggio}`;
+    if (viste.has(impronta)) continue;
+    viste.add(impronta);
+    esiti.push(voce(livello, `sforo-${logica}`, p.messaggio));
+  }
+  return esiti;
 }
 
 /**
@@ -226,7 +294,7 @@ function font() {
     : [voce("ok", "font", `Font pronti: ${FAMIGLIE_RICHIESTE.join(", ")}.`)];
 }
 
-const CONTROLLI = [campiObbligatori, coerenzaTemplate, fotografie, mappaEGpx, capienzaStory, caption, sfori, font];
+const CONTROLLI = [campiObbligatori, coerenzaTemplate, fotografie, mappaEGpx, profiloAltimetrico, capienzaStory, caption, sfori, font];
 
 /**
  * Esegue il pre-flight.
