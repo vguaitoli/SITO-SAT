@@ -5,7 +5,7 @@ import handler, {
   caricaTutteLeSubmission,
   indicizzaDomande,
   normalizzaSubmission,
-} from "./feedback.js";
+} from "../../api/feedback.js";
 
 const UTENTE = "prova";
 const PASSWORD = "password-di-prova";

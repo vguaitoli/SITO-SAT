@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { leggiBasic, ugualiATempoCostante, verifica } from "./_autenticazione.js";
-import * as middlewareModule from "../middleware.js";
+import { leggiBasic, ugualiATempoCostante, verifica } from "../../api/_autenticazione.js";
+import * as middlewareModule from "../../middleware.js";
 
 const AMBIENTE = {
   SOCIAL_STUDIO_UTENTE: "vittorio",
