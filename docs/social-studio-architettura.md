@@ -1210,6 +1210,9 @@ protezione esplicita per le modifiche non salvate, o un keep-alive verificato.
 Per questo lo Studio mostra le sette rubriche come «Da implementare» e non
 apribili, invece di offrire un selettore che funziona a metà.
 
+Quella protezione è arrivata in 6.3B: vedi §18. Resta un prerequisito tecnico —
+esiste il meccanismo, non un secondo editor.
+
 ### 16.5 Autorità visive
 
 - **EVENTI** conserva esclusivamente la grafica derivata dal progetto Claude
@@ -1331,3 +1334,206 @@ entra in `media`, non entra in IndexedDB, non entra in `public/`.
 `importatoIl`. Non tocca `fattuali`, `editoriale`, `media`, `visual` o `mappa`:
 riallineare non è reimportare, e il lavoro editoriale non si perde per aver
 accettato che il sito è cambiato. Nessuna funzione muta gli oggetti ricevuti.
+
+
+## 18. Il lavoro non salvato non si perde cambiando schermo
+
+6.3B chiude il prerequisito annunciato in §16.4. **Non** implementa TOUR, non lo
+rende selezionabile e non aggiunge un secondo editor: TOUR resta «Da
+implementare» nel registro, e `statoRubrica("tour")` continua a rispondere
+`pianificata`. Quello che esiste ora è il meccanismo che rende sicuro
+aggiungerne uno.
+
+### 18.1 Il contratto
+
+`src/social-studio/app/transizione.jsx` tiene tre pezzi:
+
+- `FornitoreTransizione` avvolge lo Studio e possiede il dialogo;
+- `useRegistraGuardia({ sporco, salva, etichetta })` è come un editor dichiara
+  di avere lavoro non salvato e come lo salva. La guardia è tenuta in un ref
+  aggiornato a ogni render: si registra una volta sola, e chi la interroga legge
+  sempre l'ultimo stato senza che la registrazione cambi identità;
+- `useRichiediTransizione()` restituisce `richiedi(azione, { etichetta })`, che
+  ogni gesto distruttivo deve attraversare invece di agire subito.
+
+`richiedi` restituisce un esito esplicito — `fatto`, `annullato`, `occupato`,
+`fallito` — perché il chiamante non deve dedurre dal silenzio se l'azione è
+avvenuta. **`fatto` significa azione completata**: si risolve dopo che l'azione
+è finita, non prima. Se l'azione lancia o rigetta, l'esito è `fallito` e porta
+con sé l'errore, invece di diventare una rejection che nessuno raccoglie.
+
+### 18.2 Una richiesta alla volta, con fasi esplicite
+
+La richiesta attiva vive in un ref, non nello stato, e il ref **è** il blocco.
+Lo stato arriverebbe al render successivo: troppo tardi, perché il corpo di una
+funzione asincrona gira sincrono solo fino al primo `await`, ed è quella
+finestra che deve restare indivisibile. Il blocco si prende quindi prima di
+qualunque attesa, **anche quando l'editor è pulito e non c'è niente da
+chiedere**: altrimenti due aperture lente si sovrapporrebbero.
+
+Ogni richiesta porta un numero progressivo e una fase — `apre`, `chiede`,
+`salva`, `agisce`, `congedata`. Da lì discendono tre regole:
+
+- **Dopo ogni `await` si verifica l'identità.** Al ritorno da una scrittura, se
+  quella non è più la richiesta attiva non si applica alcun effetto. È il
+  controllo che rende innocua la continuazione di un'operazione che nessuno
+  aspetta più.
+- **Le risposte non sono rientranti.** Salvare e scartare si accettano solo in
+  fase `chiede`. Due clic su «Salva e continua» producono una scrittura sola e
+  un'azione sola. I pulsanti si disabilitano, ma la difesa non sta
+  nell'attributo: sta nella fase.
+- **Il dialogo si tocca per numero.** Lo stato che lo disegna è una proiezione
+  identificata dal numero della richiesta, così la continuazione di
+  un'operazione lenta non può chiudere il dialogo di un'altra né scriverci
+  dentro il proprio errore.
+
+Si congeda una richiesta una volta sola: `risolvi` viene azzerato nell'atto di
+usarlo, e il blocco si rilascia solo se quella è ancora la richiesta attiva.
+
+**Annullare durante la scrittura.** «Annulla» ed `Escape` restano attivi mentre
+si salva, perché è lì che servono. La scrittura già partita non si può
+ritirare — e finisce — ma la sua continuazione trova la richiesta annullata e
+**non** avvia l'azione. Chi ha chiesto riceve `annullato` soltanto quando la
+scrittura è finita: fino ad allora il blocco resta, perché l'archivio sta
+cambiando e una nuova transizione partirebbe da una base in movimento. Il
+dialogo lo dice invece di sparire.
+
+**Smontaggio.** Se il fornitore sparisce mentre qualcosa è in volo, il
+riferimento si azzera: le continuazioni non si riconosceranno più come attive e
+non applicheranno nulla. Una richiesta ancora in attesa si risolve `annullato`;
+una la cui azione è già partita la conclude chi l'ha avviata, per non rispondere
+due volte.
+
+### 18.3 Chi decide, e dove
+
+L'editor dichiara *se* ha lavoro non salvato e sa salvarlo. Non decide *se* la
+transizione può avvenire: quella decisione sta nel fornitore, un livello sopra,
+perché è lì che si sa quale azione si sta per eseguire. Un salvataggio fallito —
+che restituisca falso o che lanci — lascia il dialogo aperto, la transizione non
+avviene, e si può ancora decidere, scarto compreso. Il motivo lo mostra
+l'editor, che è l'unico a sapere che cosa è andato storto; se a lanciare è la
+guardia stessa, il messaggio lo mostra il dialogo.
+
+Per rendere leggibile quel motivo è stato corretto un difetto vero in
+`EditorEvento`: lo stato del salvataggio era reso **solo a editor pulito**, cioè
+mai nel caso che conta. Un salvataggio fallito lascia l'editor sporco, e
+«non salvato: disco pieno» restava invisibile sotto «modifiche non salvate».
+Ora, mentre l'editor è sporco, ogni stato diverso da «in corso» si legge
+accanto al marcatore.
+
+### 18.4 Le corse dentro l'editor
+
+`scriviNellArchivio` fotografa, prima della scrittura, l'identità del contenuto
+e un contatore di modifiche. Al ritorno confronta:
+
+- se nel frattempo è cambiato contenuto, dice «salvataggio completato su
+  un'altra bozza: riprova su questa»;
+- se nel frattempo si è scritto ancora, dice «salvato, ma nel frattempo hai
+  modificato altro: salva di nuovo».
+
+In entrambi i casi **non** azzera «modifiche non salvate», perché non lo sono.
+
+`apriBozzaSenzaChiedere` difende la stessa finestra con lo stesso contatore. Fra
+la richiesta all'archivio e la sua risposta il dialogo è già chiuso e l'editor
+risponde di nuovo alla tastiera: applicare la bozza letta cancellerebbe le
+battute arrivate nel frattempo. Se il contatore è cambiato l'apertura non
+avviene, lo dice, e lancia — così la transizione riporta `fallito` invece di un
+`fatto` che non è vero.
+
+**Il salvataggio non finisce con la rilettura.** Dopo aver applicato il
+contenuto riletto, `scriviNellArchivio` aggiorna l'elenco delle bozze e lo
+spazio occupato: due attese come le altre, in cui si può scrivere o aprire
+un'altra bozza. Il controllo di prima non le copriva, e il valore restituito da
+lì autorizzava la transizione — la battuta arrivata durante l'ultimo
+aggiornamento non era nell'archivio e l'azione la sovrascriveva. Ora identità e
+contatore si ricontrollano **dopo tutte le attese**, e se la risposta è superata
+si restituisce `null`: l'editor non viene toccato, ciò che si è scritto resta
+dov'è, `aggiorna` ha già rimesso «modifiche non salvate», e si dice perché non
+si prosegue — distinguendo «hai modificato altro» da «hai cambiato bozza», che
+manderebbero a fare cose diverse.
+
+La garanzia è precisa: **quel controllo è l'ultima istruzione prima del
+ritorno**. Da lì fino all'avvio dell'azione non c'è più alcuna attesa su
+operazioni esterne — solo continuazioni di promesse — e un evento di tastiera è
+un task, che non può inserirsi fra microtask. Non ci sono quindi altre finestre
+dopo l'ultimo controllo. La protezione non si appoggia ai pulsanti disabilitati
+né a una trappola per il fuoco: il dialogo, di fatto, non impedisce di
+raggiungere i campi da tastiera, ed è proprio per questo che la difesa sta nel
+dato.
+
+Una riga sostiene quel controllo: dopo `setContenuto(riletto)` il riferimento al
+contenuto corrente viene allineato subito, senza aspettare il render. Serve a
+non far dipendere il confronto di identità dai tempi con cui React svuota la
+coda: senza, un salvataggio di bozza nuova potrebbe leggere l'identità
+precedente e rifiutare una transizione legittima. Nessuna prova la distingue —
+nei test il render è sempre già avvenuto — e resta quindi una difesa dichiarata,
+non una difesa verificata.
+
+### 18.5 Che cosa è verificato
+
+`transizione.test.jsx` — 24 prove — prova il contratto su una guardia finta, con
+**promesse pilotate dal test**, non con attese temporali: annullamento durante
+la scrittura (con clic e con `Escape`), blocco che resta finché la scrittura
+annullata non finisce, doppio «Salva» e «Scarta» durante la scrittura, blocco
+che copre l'intera azione anche da editor pulito, esito che non anticipa il
+completamento, azione che lancia, salvataggio che rigetta, smontaggio durante
+l'attesa. Le prove che riguardano gli errori verificano anche che **non restino
+rejection non gestite**.
+
+`EditorEvento.transizione.test.jsx` — 18 prove — monta l'editor vero dentro
+`FornitoreArchivio` e `FornitoreTransizione`, non un aiutante isolato: modifica
+davvero un campo e guarda che cosa succede provando a sostituire il contenuto.
+Copre i casi asincroni sul dato vero, contando le scritture e rileggendo
+l'archivio: annullamento durante una scrittura lenta, che conserva identità e
+contenuto e non scrive due volte; apertura lenta di un'altra bozza, che non
+copre le modifiche sopraggiunte e non tocca il disco; e le due attese finali del
+salvataggio — aggiornamento dell'elenco e dello spazio — fermate una per volta,
+scrivendo proprio lì dentro. In quei casi la prova verifica che la destinazione
+**non** si apra, che il testo scritto resti, che il lavoro resti sporco, che il
+dialogo lasci decidere di nuovo, che l'archivio contenga la versione davvero
+salvata e non quella sopraggiunta, e che un secondo «Salva e continua» senza
+concorrenza salvi il testo nuovo e compia **una sola** transizione. Una prova a
+parte controlla che cambiare bozza in quella finestra venga detto per quello che
+è, e non con il messaggio dell'altro caso.
+
+`Studio.test.jsx` — 17 prove — copre il cambio rubrica: le destinazioni non
+disponibili sono respinte **prima** di chiedere, così non smontano mai l'editor.
+
+Il mordente è stato verificato reintroducendo ogni difetto. Le undici prove
+asincrone sono state scritte **prima** della correzione e fallivano tutte sul
+codice difettoso. Poi, una mutazione alla volta: senza guardia registrata
+falliscono 9 prove montate; senza il controllo di identità dopo la scrittura, 1;
+senza il controllo di annullamento, 1; senza la difesa della finestra di
+apertura, 1; senza il controllo di concorrenza nel salvataggio, 1; senza
+`beforeunload`, 1; facendo procedere un salvataggio fallito, 1; senza il
+controllo dopo le attese finali, 3; senza distinguere il cambio di bozza nel
+messaggio, 1. Nessuna mutazione è rimasta nel codice.
+
+### 18.6 I limiti, dichiarati
+
+- **Una guardia alla volta.** Il fornitore ne tiene una. Oggi è corretto perché
+  è montato un editor solo (`<Editor key={rubricaAperta} />`); con due editor
+  montati insieme varrebbe l'ultimo registrato. Va risolto *prima* di montarne
+  due, non dopo.
+- **Una richiesta alla volta, senza coda.** Un secondo gesto mentre una
+  transizione è in corso riceve `occupato`: chi chiama deve ripeterlo. Nessun
+  chiamante oggi mostra quel rifiuto, perché il gesto semplicemente non ha
+  effetto; con un secondo editor andrà comunicato.
+- **Una scrittura partita non si ritira.** Annullare impedisce la transizione,
+  non la scrittura: ciò che era già stato mandato all'archivio ci resta.
+- **Nessuna fusione automatica.** Su scrittura concorrente o apertura
+  sopraggiunta il sistema segnala e chiede di ripetere. Non prova a unire due
+  versioni.
+- **Il rifiuto costa un secondo salvataggio.** Quando una modifica arriva
+  durante le attese finali, quella precedente è già sul disco: riprovando si
+  scrive di nuovo, e si registra una revisione in più. È il prezzo di non
+  perdere lavoro, ed è deliberato.
+- **Il dialogo non è una trappola per il fuoco.** Il fuoco parte su «Annulla» ed
+  `Escape` annulla, ma `Tab` può uscire dal dialogo. Basta per un pannello
+  interno; non basterebbe per un componente pubblico.
+- **`beforeunload` è del browser.** Il testo dell'avviso lo decide il browser,
+  non noi, e non si accende su ogni forma di chiusura. Protegge la scheda, non
+  la navigazione interna: quella è il dialogo.
+- **Fuori dallo Studio non c'è protezione.** `useRichiediTransizione` senza
+  fornitore esegue senza chiedere. È deliberato — un componente montato altrove
+  non deve rompersi — ma significa che la protezione vale dentro lo Studio.

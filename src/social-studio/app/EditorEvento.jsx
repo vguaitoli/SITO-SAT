@@ -32,6 +32,7 @@ import { attendiUnFrame } from "../motori/export/cattura";
 import EsitoExport from "./EsitoExport";
 import { useLavoroExport } from "./useLavoroExport";
 import { etichettaExport, PACCHETTO } from "./pacchetto";
+import { useRegistraGuardia, useRichiediTransizione } from "./transizione";
 import { COLORI } from "../design/tokens";
 
 /**
@@ -64,6 +65,8 @@ export default function EditorEvento() {
   const { events, SITE, TOUR_GROUP } = useSiteContent();
   const { archivio, aggiornaStato } = useArchivio();
   const fontPronti = useFontPronti();
+
+  const richiedi = useRichiediTransizione();
 
   const [bozze, setBozze] = useState([]);
   const [contenuto, setContenuto] = useState(null);
@@ -111,8 +114,23 @@ export default function EditorEvento() {
     [events, contenuto],
   );
 
+  /**
+   * Quante modifiche sono passate da `aggiorna`.
+   *
+   * Serve a riconoscere una risposta di salvataggio **superata**: se fra la
+   * partenza della scrittura e il suo ritorno il numero è cambiato, nel
+   * frattempo si è scritto altro, e applicare il contenuto riletto lo
+   * cancellerebbe. Un contatore e non un booleano perché due modifiche
+   * consecutive devono restare distinguibili.
+   */
+  const modificheRif = useRef(0);
+  /** Il contenuto corrente, leggibile da una funzione asincrona già partita. */
+  const contenutoRif = useRef(null);
+  contenutoRif.current = contenuto;
+
   /** Ogni modifica passa da qui: è così che «non salvato» resta veritiero. */
   const aggiorna = useCallback((fn) => {
+    modificheRif.current += 1;
     setContenuto((c) => (c ? fn(c) : c));
     setSporco(true);
     setStatoSalvataggio(null);
@@ -173,6 +191,18 @@ export default function EditorEvento() {
    */
   const scriviNellArchivio = useCallback(
     async (daSalvare, { etichetta, giaRegistrata = false } = {}) => {
+      /*
+       * Due fotografie prese **prima** della scrittura: quante modifiche erano
+       * passate e su quale contenuto si stava lavorando. La scrittura e la
+       * rilettura sono asincrone, e al ritorno il mondo può essere cambiato:
+       * si può aver scritto altro, o aver aperto un'altra bozza. In quei casi
+       * applicare il contenuto riletto cancellerebbe lavoro, e azzerare
+       * `sporco` direbbe una bugia — la più costosa, perché è quella su cui si
+       * decide se avvisare o no.
+       */
+      const modificheAllInizio = modificheRif.current;
+      const idDiPartenza = daSalvare?.id ?? null;
+
       setStatoSalvataggio("in corso");
       try {
         const conStoria = giaRegistrata
@@ -181,12 +211,64 @@ export default function EditorEvento() {
         const id = await archivio.salva(conStoria);
         // Si rilegge: ciò che si vede è ciò che è sul disco, convalidato.
         const riletto = await archivio.leggi(id);
+
+        const altroContenuto = (contenutoRif.current?.id ?? null) !== idDiPartenza;
+        const scrittoNelFrattempo = modificheRif.current !== modificheAllInizio;
+
+        if (altroContenuto || scrittoNelFrattempo) {
+          /*
+           * Il salvataggio è **riuscito** — quello che gli era stato dato è sul
+           * disco — ma non è più l'ultima parola. Non si tocca l'editor e non si
+           * dichiara pulito: si aggiornano solo elenco e spazio, e si dice cosa
+           * è successo. Restituire `null` sarebbe scorretto quanto il contrario:
+           * chi ha chiesto «salva e continua» non deve procedere su una base
+           * superata.
+           */
+          setStatoSalvataggio(
+            altroContenuto
+              ? "salvataggio completato su un'altra bozza: riprova su questa"
+              : "salvato, ma nel frattempo hai modificato altro: salva di nuovo",
+          );
+          await ricaricaBozze();
+          await aggiornaStato();
+          return null;
+        }
+
         setContenuto(riletto);
+        // Il riferimento segue subito, senza aspettare il render: il controllo
+        // finale qui sotto deve poter confrontare l'identità di *adesso*.
+        contenutoRif.current = riletto;
         salvato.current = riletto;
         setSporco(false);
         setStatoSalvataggio(`salvato alle ${new Date().toLocaleTimeString("it-IT")}`);
         await ricaricaBozze();
         await aggiornaStato();
+
+        /*
+         * Il salvataggio non finisce con la rilettura: aggiornare elenco e
+         * spazio sono due attese come le altre, e in mezzo si può scrivere o
+         * aprire un'altra bozza. Il controllo di prima non le copriva, e quel
+         * che tornava da qui autorizzava la transizione: la battuta arrivata
+         * durante l'ultimo aggiornamento non era nell'archivio e veniva
+         * sovrascritta dall'azione.
+         *
+         * Questo è l'ultimo controllo, e dev'essere l'ultima istruzione prima
+         * del ritorno: da qui in poi non c'è più nessuna attesa fino all'avvio
+         * dell'azione — solo microtask — e nessun evento di tastiera può
+         * inserirsi. Non si tocca l'editor: ciò che si è scritto resta dov'è,
+         * `aggiorna` ha già rimesso «non salvato», e si dice soltanto perché
+         * non si prosegue.
+         */
+        const altroDopo = (contenutoRif.current?.id ?? null) !== riletto.id;
+        const scrittoDopo = modificheRif.current !== modificheAllInizio;
+        if (altroDopo || scrittoDopo) {
+          setStatoSalvataggio(
+            altroDopo
+              ? "salvataggio completato su un'altra bozza: riprova su questa"
+              : "salvato, ma nel frattempo hai modificato altro: salva di nuovo",
+          );
+          return null;
+        }
         return riletto;
       } catch (e) {
         setStatoSalvataggio(`non salvato: ${e.message}`);
@@ -196,10 +278,70 @@ export default function EditorEvento() {
     [archivio, ricaricaBozze, aggiornaStato],
   );
 
-  const apriBozza = useCallback(
+  /*
+   * La guardia che il guscio interroga prima di ogni transizione.
+   *
+   * Registrata una volta e con lo stato letto fresco: `useRegistraGuardia`
+   * tiene un riferimento aggiornato a ogni render, così non si registra di
+   * nuovo a ogni battuta di tasto. `salva` riporta se la persistenza è
+   * **riuscita** — `scriviNellArchivio` restituisce `null` quando fallisce o
+   * quando la risposta è superata — ed è quel booleano a decidere se la
+   * transizione può proseguire.
+   */
+  useRegistraGuardia({
+    sporco: () => sporco,
+    salva: async () => Boolean(await scriviNellArchivio(contenutoRif.current)),
+    etichetta: "Questa azione",
+  });
+
+  /*
+   * L'avviso del browser prima di lasciare la pagina.
+   *
+   * Solo quando c'è lavoro non salvato: registrarlo sempre farebbe comparire
+   * la richiesta di conferma anche a editor pulito, e la gente impara a
+   * ignorarla. Il listener si rimuove appena `sporco` torna falso, non solo
+   * allo smontaggio.
+   *
+   * Copre la chiusura della scheda, il ricarico e la navigazione fuori
+   * dall'applicazione. **Non** copre la navigazione interna del router: il
+   * router pubblico non è nel perimetro di questo capitolo e non è stato
+   * toccato.
+   */
+  useEffect(() => {
+    if (!sporco) return undefined;
+    const avvisa = (e) => {
+      e.preventDefault();
+      // Il testo lo decide il browser: quello fornito qui viene ignorato dai
+      // browser moderni, ma `returnValue` è ancora ciò che accende l'avviso.
+      e.returnValue = "";
+      return "";
+    };
+    window.addEventListener("beforeunload", avvisa);
+    return () => window.removeEventListener("beforeunload", avvisa);
+  }, [sporco]);
+
+  /** Sostituisce il contenuto corrente. Non chiede niente: lo fa chi la chiama. */
+  const apriBozzaSenzaChiedere = useCallback(
     async (id) => {
+      /*
+       * Fra la richiesta all'archivio e la sua risposta si può scrivere: il
+       * dialogo è già chiuso, l'editor risponde di nuovo alla tastiera, e
+       * applicare la bozza letta cancellerebbe quelle battute senza che
+       * nessuno l'abbia chiesto. È la stessa finestra che il salvataggio già
+       * difende, e si difende allo stesso modo: con il contatore.
+       */
+      const modificheAllInizio = modificheRif.current;
       const c = await archivio.leggi(id);
       if (!c) return;
+      if (modificheRif.current !== modificheAllInizio) {
+        setStatoSalvataggio(
+          "apertura annullata: nel frattempo hai modificato questa bozza",
+        );
+        // Si lancia, e non si ritorna in silenzio: chi ha chiesto la
+        // transizione deve sapere che **non** è avvenuta.
+        throw new Error("apertura annullata: modifiche sopraggiunte");
+      }
+      modificheRif.current += 1;
       setContenuto(c);
       salvato.current = c;
       setSporco(false);
@@ -211,7 +353,17 @@ export default function EditorEvento() {
     [archivio, ricostruisciTraccia],
   );
 
-  const nuovoDaEvento = (ev) => {
+  /*
+   * Aprire un'altra bozza **sostituisce** il contenuto in memoria: è una
+   * transizione come cambiare rubrica, e va protetta allo stesso modo. Prima
+   * questa riga buttava via il lavoro non salvato senza dire nulla.
+   */
+  const apriBozza = useCallback(
+    (id) => richiedi(() => apriBozzaSenzaChiedere(id), { etichetta: "Aprire un'altra bozza" }),
+    [richiedi, apriBozzaSenzaChiedere],
+  );
+
+  const nuovoDaEventoSenzaChiedere = (ev) => {
     const base = contenutoVuoto({ categoria: "eventi", formato: "post" });
     const importato = daEvento(ev, {
       tourGroup: TOUR_GROUP?.label,
@@ -234,6 +386,7 @@ export default function EditorEvento() {
       },
       media: { cover: null, esperienza: [null, null, null, null], sfondi: {} },
     };
+    modificheRif.current += 1;
     setContenuto(nuovo);
     salvato.current = null;
     setSporco(true);
@@ -243,6 +396,13 @@ export default function EditorEvento() {
     setProblemi([]);
     setMostraRevisioni(false);
   };
+
+  /*
+   * Creare da un altro evento sostituisce il contenuto corrente esattamente
+   * come aprire un'altra bozza: stessa protezione.
+   */
+  const nuovoDaEvento = (ev) =>
+    richiedi(() => nuovoDaEventoSenzaChiedere(ev), { etichetta: "Creare una bozza da un altro evento" });
 
   const eliminaBozza = async (id) => {
     await archivio.elimina(id);
@@ -707,7 +867,28 @@ export default function EditorEvento() {
             </button>
             <span className="font-body text-[11px] text-granite-mist/50">
               {sporco ? (
-                <span style={{ color: COLORI.accentoEventi }}>modifiche non salvate</span>
+                <>
+                  <span style={{ color: COLORI.accentoEventi }}>modifiche non salvate</span>
+                  {/*
+                    Con l'editor sporco lo stato del salvataggio veniva
+                    inghiottito: si leggeva soltanto «modifiche non salvate». Ma
+                    è proprio lì che serve, perché un salvataggio fallito lascia
+                    l'editor sporco e il motivo restava invisibile. Mentre è
+                    sporco, ogni stato diverso da «in corso» è un problema.
+                  */}
+                  {statoSalvataggio && (
+                    <span
+                      className="ml-2"
+                      style={
+                        statoSalvataggio === "in corso"
+                          ? undefined
+                          : { color: COLORI.accentoEventi }
+                      }
+                    >
+                      · {statoSalvataggio}
+                    </span>
+                  )}
+                </>
               ) : (
                 statoSalvataggio || "allineata all'archivio"
               )}
