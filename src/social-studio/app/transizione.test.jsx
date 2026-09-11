@@ -387,12 +387,6 @@ async function rejectionNonGestite(corpo) {
   return viste;
 }
 
-/** Preme un pulsante anche se disabilitato, per provare la logica e non l'attributo. */
-const premiForzando = (b) => {
-  b.disabled = false;
-  b.click();
-};
-
 describe("annullare mentre il salvataggio è in volo", () => {
   it("«Annulla» impedisce che l'azione parta dopo", async () => {
     const { guardia, stato } = creaGuardiaPilotata();
@@ -475,32 +469,60 @@ describe("annullare mentre il salvataggio è in volo", () => {
 });
 
 describe("risposte ripetute non si moltiplicano", () => {
-  it("due «Salva e continua» scrivono una volta sola", async () => {
+  /*
+   * I clic ripetuti vanno mandati **nello stesso giro**, prima che React
+   * ridisegni.
+   *
+   * Era il difetto di queste due prove: disabilitavano il pulsante, poi
+   * rimettevano `disabled = false` sul nodo del DOM e cliccavano, convinte di
+   * esercitare la guardia di fase. Ma React filtra i click sui pulsanti che
+   * considera disabilitati guardando le **proprie props**, non l'attributo del
+   * DOM: quel clic non arrivava mai al gestore, e la prova passava senza aver
+   * provato niente. Prima del ridisegno il pulsante è ancora abilitato anche
+   * per React, e il secondo clic entra davvero — che è poi il doppio clic vero.
+   */
+  it("due «Salva e continua» ravvicinati scrivono una volta sola", async () => {
     const { guardia, stato } = creaGuardiaPilotata();
     const canale = monta({ guardia });
-    const azione = vi.fn();
+    const { azione, stato: statoAzione } = azionePilotata();
 
+    let promessa;
     act(() => {
-      canale.richiedi(azione);
+      promessa = canale.richiedi(azione);
     });
-    act(() => bottone("Salva e continua").click());
-    expect(stato.salvate).toBe(1);
 
-    // Il pulsante si disabilita…
-    expect(bottone("Salva e continua").disabled).toBe(true);
-    // …ma la difesa deve stare nella logica, non solo nell'attributo.
-    act(() => premiForzando(bottone("Salva e continua")));
+    const salva = bottone("Salva e continua");
+    act(() => {
+      salva.click();
+      salva.click();
+    });
+    // Una scrittura sola…
     expect(stato.salvate).toBe(1);
+    // …e nessuna azione anticipata: la scrittura è ancora in volo.
+    expect(statoAzione.partenze).toBe(0);
+
+    // Dopo il ridisegno il pulsante è anche disabilitato, per chi guarda.
+    await respiro();
+    expect(bottone("Salva e continua").disabled).toBe(true);
 
     await act(async () => {
       stato.attese[0].risolvi(true);
       await stato.attese[0].promessa;
     });
     await respiro();
-    expect(azione).toHaveBeenCalledTimes(1);
+    // Una azione sola, al completamento.
+    expect(statoAzione.partenze).toBe(1);
+    expect(stato.salvate).toBe(1);
+
+    await act(async () => {
+      statoAzione.attese[0].risolvi();
+      await statoAzione.attese[0].promessa;
+    });
+    await respiro();
+    expect((await promessa).esito).toBe(ESITI.fatto);
   });
 
-  it("«Scarta modifiche» durante la scrittura non fa partire l'azione due volte", async () => {
+  it("«Salva e continua» seguito subito da «Scarta modifiche» non fa due cose", async () => {
     const { guardia, stato } = creaGuardiaPilotata();
     const canale = monta({ guardia });
     const { azione, stato: statoAzione } = azionePilotata();
@@ -508,18 +530,28 @@ describe("risposte ripetute non si moltiplicano", () => {
     act(() => {
       canale.richiedi(azione);
     });
-    act(() => bottone("Salva e continua").click());
 
-    expect(bottone("Scarta modifiche").disabled).toBe(true);
-    act(() => premiForzando(bottone("Scarta modifiche")));
+    const salva = bottone("Salva e continua");
+    const scarta = bottone("Scarta modifiche");
+    act(() => {
+      salva.click();
+      scarta.click();
+    });
+    // Lo scarto arrivato a scrittura avviata non avvia niente.
+    expect(stato.salvate).toBe(1);
     expect(statoAzione.partenze).toBe(0);
+
+    await respiro();
+    expect(bottone("Scarta modifiche").disabled).toBe(true);
 
     await act(async () => {
       stato.attese[0].risolvi(true);
       await stato.attese[0].promessa;
     });
     await respiro();
+    // Una azione sola, e viene dal salvataggio.
     expect(statoAzione.partenze).toBe(1);
+    expect(stato.salvate).toBe(1);
   });
 });
 

@@ -526,13 +526,27 @@ function archivioConSosta() {
     salva: archivio.salva.bind(archivio),
     elenca: archivio.elenca.bind(archivio),
     spazioUsato: archivio.spazioUsato.bind(archivio),
+    elimina: archivio.elimina.bind(archivio),
   };
   const scritture = [];
-  const soste = { elenca: null, spazioUsato: null };
+  const eliminazioni = [];
+  const soste = { elenca: null, spazioUsato: null, elimina: null };
+  // Si accende quando il test vuole che l'archivio rifiuti l'eliminazione.
+  const rompi = { elimina: false, elenca: false };
 
   archivio.salva = async (c) => {
     scritture.push(c.titolo);
     return veri.salva(c);
+  };
+  archivio.elimina = async (id) => {
+    eliminazioni.push(id);
+    const sosta = soste.elimina;
+    if (sosta) {
+      soste.elimina = null;
+      await sosta.promessa;
+    }
+    if (rompi.elimina) throw new Error("archivio non raggiungibile");
+    return veri.elimina(id);
   };
   // Una sosta sola: la prima chiamata dopo l'armamento, non tutte.
   const conSosta = (nome) => async (...args) => {
@@ -541,6 +555,7 @@ function archivioConSosta() {
       soste[nome] = null;
       await sosta.promessa;
     }
+    if (rompi[nome]) throw new Error(`${nome} non disponibile`);
     return veri[nome](...args);
   };
   archivio.elenca = conSosta("elenca");
@@ -549,6 +564,8 @@ function archivioConSosta() {
   return {
     archivio,
     scritture,
+    eliminazioni,
+    rompi,
     /** Ferma la prossima chiamata a quel metodo, e restituisce come liberarla. */
     fermaProssima(nome) {
       const sosta = rinviata();
@@ -556,6 +573,24 @@ function archivioConSosta() {
       return sosta;
     },
   };
+}
+
+/** Il cestino della voce con quel titolo, nell'elenco delle bozze. */
+const cestino = (titolo) =>
+  voceBozza(titolo)?.parentElement?.querySelector('button[title="Elimina la bozza"]') || null;
+
+/** Raccoglie le rejection non gestite prodotte dal corpo. */
+async function rejectionNonGestite(corpo) {
+  const viste = [];
+  const cattura = (e) => viste.push(e);
+  process.on("unhandledRejection", cattura);
+  try {
+    await corpo();
+    await new Promise((r) => setImmediate(r));
+  } finally {
+    process.off("unhandledRejection", cattura);
+  }
+  return viste;
 }
 
 /**
@@ -675,5 +710,310 @@ describe("cambiare bozza mentre il salvataggio sta finendo", () => {
     const elenco = await archivio.elenca({ categoria: "eventi" });
     const suo = elenco.find((x) => x.titolo === "Primo Evento");
     expect((await archivio.leggi(suo.id)).editoriale.titoloBreve).toBe("Titolo scritto a mano");
+  });
+});
+
+/* ================================================================== *
+ * Il cestino
+ * ================================================================== */
+
+/**
+ * Eliminare è distruttivo quanto sostituire, e più definitivo.
+ *
+ * Il cestino era l'unico gesto rimasto fuori dal contratto: cancellava
+ * nell'archivio e poi decideva che cosa svuotare guardando il contenuto
+ * catturato **prima** dell'attesa. Da lì due modi di perdere lavoro — buttare
+ * via modifiche non salvate senza chiedere, e svuotare una bozza diversa da
+ * quella cancellata.
+ */
+describe("eliminare una bozza", () => {
+  it("con modifiche non salvate su quella bozza, non si elimina", async () => {
+    const { archivio, eliminazioni } = archivioConSosta();
+    await monta(archivio);
+    await premi(contiene("primo evento"));
+    await premi(contiene("salva la bozza"));
+    // Ora è salvata e aperta: la si sporca.
+    await scrivi(campoTitolo(), "Modifica non salvata");
+
+    await premi(cestino("Primo Evento"));
+
+    // Niente è stato cancellato, e il lavoro è ancora qui.
+    expect(eliminazioni).toHaveLength(0);
+    expect(campoTitolo().value).toBe("Modifica non salvata");
+    expect(contenitore.textContent).toMatch(/modifiche non salvate/i);
+    expect(contenitore.textContent).toMatch(/non eliminata/i);
+    expect(await archivio.elenca({ categoria: "eventi" })).toHaveLength(1);
+  });
+
+  it("pulita, si elimina e l'editor si riallinea", async () => {
+    const { archivio, eliminazioni } = archivioConSosta();
+    await monta(archivio);
+    await premi(contiene("primo evento"));
+    await premi(contiene("salva la bozza"));
+
+    await premi(cestino("Primo Evento"));
+
+    expect(eliminazioni).toHaveLength(1);
+    expect(await archivio.elenca({ categoria: "eventi" })).toHaveLength(0);
+    // L'editor è vuoto e non si dichiara sporco.
+    expect(contenitore.textContent).not.toMatch(/modifiche non salvate/i);
+  });
+
+  it("un'altra bozza si elimina senza toccare quella aperta e sporca", async () => {
+    const { archivio, eliminazioni } = archivioConSosta();
+    await monta(archivio);
+    await premi(contiene("secondo evento"));
+    await premi(contiene("salva la bozza"));
+    await premi(contiene("primo evento"));
+    await premi(contiene("salva la bozza"));
+    await scrivi(campoTitolo(), "Lavoro in corso");
+
+    await premi(cestino("Secondo Evento"));
+
+    expect(eliminazioni).toHaveLength(1);
+    // Quella aperta è intatta, modifiche comprese.
+    expect(campoTitolo().value).toBe("Lavoro in corso");
+    expect(contenitore.textContent).toMatch(/modifiche non salvate/i);
+    const rimaste = await archivio.elenca({ categoria: "eventi" });
+    expect(rimaste).toHaveLength(1);
+    expect(rimaste[0].titolo).toBe("Primo Evento");
+  });
+
+  it("un'eliminazione lenta non svuota la bozza aperta nel frattempo", async () => {
+    const { archivio, fermaProssima } = archivioConSosta();
+    await monta(archivio);
+    await premi(contiene("secondo evento"));
+    await premi(contiene("salva la bozza"));
+    await premi(contiene("primo evento"));
+    await premi(contiene("salva la bozza"));
+
+    // Si cancella quella aperta (pulita), ma l'archivio è lento.
+    const sosta = fermaProssima("elimina");
+    await act(async () => {
+      cestino("Primo Evento").click();
+    });
+    await assesta();
+
+    // Nel frattempo si apre l'altra bozza.
+    await act(async () => {
+      voceBozza("Secondo Evento").click();
+    });
+    await assesta();
+    expect(campoTitolo().value).toBe("Secondo Evento");
+
+    // La risposta tardiva non deve svuotare quello che ora è aperto.
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await assesta();
+    expect(campoTitolo().value).toBe("Secondo Evento");
+    /*
+     * E non basta che non si svuoti: la bozza aperta non è stata eliminata,
+     * quindi non va né dichiarata non salvata né annunciata come sparita
+     * dall'archivio. Senza questo, confondere l'identità resterebbe invisibile.
+     */
+    expect(contenitore.textContent).not.toMatch(/eliminata dall'archivio/i);
+    expect(contenitore.textContent).not.toMatch(/modifiche non salvate/i);
+  });
+
+  it("scrivere durante un'eliminazione lenta non fa sparire quel che si è scritto", async () => {
+    const { archivio, fermaProssima } = archivioConSosta();
+    await monta(archivio);
+    await premi(contiene("primo evento"));
+    await premi(contiene("salva la bozza"));
+
+    const sosta = fermaProssima("elimina");
+    await act(async () => {
+      cestino("Primo Evento").click();
+    });
+    await assesta();
+
+    await scrivi(campoTitolo(), "Scritto mentre spariva");
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await assesta();
+
+    // L'archivio non ce l'ha più, ma la memoria sì — e lo dice.
+    expect(campoTitolo().value).toBe("Scritto mentre spariva");
+    expect(contenitore.textContent).toMatch(/modifiche non salvate/i);
+    expect(await archivio.elenca({ categoria: "eventi" })).toHaveLength(0);
+  });
+
+  it("un errore dell'archivio si vede, e non resta una rejection scoperta", async () => {
+    const { archivio, rompi, eliminazioni } = archivioConSosta();
+    await monta(archivio);
+    await premi(contiene("primo evento"));
+    await premi(contiene("salva la bozza"));
+
+    rompi.elimina = true;
+    const scoperte = await rejectionNonGestite(async () => {
+      await premi(cestino("Primo Evento"));
+    });
+
+    expect(scoperte).toHaveLength(0);
+    expect(eliminazioni).toHaveLength(1);
+    expect(contenitore.textContent).toMatch(/non eliminata: archivio non raggiungibile/i);
+    // La bozza è ancora lì, e l'editor pure.
+    expect(await archivio.elenca({ categoria: "eventi" })).toHaveLength(1);
+    expect(campoTitolo().value).toBe("Primo Evento");
+  });
+
+  it("due clic sul cestino non cancellano due volte", async () => {
+    const { archivio, eliminazioni, fermaProssima } = archivioConSosta();
+    await monta(archivio);
+    await premi(contiene("primo evento"));
+    await premi(contiene("salva la bozza"));
+
+    const sosta = fermaProssima("elimina");
+    const primo = cestino("Primo Evento");
+    /*
+     * Due clic nello stesso giro, prima che React ridisegni: è il doppio clic
+     * vero, ed è l'unico modo di provare la difesa nella logica invece che
+     * nell'attributo. React filtra i click sui pulsanti che considera
+     * disabilitati guardando le proprie props, non l'attributo del DOM: un
+     * clic «forzato» rimettendo `disabled = false` non arriverebbe mai al
+     * gestore, e la prova passerebbe senza aver provato niente.
+     */
+    await act(async () => {
+      primo.click();
+      primo.click();
+    });
+    await assesta();
+    expect(eliminazioni).toHaveLength(1);
+    // E da qui in poi il pulsante è anche disabilitato, per chi guarda.
+    expect(primo.disabled).toBe(true);
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await assesta();
+    expect(eliminazioni).toHaveLength(1);
+    expect(await archivio.elenca({ categoria: "eventi" })).toHaveLength(0);
+  });
+});
+
+/**
+ * L'eliminazione non finisce con la cancellazione.
+ *
+ * Dopo aver cancellato si ricarica l'elenco, e anche quella è una chiamata
+ * all'archivio che può rifiutare. Restava fuori dal `try`: la promessa usciva
+ * scoperta da un gestore di clic. E il messaggio dev'essere vero — la bozza
+ * **è** stata eliminata — e leggibile anche quando l'editor è rimasto vuoto.
+ */
+describe("l'elenco che non si aggiorna dopo un'eliminazione", () => {
+  it("non lascia una rejection scoperta e lo dice per quello che è", async () => {
+    const { archivio, rompi, eliminazioni } = archivioConSosta();
+    await monta(archivio);
+    await premi(contiene("primo evento"));
+    await premi(contiene("salva la bozza"));
+
+    rompi.elenca = true;
+    const scoperte = await rejectionNonGestite(async () => {
+      await premi(cestino("Primo Evento"));
+    });
+    rompi.elenca = false;
+
+    expect(scoperte).toHaveLength(0);
+    expect(eliminazioni).toHaveLength(1);
+    // La cancellazione è avvenuta davvero: il record non c'è più.
+    expect(await archivio.elenca({ categoria: "eventi" })).toHaveLength(0);
+    // Quindi non si dice «non eliminata», che manderebbe a riprovare invano.
+    expect(contenitore.textContent).not.toMatch(/non eliminata/i);
+    // E il messaggio si legge anche con l'editor vuoto.
+    expect(contenitore.textContent).toMatch(/elenco non si è aggiornato/i);
+    expect(contenitore.textContent).toMatch(/Apri una bozza o creane una/i);
+  });
+
+  it("conserva quello che si è scritto durante l'attesa, e lo dice insieme", async () => {
+    const { archivio, rompi, fermaProssima } = archivioConSosta();
+    await monta(archivio);
+    await premi(contiene("primo evento"));
+    await premi(contiene("salva la bozza"));
+
+    const sosta = fermaProssima("elimina");
+    await act(async () => {
+      cestino("Primo Evento").click();
+    });
+    await assesta();
+    await scrivi(campoTitolo(), "Salvato dall'oblio");
+
+    rompi.elenca = true;
+    const scoperte = await rejectionNonGestite(async () => {
+      await act(async () => {
+        sosta.risolvi();
+        await sosta.promessa;
+      });
+      await assesta();
+    });
+    rompi.elenca = false;
+
+    expect(scoperte).toHaveLength(0);
+    // Il lavoro è ancora qui…
+    expect(campoTitolo().value).toBe("Salvato dall'oblio");
+    // …e si leggono entrambe le cose, non solo l'ultima.
+    expect(contenitore.textContent).toMatch(/eliminata dall'archivio/i);
+    expect(contenitore.textContent).toMatch(/elenco non si è aggiornato/i);
+  });
+
+  it("il blocco resta fino alla fine del ricaricamento, e poi si libera", async () => {
+    const { archivio, eliminazioni, fermaProssima } = archivioConSosta();
+    await monta(archivio);
+    await premi(contiene("secondo evento"));
+    await premi(contiene("salva la bozza"));
+    await premi(contiene("primo evento"));
+    await premi(contiene("salva la bozza"));
+
+    // La cancellazione passa, ma il ricaricamento resta appeso.
+    const sosta = fermaProssima("elenca");
+    await act(async () => {
+      cestino("Primo Evento").click();
+    });
+    await assesta();
+    expect(eliminazioni).toHaveLength(1);
+
+    /*
+     * Il cestino di un'**altra** bozza: è l'unico modo di esercitare il blocco
+     * qui. Quello della bozza appena cancellata è disabilitato, e React filtra
+     * i click sui pulsanti che considera tali guardando le proprie props:
+     * cliccarlo non raggiungerebbe il gestore, e non proverebbe nulla.
+     */
+    await act(async () => {
+      cestino("Secondo Evento").click();
+    });
+    await assesta();
+    expect(eliminazioni).toHaveLength(1);
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await assesta();
+
+    // Finito il ricaricamento il blocco è libero: adesso l'altra si elimina.
+    await premi(cestino("Secondo Evento"));
+    expect(eliminazioni).toHaveLength(2);
+    expect(await archivio.elenca({ categoria: "eventi" })).toHaveLength(0);
+  });
+
+  it("dopo un errore di cancellazione il blocco si libera lo stesso", async () => {
+    const { archivio, rompi, eliminazioni } = archivioConSosta();
+    await monta(archivio);
+    await premi(contiene("primo evento"));
+    await premi(contiene("salva la bozza"));
+
+    rompi.elimina = true;
+    await premi(cestino("Primo Evento"));
+    expect(eliminazioni).toHaveLength(1);
+    expect(contenitore.textContent).toMatch(/non eliminata/i);
+
+    // Il blocco non è rimasto chiuso: riprovando, si elimina.
+    rompi.elimina = false;
+    await premi(cestino("Primo Evento"));
+    expect(eliminazioni).toHaveLength(2);
+    expect(await archivio.elenca({ categoria: "eventi" })).toHaveLength(0);
   });
 });

@@ -404,14 +404,103 @@ export default function EditorEvento() {
   const nuovoDaEvento = (ev) =>
     richiedi(() => nuovoDaEventoSenzaChiedere(ev), { etichetta: "Creare una bozza da un altro evento" });
 
+  /*
+   * Eliminare è distruttivo quanto sostituire, e più definitivo: non c'è un
+   * annulla. Era però l'unico gesto rimasto fuori dal contratto — cancellava
+   * nell'archivio e poi decideva che cosa svuotare guardando il contenuto
+   * catturato **prima** dell'attesa. Due modi di perdere lavoro: buttare via
+   * modifiche non salvate senza chiedere, e svuotare una bozza diversa da
+   * quella cancellata, se nel frattempo se ne apriva un'altra.
+   *
+   * Non passa da `richiedi`: quel dialogo offre «Salva e continua», che qui
+   * significherebbe salvare proprio ciò che si sta per cancellare. Con lavoro
+   * non salvato su quella bozza l'eliminazione si **rifiuta**, dicendo perché;
+   * per eliminarla si salva o si scarta prima, deliberatamente.
+   */
+  const eliminazioneRif = useRef(null);
+  const [eliminando, setEliminando] = useState(null);
+
   const eliminaBozza = async (id) => {
-    await archivio.elimina(id);
-    if (contenuto?.id === id) {
-      setContenuto(null);
-      salvato.current = null;
-      setTraccia(null);
+    // Una alla volta: due clic non devono diventare due cancellazioni. Il
+    // pulsante si disabilita, ma la difesa non può stare in un attributo.
+    if (eliminazioneRif.current) return;
+
+    if (contenuto?.id === id && sporco) {
+      setStatoSalvataggio("non eliminata: ci sono modifiche non salvate su questa bozza");
+      return;
     }
-    await ricaricaBozze();
+
+    const modificheAllInizio = modificheRif.current;
+    eliminazioneRif.current = id;
+    setEliminando(id);
+    /*
+     * Il blocco copre **tutta** l'operazione, ricaricamento compreso, e si
+     * rilascia sempre. Liberarlo prima del ricaricamento lascerebbe una
+     * finestra in cui un secondo clic ricancella; non rilasciarlo su errore lo
+     * chiuderebbe per sempre.
+     */
+    try {
+      try {
+        await archivio.elimina(id);
+      } catch (e) {
+        // Un archivio che rifiuta è un esito, non una rejection che esce da un
+        // gestore di clic e non la raccoglie nessuno.
+        setStatoSalvataggio(`non eliminata: ${e.message}`);
+        return;
+      }
+
+      /*
+       * Dopo l'attesa si guarda il contenuto di **adesso**, non quello catturato
+       * al clic: nel frattempo si può aver aperto un'altra bozza, e svuotare
+       * quella sarebbe cancellare lavoro che nessuno ha chiesto di cancellare.
+       */
+      if (contenutoRif.current?.id === id) {
+        const scrittoNelFrattempo = modificheRif.current !== modificheAllInizio;
+        // Una risposta di salvataggio ancora in volo su questa bozza è ormai
+        // superata: il contatore la invalida.
+        modificheRif.current += 1;
+        salvato.current = null;
+        if (scrittoNelFrattempo) {
+          /*
+           * Si è scritto mentre spariva. L'archivio non ce l'ha più, la memoria
+           * sì: svuotare adesso perderebbe quelle battute in silenzio. Si tiene
+           * quello che c'è, dichiarandolo non salvato — perché non lo è più.
+           */
+          setSporco(true);
+          setStatoSalvataggio(
+            "bozza eliminata dall'archivio: quello che hai scritto è ancora qui, ma non è salvato",
+          );
+        } else {
+          setContenuto(null);
+          contenutoRif.current = null;
+          setSporco(false);
+          setStatoSalvataggio(null);
+          setTraccia(null);
+        }
+      }
+
+      try {
+        await ricaricaBozze();
+      } catch (e) {
+        /*
+         * Anche ricaricare l'elenco è una chiamata all'archivio, e può
+         * rifiutare. Ma la cancellazione **è** riuscita: dire «non eliminata»
+         * sarebbe falso e manderebbe a riprovare su un record che non c'è più.
+         * Qui è soltanto l'elenco a essere rimasto indietro, e l'editor già
+         * riallineato non si tocca. Il messaggio si aggiunge a quello che
+         * c'era, invece di coprirlo: sapere che il lavoro è ancora in memoria
+         * conta più che sapere dell'elenco.
+         */
+        setStatoSalvataggio((precedente) =>
+          precedente
+            ? `${precedente} — e l'elenco non si è aggiornato: ${e.message}`
+            : `bozza eliminata, ma l'elenco non si è aggiornato: ${e.message}`,
+        );
+      }
+    } finally {
+      eliminazioneRif.current = null;
+      setEliminando(null);
+    }
   };
 
   const ripristina = async (n) => {
@@ -826,8 +915,9 @@ export default function EditorEvento() {
                 <button
                   type="button"
                   onClick={() => eliminaBozza(b.id)}
+                  disabled={eliminando === b.id}
                   title="Elimina la bozza"
-                  className="flex-none p-1 text-granite-mist/40 transition-colors hover:text-[#E2857A]"
+                  className="flex-none p-1 text-granite-mist/40 transition-colors hover:text-[#E2857A] disabled:opacity-40"
                 >
                   <Trash2 size={12} aria-hidden="true" />
                 </button>
@@ -947,9 +1037,21 @@ export default function EditorEvento() {
       </section>
 
       {!contenuto ? (
-        <p className="font-body text-sm text-granite-mist/55">
-          Apri una bozza o creane una da un evento per cominciare.
-        </p>
+        <div className="space-y-2">
+          <p className="font-body text-sm text-granite-mist/55">
+            Apri una bozza o creane una da un evento per cominciare.
+          </p>
+          {/*
+            A editor vuoto la barra di salvataggio non c'è, e con lei sparirebbe
+            l'unico posto dove si leggono gli esiti. Ma è proprio un'eliminazione
+            a svuotare l'editor: il suo messaggio deve avere dove comparire.
+          */}
+          {statoSalvataggio && (
+            <p className="font-body text-xs" style={{ color: COLORI.accentoEventi }}>
+              {statoSalvataggio}
+            </p>
+          )}
+        </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
           {/* ---- colonna sinistra: media, GPX, caption ---- */}

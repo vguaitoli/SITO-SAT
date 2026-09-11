@@ -1469,6 +1469,48 @@ precedente e rifiutare una transizione legittima. Nessuna prova la distingue —
 nei test il render è sempre già avvenuto — e resta quindi una difesa dichiarata,
 non una difesa verificata.
 
+### 18.4.1 Il cestino
+
+Eliminare è distruttivo quanto sostituire, e più definitivo: non c'è un annulla.
+Era però l'unico gesto rimasto fuori dal contratto. `eliminaBozza` cancellava
+nell'archivio e poi decideva che cosa svuotare guardando il contenuto catturato
+**prima** dell'attesa. Da lì due modi di perdere lavoro: buttare via modifiche
+non salvate senza chiedere nulla, e — se nel frattempo si apriva un'altra
+bozza — svuotare quella, che nessuno aveva chiesto di cancellare. Il codice
+veniva da prima di 6.3B: non una regressione, una lacuna del perimetro protetto.
+
+**Non passa da `richiedi`.** Quel dialogo offre «Salva e continua», che qui
+significherebbe salvare esattamente ciò che si sta per cancellare: una
+promessa di conservazione che l'azione successiva annulla. Con lavoro non
+salvato su quella bozza l'eliminazione si **rifiuta**, dicendo perché; per
+eliminarla si salva o si scarta prima, deliberatamente. È una scelta di
+comportamento visibile, non una conseguenza tecnica.
+
+Il resto segue le stesse regole del capitolo: una eliminazione alla volta, con
+il controllo nella logica e non solo nel pulsante disabilitato; l'errore
+dell'archivio diventa un messaggio, non una rejection che esce da un gestore di
+clic; e dopo l'attesa si guarda il contenuto **di adesso**, non quello del clic.
+Se nel frattempo si è scritto su quella stessa bozza, l'editor non si svuota:
+l'archivio non ce l'ha più, la memoria sì, e si dice che quel lavoro adesso non
+è salvato. Un'eliminazione già partita non si dichiara annullabile.
+
+**L'operazione non finisce con la cancellazione.** Dopo aver cancellato si
+ricarica l'elenco, e anche quella è una chiamata all'archivio che può
+rifiutare: restava fuori dal `try`, e la promessa usciva scoperta da un gestore
+di clic. Ora il blocco copre tutta l'operazione — rilasciarlo prima del
+ricaricamento lascerebbe una finestra in cui si avvia un'altra eliminazione — e
+si rilascia sempre, anche in errore. I due fallimenti si distinguono: se a
+fallire è la cancellazione si dice «non eliminata» e nulla cambia; se a fallire
+è solo l'elenco, la bozza **è** stata eliminata, e dirlo altrimenti manderebbe a
+riprovare su un record che non c'è più. In quel caso l'editor già riallineato
+non si tocca, e il messaggio si **aggiunge** a quello che c'era invece di
+coprirlo: sapere che il lavoro è ancora in memoria conta più che sapere
+dell'elenco.
+
+Il messaggio ha dove comparire anche quando l'editor è rimasto vuoto: la barra
+di salvataggio esiste solo con un contenuto aperto, ma è proprio l'eliminazione
+a svuotarlo, e lo stato si legge nel riquadro «Apri una bozza o creane una».
+
 ### 18.5 Che cosa è verificato
 
 `transizione.test.jsx` — 24 prove — prova il contratto su una guardia finta, con
@@ -1480,7 +1522,7 @@ completamento, azione che lancia, salvataggio che rigetta, smontaggio durante
 l'attesa. Le prove che riguardano gli errori verificano anche che **non restino
 rejection non gestite**.
 
-`EditorEvento.transizione.test.jsx` — 18 prove — monta l'editor vero dentro
+`EditorEvento.transizione.test.jsx` — 29 prove — monta l'editor vero dentro
 `FornitoreArchivio` e `FornitoreTransizione`, non un aiutante isolato: modifica
 davvero un campo e guarda che cosa succede provando a sostituire il contenuto.
 Copre i casi asincroni sul dato vero, contando le scritture e rileggendo
@@ -1495,6 +1537,38 @@ salvata e non quella sopraggiunta, e che un secondo «Salva e continua» senza
 concorrenza salvi il testo nuovo e compia **una sola** transizione. Una prova a
 parte controlla che cambiare bozza in quella finestra venga detto per quello che
 è, e non con il messaggio dell'altro caso.
+
+Undici prove coprono il cestino: rifiuto su bozza sporca senza alcuna chiamata
+all'archivio; eliminazione pulita che riallinea l'editor; eliminazione di
+un'altra bozza che non tocca quella aperta e sporca; eliminazione lenta con
+apertura di un'altra bozza nel frattempo, che non la svuota **né la marca**;
+scrittura durante l'eliminazione, che non sparisce; errore dell'archivio
+visibile e senza rejection scoperte; doppio clic che cancella una volta sola;
+elenco che rifiuta dopo una cancellazione riuscita, con messaggio veritiero e
+leggibile a editor vuoto; stessa cosa con lavoro scritto durante l'attesa, dove
+si leggono **entrambe** le notizie; blocco che resta fino alla fine del
+ricaricamento; blocco che si libera anche dopo un errore.
+
+### 18.5.1 Perché i clic ripetuti stanno nello stesso giro
+
+Provare una difesa contro i clic ripetuti richiede una cautela che non è
+ovvia. **React filtra i click sui pulsanti che considera disabilitati guardando
+le proprie props, non l'attributo del DOM:** rimettere `disabled = false` sul
+nodo e cliccare non raggiunge mai il gestore, e la prova passa senza aver
+provato niente.
+
+Tre prove erano scritte così e sono state rifatte — due sulle risposte ripetute
+del dialogo, una sul doppio clic del cestino. Il loro mordente era venuto solo
+dalla corsa *prima* della correzione, quando i pulsanti non erano ancora
+disabilitati; come guardie di regressione non tenevano. Ora i clic ripetuti
+vanno nello stesso giro, prima che React ridisegni: in quell'istante il pulsante
+è abilitato anche per React, il secondo clic entra davvero, ed è poi il doppio
+clic vero. Lo stato `disabled` si verifica a parte, dopo il ridisegno, per quello
+che è: una cortesia verso chi guarda, non una difesa.
+
+Dove il pulsante è già disabilitato per forza di cose — durante il ricaricamento
+dell'elenco — la difesa si esercita dall'unica via che resta aperta: il cestino
+di un'**altra** bozza, che disabilitato non è.
 
 `Studio.test.jsx` — 17 prove — copre il cambio rubrica: le destinazioni non
 disponibili sono respinte **prima** di chiedere, così non smontano mai l'editor.
@@ -1524,6 +1598,10 @@ messaggio, 1. Nessuna mutazione è rimasta nel codice.
 - **Nessuna fusione automatica.** Su scrittura concorrente o apertura
   sopraggiunta il sistema segnala e chiede di ripetere. Non prova a unire due
   versioni.
+- **Il cestino rifiuta invece di chiedere.** Con modifiche non salvate su
+  quella bozza non si elimina affatto: bisogna salvare o scartare prima. È più
+  rigido di un dialogo, ed è deliberato — l'alternativa prometterebbe di
+  conservare ciò che si sta cancellando.
 - **Il rifiuto costa un secondo salvataggio.** Quando una modifica arriva
   durante le attese finali, quella precedente è già sul disco: riprovando si
   scrive di nuovo, e si registra una revisione in più. È il prezzo di non
