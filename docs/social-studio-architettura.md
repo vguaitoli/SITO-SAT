@@ -1615,3 +1615,204 @@ messaggio, 1. Nessuna mutazione è rimasta nel codice.
 - **Fuori dallo Studio non c'è protezione.** `useRichiediTransizione` senza
   fornitore esegue senza chiedere. È deliberato — un componente montato altrove
   non deve rompersi — ma significa che la protezione vale dentro lo Studio.
+
+
+## 19. Il ciclo delle bozze TOUR, senza interfaccia
+
+6.3C prepara il modello di stato che il futuro `EditorTour` monterà: creare una
+bozza da un tour già normalizzato, scriverla, salvarla, riaprirla. Vive in
+`src/social-studio/app/useBozzaTour.js`.
+
+**Non rende TOUR disponibile.** Il registro continua a dichiararla
+`pianificata`, non esiste un editor né un template, e niente di quanto sta qui è
+raggiungibile dallo Studio — una prova lo verifica sui registri veri. Il modulo
+TOUR non è completato: mancano cancellazione, ripristino revisioni,
+riallineamento alla fonte, media, GPX ed export, che sono passi successivi.
+
+### 19.1 Che cosa espone, e perché come codici
+
+L'hook restituisce `contenuto`, `sporco`, `bozze` (le sole bozze TOUR), `esito`,
+e le operazioni `creaDaTour`, `apri`, `salva`, `scriviEditoriale`,
+`scriviFattuale`, `ricarica`.
+
+`ricarica()` è pubblica e **non rigetta**: riporta `{ codice: null }` oppure
+`{ codice: "errore-elenco" }`. Chi la chiama non deve ricordarsi di metterci un
+`catch` attorno, o un archivio momentaneamente indisponibile diventerebbe una
+rejection che nessuno raccoglie. `salva()` restituisce, per due chiamate
+concorrenti, **la stessa promessa** — identica, non equivalente: è questo che
+garantisce una scrittura sola, e per averlo la funzione non è `async`, perché
+una funzione asincrona avvolge sempre il ritorno in una promessa nuova.
+
+`esito` è un **codice**, non una frase: `creata`, `aperta`, `salvata`,
+`superata-da-modifiche`, `superata-da-altro-contenuto`, `non-una-bozza-tour`,
+`errore-lettura`, `errore-scrittura`, `errore-elenco`, `rilettura-fallita`,
+`base-non-recuperata`. Che cosa si legge a
+schermo è una decisione editoriale, e non spetta a questo livello: l'interfaccia
+tradurrà. Il vantaggio pratico è che il comportamento si verifica senza leggere
+testi, e i testi si potranno cambiare senza toccare le prove.
+
+Le operazioni che sostituiscono il contenuto — `creaDaTour` e `apri` — passano
+per `useRichiediTransizione` e restituiscono gli esiti del contratto 6.3B,
+`occupato` compreso, perché la futura interfaccia possa comunicarli.
+
+### 19.2 Che cosa riusa, e che cosa lascia vuoto
+
+`daTour` sui dati già normalizzati che il chiamante fornisce — l'hook non va a
+prendersi il sito — e `contenutoVuoto` con categoria `tour` e formato `post`. I
+rami importati si **combinano** con i default dello schema: quello che l'adapter
+lascia vuoto resta vuoto (§17.3), non sparisce. `urlBase` è un'opzione: nessun
+URL di tour reale sta nel codice.
+
+Scrivere un fatto a mano porta la sua `origine` a `manuale`, e non tocca quella
+degli altri campi: è ciò che permette di sapere se un cambiamento sul sito
+riguarda ancora quel dato. Scrivere un testo non entra in `origine`, perché un
+testo non è un fatto.
+
+Il salvataggio usa l'archivio esistente attraverso `useArchivio` — SocialStorage
+resta l'unico accesso alla persistenza, nessun IndexedDB diretto — e registra la
+revisione con lo stesso contratto Version History di EVENTI. Il record si
+rilegge convalidato: ciò che si vede è ciò che è sul disco.
+
+### 19.3 Le stesse difese di 6.3B, sugli stessi punti
+
+L'elenco filtra la categoria, ma **il filtro non è la difesa**: `apri` rifiuta un
+id che non è una bozza TOUR anche se glielo si passa di mano, e rifiutandolo non
+sostituisce il lavoro corrente.
+
+Identità del contenuto e contatore delle modifiche proteggono ogni attesa: fra
+la richiesta di lettura e la sua risposta, fra la scrittura e la rilettura, e
+fra quella e l'aggiornamento dell'elenco. Una risposta tardiva non cancella
+battute, non applica un'altra bozza e non dichiara pulito lavoro che non è
+persistito. L'ultimo controllo è l'ultima istruzione prima del ritorno utile.
+
+Due `salva()` per lo stesso gesto ricevono **la stessa** promessa invece di
+aprire due scritture: due revisioni per una modifica sola sarebbero una bugia
+sulla storia del documento.
+
+**Una scrittura superata lascia comunque qualcosa sul disco**, e la storia deve
+tenerne conto. Se la scrittura riesce ma il lavoro corrente è già più avanti,
+restituire `null` non basta: in archivio adesso c'è quello stato intermedio, e
+le sue revisioni sono la storia vera. Il contenuto in memoria non si tocca —
+nessuna fusione dei campi, è più nuovo e ha ragione lui — ma eredita quella
+catena, perché `registraRevisione` la legge da `contenuto.versioni`. Senza, il
+tentativo successivo ripartirebbe da una catena vecchia e `archivio.salva`, che
+sostituisce l'intero record, farebbe sparire uno stato che *era* ripristinabile:
+si salva A, si modifica in B con una scrittura lenta, si scrive C nel frattempo,
+e al secondo salvataggio B non esisterebbe più in nessuna revisione. Se nel
+frattempo cambia identità non si adotta nulla: la storia di una bozza non
+appartiene a un'altra.
+
+**Una scrittura confermata ma non riletta è il caso più insidioso.**
+`archivio.salva` ha restituito un id: sul disco quel record c'è. Se però la
+rilettura fallisce — o torna vuota — non lo si può far passare per convalidato,
+e soprattutto non si può riscriverci sopra: la catena in memoria è ancora quella
+di prima, e `archivio.salva` sostituisce l'intero record. Scrivere A, poi B con
+la sola rilettura guasta, poi C, cancellerebbe B dalla storia.
+
+Scrittura e rilettura hanno quindi `catch` distinti — condividerne uno faceva
+passare per «errore di scrittura» un record già persistito — e il fallimento
+della rilettura lascia un **debito**: `rilettura-fallita`, lavoro non salvato,
+transizione bloccata dalla guardia. Al tentativo successivo il debito si salda
+per primo, rileggendo quella base prima di qualunque scrittura; se non ci si
+riesce ancora, il codice è `base-non-recuperata` e **non si scrive affatto** —
+meglio non scrivere che scrivere sopra, ed è riprovabile. Se nel frattempo si è
+passati a un'altra bozza il debito non la riguarda e non la blocca: quando si
+riaprirà la prima, `apri` rileggerà la sua base dal disco.
+
+**Il recupero appartiene alla bozza per cui è iniziato.** Anche quella lettura è
+un'attesa, e fra il suo avvio e la risposta si può cambiare bozza: adottare
+allora la base recuperata travaserebbe la storia di una nell'altra, e la
+fotografia subito dopo scriverebbe quell'altra senza che nessuno l'abbia
+chiesto — con `archivio.salva` che sostituisce l'intero record, la bozza
+arrivata dopo perderebbe la propria Version History.
+
+Per riconoscerlo l'identità non basta: abbandonare una bozza e riaprirla dà lo
+stesso `id` ma è un'altra **sessione** di lavoro. L'hook tiene quindi un
+contatore di sessione, che cambia solo quando il contenuto viene sostituito —
+creato o aperto — e **non** quando lo si scrive. Dopo ogni attesa si confronta
+quello, oltre all'identità. La distinzione è sostanziale: usare il contatore
+delle modifiche butterebbe via il recupero per una battitura, mentre restando
+sulla stessa bozza il lavoro più recente dev'essere conservato e salvato.
+
+Errori di lettura, scrittura ed elenco diventano
+codici di esito, mai rejection scoperte. Dopo lo smontaggio nessun effetto
+tardivo: un solo controllo di vita, collocato nell'ultimo punto in cui si può
+ancora restituire `null` invece di annunciare un salvataggio a un albero che non
+c'è più.
+
+### 19.4 Che cosa è verificato
+
+`useBozzaTour.test.jsx` — 36 prove — monta l'hook sotto `FornitoreArchivio` e
+`FornitoreTransizione` con archivio in memoria e promesse pilotate, e confronta
+**i dati**: che cosa finisce nell'archivio e che cosa resta in memoria, non i
+messaggi. Copre creazione da tour sintetico con i campi non pubblicati ancora
+vuoti; il tour ricevuto non mutato; separazione fra testi e fatti con `origine`
+manuale; salvataggio, rilettura e revisione; elenco filtrato; rifiuto di un id
+EVENTI senza perdere il lavoro; annulla, scarto e «salva e continua» durante una
+sostituzione; salvataggio fallito che non lascia procedere; `occupato`;
+scrittura durante lettura, durante salvataggio e durante l'aggiornamento
+dell'elenco; doppio salvataggio senza duplicazioni; errore di lettura;
+smontaggio in due punti diversi; elenco che rifiuta dopo una scrittura riuscita;
+e i registri veri ancora chiusi per TOUR.
+
+Sei prove riguardano la storia e i contratti pubblici: il caso A→B→C fino al
+secondo salvataggio, con B conservato come revisione ripristinabile e la
+numerazione coerente; lo stesso per una bozza mai salvata prima; un cambio di
+identità durante la scrittura, dopo il quale la nuova bozza non eredita né base
+né storia; `ricarica()` chiamata da fuori con l'archivio che rifiuta, che
+riporta un codice invece di rigettare e lascia il lavoro intatto; due `salva()`
+nello stesso giro confrontati con `toBe`, cioè per identità della promessa e non
+per valore; una scrittura fallita che libera il blocco e permette di riprovare.
+
+Cinque prove riguardano la rilettura fallita, con la scrittura che riesce
+davvero e il disco verificato scavalcando il guasto simulato: A→B→C con A e B
+conservati come revisioni; lo stesso al primo salvataggio di una bozza nuova;
+una rilettura che torna vuota trattata come fallita; un recupero che fallisce
+ancora, dopo il quale non si sovrascrive, il lavoro resta sporco e «Salva e
+continua» non passa; un cambio di bozza che non si fa bloccare dal debito
+dell'altra.
+
+Cinque prove coprono la corsa del recupero, fermando esattamente la lettura di
+recupero e non la prima rilettura: passaggio a una bozza nuova, che non eredita
+né storia né scritture; apertura di una bozza già persistita, che conserva
+intatte le proprie revisioni; riapertura dello stesso `id`, dove solo la
+sessione distingue; permanenza sulla stessa bozza, dove le battiture più recenti
+vengono conservate e salvate; smontaggio durante l'attesa.
+
+Il mordente è stato verificato con mutazioni temporanee limitate ai file nuovi:
+senza il filtro di rubrica, senza il contatore in apertura, senza il primo o
+l'ultimo controllo del salvataggio, senza la fusione delle scritture, senza
+`origine` manuale falliscono una prova ciascuna; senza guardia registrata ne
+falliscono cinque; senza il controllo di vita, due; senza l'adozione della base
+persistita, due; ereditando la base senza la catena di revisioni, una; senza
+aggiornare la base, due; con `ricarica` che torna a rigettare, due; con `salva`
+di nuovo `async`, una; senza segnare il debito, quattro; senza saldarlo prima
+di scrivere, quattro; con un recupero che non adotta la base, tre; con un
+recupero fallito che lascia scrivere comunque, una; con il `catch` di nuovo
+condiviso, tre; con il debito che ignora l'identità, una. Sulla sessione:
+togliendo il controllo nel recupero falliscono tre prove, facendola cambiare a
+ogni battitura ne falliscono cinque, non incrementandola all'apertura o alla
+creazione una ciascuna. Nessuna mutazione è rimasta.
+
+### 19.5 I limiti
+
+- **Non è un editor.** Nessuna interfaccia, nessun template, nessuna variante,
+  nessun pre-flight TOUR. TOUR resta `pianificata` e non selezionabile.
+- **Una guardia sola.** Il fornitore ne tiene una (§18.6): questo hook ne
+  registra una, quindi **non va montato insieme a `EditorEvento`** sotto lo
+  stesso fornitore finché quel limite non è risolto. È il vincolo da chiudere
+  prima di avere due editor, non dopo.
+- **Niente cancellazione, ripristino, riallineamento, media, GPX o export.**
+  Deliberatamente fuori: ognuno porta con sé difese proprie, e vanno aggiunte
+  una alla volta con le loro prove.
+- **Nessuna fusione automatica.** Su risposta superata si segnala con un codice
+  e si chiede di ripetere.
+- **Un archivio che non si lascia rileggere blocca il salvataggio di quella
+  bozza.** È deliberato: finché non si sa da dove ripartire, scrivere
+  cancellerebbe uno stato che è sul disco. Il lavoro resta in memoria e
+  l'operazione è riprovabile, ma finché il guasto dura quella bozza non si
+  salva.
+- **Un elenco che non si aggiorna non annulla il salvataggio.** La scrittura è
+  riuscita, quindi `salva()` restituisce il record e l'esito è `errore-elenco`
+  invece di `salvata`: dire che è fallita manderebbe a riscrivere qualcosa che è
+  già sul disco. È la stessa scelta fatta per il cestino di EVENTI (§18.4.1).
