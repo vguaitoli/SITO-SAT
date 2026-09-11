@@ -23,6 +23,7 @@ const NOINDEX_ROBOTS = "noindex, nofollow";
 const PRIVATE_ROBOTS = "noindex, nofollow, noarchive";
 // Pagina accessibile solo tramite link, esclusa da sitemap e prerendering.
 const PAGINE_INTERNE = [
+  { prefisso: "/admin/feedback", titolo: "Dashboard feedback", locale: "it" },
   { prefisso: "/feedback", titolo: "Questionario post-tour", locale: "it" },
   { prefisso: "/prenotazioni", titolo: "Richiesta di prenotazione", locale: "it" },
   { prefisso: "/en/booking", titolo: "Booking request", locale: "en" },

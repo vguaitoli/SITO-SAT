@@ -68,6 +68,20 @@ NEXT_PUBLIC_TINA_BRANCH=main
 Impostare le variabili nei tre ambienti Vercel necessari: Production, Preview e
 Development. Non inserire chiavi o altri segreti nel repository.
 
+La dashboard privata `/admin/feedback` riusa l'autenticazione HTTP Basic del
+Social Studio e legge le risposte Tally esclusivamente tramite una funzione
+server-side:
+
+```bash
+SOCIAL_STUDIO_UTENTE=your_admin_user
+SOCIAL_STUDIO_PASSWORD=your_long_password
+TALLY_API_KEY=your_tally_api_key
+```
+
+Queste tre variabili devono essere configurate almeno per l'ambiente Preview
+prima di verificare la dashboard. `TALLY_API_KEY` non deve avere prefisso
+`VITE_`: in questo modo non entra mai nel bundle del browser.
+
 ## Pubblicazione
 
 Il repository è collegato al progetto Vercel `sito-sat-1dzv`, che serve:

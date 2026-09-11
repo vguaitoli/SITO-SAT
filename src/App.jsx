@@ -20,6 +20,7 @@ const BlogDetail = lazy(() => import('./pages/BlogDetail'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const CookiePolicy = lazy(() => import('./pages/CookiePolicy'));
 const Feedback = lazy(() => import('./pages/Feedback'));
+const AdminFeedback = lazy(() => import('./pages/AdminFeedback'));
 const Booking = lazy(() => import('./pages/Booking'));
 
 function RouteFallback() {
@@ -50,6 +51,7 @@ const SiteRoutes = () => {
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/cookie-policy" element={<CookiePolicy />} />
         <Route path="/feedback" element={<Feedback />} />
+        <Route path="/admin/feedback" element={<AdminFeedback />} />
         <Route path="/prenotazioni" element={<Booking />} />
         <Route path="/en" element={<Home />} />
         <Route path="/en/experiences/:cat" element={<CategoriaPage />} />

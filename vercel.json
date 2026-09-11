@@ -1,6 +1,7 @@
 {
   "trailingSlash": false,
   "rewrites": [
+    { "source": "/admin/feedback/api/submissions", "destination": "/api/feedback" },
     { "source": "/admin", "destination": "/admin/index.html" },
     { "source": "/privacy", "destination": "/_seo/privacy.html" },
     { "source": "/cookie-policy", "destination": "/_seo/cookie-policy.html" },
@@ -52,6 +53,13 @@
       "source": "/admin",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
+      ]
+    },
+    {
+      "source": "/api/feedback",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
+        { "key": "Cache-Control", "value": "no-store" }
       ]
     },
     {

@@ -12,6 +12,7 @@
     "build": "tinacms build && tsx scripts/sync-tina-content.ts && vite build && node scripts/build-seo.mjs",
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
+    "test:admin-feedback": "node --test api/_autenticazione.test.mjs api/feedback.test.mjs src/seo/admin-feedback.test.mjs",
     "tina:sync": "tsx scripts/sync-tina-content.ts",
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview"
