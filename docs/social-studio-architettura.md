@@ -1768,7 +1768,7 @@ l'hook proprio lì per verificarlo.
 
 ### 19.4 Che cosa è verificato
 
-`useBozzaTour.test.jsx` — 44 prove — monta l'hook sotto `FornitoreArchivio` e
+`useBozzaTour.test.jsx` — 53 prove — monta l'hook sotto `FornitoreArchivio` e
 `FornitoreTransizione` con archivio in memoria e promesse pilotate, e confronta
 **i dati**: che cosa finisce nell'archivio e che cosa resta in memoria, non i
 messaggi. Copre creazione da tour sintetico con i campi non pubblicati ancora
@@ -1815,6 +1815,17 @@ di sostituire; «Scarta modifiche», che sostituisce solo dopo la scelta
 esplicita; e un'apertura dopo la quale l'editor è davvero pulito, così che
 sostituire non chieda più nulla.
 
+Nove prove coprono il riallineamento: cambia solo `fonte`, con tutti gli altri
+rami confrontati uno per uno e i fatti manuali intatti; è una modifica non
+salvata e non tocca l'archivio; salvando e riaprendo la nuova istantanea resta e
+la storia pure; tour assente, bozza assente e slug diverso non cambiano nulla;
+modifica, riallineamento e salvataggio **nello stesso giro** finiscono tutti sul
+disco; dopo un riallineamento sostituire la bozza chiede prima e «Annulla»
+conserva; sotto `StrictMode` l'istante resta quello e ciò che si vede è ciò che
+si salva; riallineamento durante una scrittura lenta e durante l'aggiornamento
+dell'elenco, dove la risposta vecchia non lo cancella e il secondo salvataggio
+riesce.
+
 Il mordente è stato verificato con mutazioni temporanee limitate ai file nuovi:
 senza il filtro di rubrica, senza il contatore in apertura, senza il primo o
 l'ultimo controllo del salvataggio, senza la fusione delle scritture, senza
@@ -1832,7 +1843,52 @@ creazione una ciascuna. Sulla finestra prima del render: senza allineare il
 riferimento nella modifica falliscono tre prove, con la guardia che torna a
 leggere lo stato quattro, e mancando l'aggiornamento del riferimento «non
 salvato» nella modifica otto, nel salvataggio riuscito undici, nella creazione
-quattro, nell'apertura una. Nessuna mutazione è rimasta.
+quattro, nell'apertura una. Sul riallineamento: leggendo lo stato invece del riferimento
+falliscono nove prove, senza marcare la modifica sei, reimportando anche i fatti
+due, senza il controllo di identità della fonte una. Nessuna mutazione è
+rimasta.
+
+### 19.6 Accettare che il sito è cambiato
+
+`riallineaAllaFonte(tourAttuale)` aggiorna l'istantanea della fonte, e nient'altro.
+Riusa `riallineaTourAllaFonte` (§17.4): tocca solo `fonte` — tipo, slug,
+istantanea e `importatoIl` — e lascia intatti fatti, provenienze, copy, media,
+visual, mappa, formato, variante e revisioni. **Accettare la fonte non è
+reimportare**: il lavoro editoriale non si perde per aver preso atto che il sito
+è cambiato.
+
+Non legge il sito da sé — il tour normalizzato arriva da chi chiama — e non
+salva: è una modifica come le altre, che diventa persistente solo con `salva`.
+Restituisce un codice, come `ricarica()`: `fonte-accettata`, oppure
+`fonte-assente`, `nessuna-bozza`, `fonte-non-corrispondente`. In quei tre casi
+non cambia nulla — né contenuto, né stato «non salvato», né archivio — e non
+lancia.
+
+**L'identità dev'essere la stessa, e dichiarata.** Serve una bozza TOUR corrente
+la cui fonte sia di tipo `tour` con uno slug non vuoto uguale a quello del tour
+ricevuto. Senza slug non si sa da quale tour venga la bozza, e accettare
+l'istantanea di un altro le farebbe dire di descrivere un percorso che non
+descrive.
+
+Il contenuto si legge dal riferimento, non dallo stato: chi chiama può aver
+appena scritto nello stesso giro (§19.3.1). Il riallineamento incrementa il
+contatore delle modifiche e accende «non salvato» subito, così la guardia lo
+vede; **non** cambia la sessione, perché la bozza resta la stessa, e non tocca
+`salvatoRif`, perché non è ancora sul disco. Una scrittura già in volo che
+ritorna dopo lo trova e si dichiara superata invece di cancellarlo.
+
+Version History non sorveglia `fonte`, e questo capitolo non lo estende: un
+riallineamento da solo non genera una revisione. La storia esistente resta
+intatta.
+
+`riallineaTourAllaFonte` genera `importatoIl`, quindi non è pura: si chiama una
+volta sola fuori dall'aggiornatore, e all'aggiornatore si passa una
+trasformazione che sostituisce soltanto il ramo `fonte`. Va detto con
+precisione: **questa purezza non è distinguibile da una prova**. Le due
+chiamate cadrebbero nello stesso millisecondo, e sotto orologio finto il tempo è
+fermo — una prova che tentasse di coglierla passerebbe comunque. È una
+correttezza di costruzione, non verificata. Quello che le prove verificano è
+l'effetto osservabile: che ciò che si vede sia ciò che si salva.
 
 ### 19.5 I limiti
 
@@ -1847,6 +1903,12 @@ quattro, nell'apertura una. Nessuna mutazione è rimasta.
   una alla volta con le loro prove.
 - **Nessuna fusione automatica.** Su risposta superata si segnala con un codice
   e si chiede di ripetere.
+- **Il riallineamento non è sorvegliato da Version History.** Accettare una
+  fonte nuova non genera una revisione, quindi tornare all'istantanea
+  precedente non è previsto. Va deciso quando l'editor esisterà.
+- **Nessun confronto con la fonte è esposto.** `confrontaTourConLaFonte` esiste
+  in `adapter-tour`, ma l'hook non lo espone: sapere *che cosa* è cambiato è un
+  passo successivo, e comporta scelte di presentazione.
 - **Un archivio che non si lascia rileggere blocca il salvataggio di quella
   bozza.** È deliberato: finché non si sa da dove ripartire, scrivere
   cancellerebbe uno stato che è sul disco. Il lavoro resta in memoria e

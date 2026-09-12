@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useBozzaTour, CODICI } from "./useBozzaTour";
 import { FornitoreArchivio } from "./ContestoArchivio";
 import { FornitoreTransizione, ESITI } from "./transizione";
@@ -1683,5 +1683,329 @@ describe("la guardia vede la modifica appena fatta", () => {
     expect(dialogo()).toBeNull();
     expect((await seconda).esito).toBe(ESITI.fatto);
     expect(canale.api.contenuto.id).not.toBe(primo);
+  });
+});
+
+/** Il tour, come apparirebbe dopo un cambiamento sul sito. */
+const TOUR_CAMBIATO = {
+  ...TOUR,
+  prezzo: "150 €",
+  km: "80 km",
+  descrizione: "Testo di prova, riscritto sul sito.",
+};
+
+/** Prepara una bozza TOUR salvata, con un fatto scritto a mano e del copy. */
+async function bozzaConLavoroEditoriale() {
+  await act(async () => {
+    await canale.api.creaDaTour(TOUR);
+  });
+  await act(async () => {
+    canale.api.scriviEditoriale("claim", "Scritto da me");
+    canale.api.scriviFattuale("mezzo", "Moto");
+  });
+  await act(async () => {
+    await canale.api.salva();
+  });
+  await respiro();
+  return canale.api.contenuto.id;
+}
+
+/**
+ * Accettare che il sito è cambiato non è reimportare.
+ *
+ * §17.4 lo dice per il contenuto: riallineare tocca solo `fonte`. Qui si prova
+ * che l'operazione pubblica dell'hook rispetti quel contratto — perché il
+ * modo più facile di rovinare una bozza è «aggiornarla» sovrascrivendo il
+ * lavoro editoriale con quello che dice il sito adesso.
+ */
+describe("riallineare la bozza alla fonte", () => {
+  it("cambia soltanto la fonte, e lascia intatto tutto il resto", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await bozzaConLavoroEditoriale();
+    const prima = canale.api.contenuto;
+    const istantaneaPrima = JSON.stringify(prima.fonte.istantanea);
+
+    let esito;
+    await act(async () => {
+      esito = canale.api.riallineaAllaFonte(TOUR_CAMBIATO);
+    });
+    await respiro();
+    const dopo = canale.api.contenuto;
+
+    expect(esito.codice).toBe(CODICI.fonteAccettata);
+    expect(canale.api.esito.codice).toBe(CODICI.fonteAccettata);
+    // La fonte è nuova…
+    expect(JSON.stringify(dopo.fonte.istantanea)).not.toBe(istantaneaPrima);
+    expect(dopo.fonte.tipo).toBe("tour");
+    expect(dopo.fonte.slug).toBe(TOUR.slug);
+    // …e tutto il resto è identico, ramo per ramo.
+    expect(dopo.id).toBe(prima.id);
+    expect(dopo.fattuali).toEqual(prima.fattuali);
+    expect(dopo.editoriale).toEqual(prima.editoriale);
+    expect(dopo.media).toEqual(prima.media);
+    expect(dopo.visual).toEqual(prima.visual);
+    expect(dopo.mappa).toEqual(prima.mappa);
+    expect(dopo.formato).toBe(prima.formato);
+    expect(dopo.variante).toEqual(prima.variante);
+    expect(dopo.versioni).toEqual(prima.versioni);
+    // In particolare: niente reimport dei fatti, e la mano resta la mano.
+    expect(dopo.fattuali.mezzo).toBe("Moto");
+    expect(dopo.fattuali.origine.mezzo).toBe("manuale");
+    expect(dopo.editoriale.claim).toBe("Scritto da me");
+  });
+
+  it("è una modifica non salvata, e non tocca l'archivio", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConLavoroEditoriale();
+    const scrittureDopoSalva = pilot.scritture.length;
+    const sulDiscoPrima = await pilot.leggiDavvero(id);
+
+    await act(async () => {
+      canale.api.riallineaAllaFonte(TOUR_CAMBIATO);
+    });
+    await respiro();
+
+    expect(canale.api.sporco).toBe(true);
+    // Nessuna scrittura implicita.
+    expect(pilot.scritture).toHaveLength(scrittureDopoSalva);
+    expect(JSON.stringify((await pilot.leggiDavvero(id)).fonte)).toBe(
+      JSON.stringify(sulDiscoPrima.fonte),
+    );
+  });
+
+  it("salvando e riaprendo, la nuova istantanea resta e la storia pure", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConLavoroEditoriale();
+    const revisioniPrima = (await pilot.leggiDavvero(id)).versioni.length;
+
+    await act(async () => {
+      canale.api.riallineaAllaFonte(TOUR_CAMBIATO);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+
+    const sul = await pilot.leggiDavvero(id);
+    expect(sul.fonte.istantanea.prezzo).toBe("150 €");
+    expect(sul.editoriale.claim).toBe("Scritto da me");
+    expect(sul.fattuali.mezzo).toBe("Moto");
+    // La storia precedente non è stata persa.
+    expect(sul.versioni.length).toBeGreaterThanOrEqual(revisioniPrima);
+    expect(sul.versioni.map((v) => v.n)).toEqual(sul.versioni.map((_, i) => i + 1));
+
+    // E riaprendola, quello che si legge è quello che c'è.
+    await act(async () => {
+      await canale.api.creaDaTour(ALTRO_TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    await act(async () => {
+      await canale.api.apri(id);
+    });
+    await respiro();
+    expect(canale.api.contenuto.fonte.istantanea.prezzo).toBe("150 €");
+    expect(canale.api.contenuto.editoriale.claim).toBe("Scritto da me");
+  });
+
+  it("senza tour, senza bozza o con uno slug diverso non cambia niente", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+
+    // Nessuna bozza aperta.
+    expect(canale.api.riallineaAllaFonte(TOUR).codice).toBe(CODICI.nessunaBozza);
+
+    await bozzaConLavoroEditoriale();
+    const prima = canale.api.contenuto;
+
+    let senza;
+    let altro;
+    await act(async () => {
+      senza = canale.api.riallineaAllaFonte(null);
+      altro = canale.api.riallineaAllaFonte(ALTRO_TOUR);
+    });
+    await respiro();
+
+    expect(senza.codice).toBe(CODICI.fonteAssente);
+    expect(altro.codice).toBe(CODICI.fonteNonCorrispondente);
+    // Contenuto, sporco e archivio intatti.
+    expect(canale.api.contenuto).toEqual(prima);
+    expect(canale.api.sporco).toBe(false);
+    expect(pilot.scritture).toHaveLength(1);
+  });
+});
+
+describe("riallineare nello stesso giro di altre operazioni", () => {
+  it("modifica, riallineamento e salvataggio senza respiro finiscono tutti sul disco", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConLavoroEditoriale();
+
+    let promessa;
+    act(() => {
+      canale.api.scriviEditoriale("kicker", "Kicker nuovo");
+      canale.api.riallineaAllaFonte(TOUR_CAMBIATO);
+      promessa = canale.api.salva();
+    });
+    await respiro();
+    await promessa;
+
+    const sul = await pilot.leggiDavvero(id);
+    expect(sul.editoriale.kicker).toBe("Kicker nuovo");
+    expect(sul.fonte.istantanea.prezzo).toBe("150 €");
+    expect(sul.editoriale.claim).toBe("Scritto da me");
+    expect(canale.api.sporco).toBe(false);
+  });
+
+  it("dopo un riallineamento, sostituire la bozza chiede prima", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConLavoroEditoriale();
+
+    let promessa;
+    act(() => {
+      canale.api.riallineaAllaFonte(TOUR_CAMBIATO);
+      promessa = canale.api.creaDaTour(ALTRO_TOUR);
+    });
+    await respiro();
+
+    expect(dialogo()).toBeTruthy();
+    await act(async () => {
+      bottone("Annulla").click();
+    });
+    await respiro();
+
+    expect((await promessa).esito).toBe(ESITI.annullato);
+    expect(canale.api.contenuto.id).toBe(id);
+    expect(canale.api.contenuto.fonte.istantanea.prezzo).toBe("150 €");
+    expect(canale.api.sporco).toBe(true);
+  });
+
+  it("sotto StrictMode l'istante di importazione resta uno solo", async () => {
+    const pilot = archivioPilotabile();
+    await montaSevero(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-01T10:00:00.000Z"));
+    try {
+      await act(async () => {
+        canale.api.riallineaAllaFonte(TOUR_CAMBIATO);
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+    await respiro();
+
+    // L'istante arriva da `riallineaTourAllaFonte` e raggiunge il contenuto.
+    expect(canale.api.contenuto.fonte.importatoIl).toBe("2026-03-01T10:00:00.000Z");
+    expect(canale.api.contenuto.fonte.istantanea.prezzo).toBe("150 €");
+    expect(canale.api.sporco).toBe(true);
+
+    /*
+     * E ciò che si vede è ciò che si salva: il salvataggio legge il
+     * riferimento, la schermata legge lo stato, e se la trasformazione non
+     * fosse pura i due potrebbero divergere.
+     */
+    const inMemoria = canale.api.contenuto.fonte.importatoIl;
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const sul = await pilot.leggiDavvero(canale.api.contenuto.id);
+    expect(sul.fonte.importatoIl).toBe(inMemoria);
+    expect(canale.api.contenuto.fonte.importatoIl).toBe(inMemoria);
+  });
+
+  it("riallineare durante una scrittura lenta non si perde", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConLavoroEditoriale();
+    const sulDiscoPrima = await pilot.leggiDavvero(id);
+
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "In volo");
+    });
+    const sosta = pilot.fermaProssima("salva");
+    let promessa;
+    act(() => {
+      promessa = canale.api.salva();
+    });
+    await respiro();
+
+    // Il riallineamento arriva mentre la scrittura è ancora aperta.
+    await act(async () => {
+      canale.api.riallineaAllaFonte(TOUR_CAMBIATO);
+    });
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    // La risposta vecchia non lo cancella e non dichiara salvato.
+    expect(await promessa).toBeNull();
+    expect(canale.api.sporco).toBe(true);
+    expect(canale.api.contenuto.fonte.istantanea.prezzo).toBe("150 €");
+    // Sul disco c'è quello che è stato davvero scritto, non il riallineamento.
+    const dopoLaCorsa = await pilot.leggiDavvero(id);
+    expect(dopoLaCorsa.editoriale.claim).toBe("In volo");
+    expect(JSON.stringify(dopoLaCorsa.fonte.istantanea)).toBe(
+      JSON.stringify(sulDiscoPrima.fonte.istantanea),
+    );
+
+    // E riprovando, il secondo salvataggio riesce.
+    await act(async () => {
+      expect(await canale.api.salva()).toBeTruthy();
+    });
+    await respiro();
+    expect((await pilot.leggiDavvero(id)).fonte.istantanea.prezzo).toBe("150 €");
+    expect(canale.api.sporco).toBe(false);
+  });
+
+  it("riallineare durante l'aggiornamento dell'elenco non si perde", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConLavoroEditoriale();
+
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "Prima dell'elenco");
+    });
+    const sosta = pilot.fermaProssima("elenca");
+    let promessa;
+    act(() => {
+      promessa = canale.api.salva();
+    });
+    await respiro();
+
+    await act(async () => {
+      canale.api.riallineaAllaFonte(TOUR_CAMBIATO);
+    });
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    expect(await promessa).toBeNull();
+    expect(canale.api.sporco).toBe(true);
+    expect(canale.api.contenuto.fonte.istantanea.prezzo).toBe("150 €");
+
+    await act(async () => {
+      expect(await canale.api.salva()).toBeTruthy();
+    });
+    await respiro();
+    expect((await pilot.leggiDavvero(id)).fonte.istantanea.prezzo).toBe("150 €");
   });
 });

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useArchivio } from "./ContestoArchivio";
 import { ESITI, useRegistraGuardia, useRichiediTransizione } from "./transizione";
 import { contenutoVuoto } from "../fondamenta/schema";
-import { daTour } from "../fondamenta/adapter-tour";
+import { daTour, riallineaTourAllaFonte } from "../fondamenta/adapter-tour";
 import { registraRevisione } from "../fondamenta/versioni";
 
 /**
@@ -53,6 +53,13 @@ export const CODICI = {
   // Si è riprovato a salvare, ma la base persistita non si riesce a recuperare:
   // riscriverci sopra cancellerebbe uno stato che c'è. Si riprova più tardi.
   baseNonRecuperata: "base-non-recuperata",
+  // Il riallineamento alla fonte: accettata la nuova istantanea del tour.
+  fonteAccettata: "fonte-accettata",
+  fonteAssente: "fonte-assente",
+  nessunaBozza: "nessuna-bozza",
+  // La bozza aperta non viene da quel tour: accettarne l'istantanea
+  // significherebbe dire che descrive un percorso che non descrive.
+  fonteNonCorrispondente: "fonte-non-corrispondente",
 };
 
 const CATEGORIA = "tour";
@@ -484,6 +491,61 @@ export function useBozzaTour({ urlBase = "" } = {}) {
     [archivio, segnaSporco],
   );
 
+  /**
+   * Accetta la fonte: aggiorna l'istantanea del tour, e nient'altro.
+   *
+   * Il sito cambia, e la bozza deve poterlo registrare senza che questo
+   * significhi **reimportare**. §17.4 lo dice già per il contenuto: riallineare
+   * tocca solo `fonte` — tipo, slug, istantanea e `importatoIl` — e lascia
+   * intatti fatti, provenienze, copy, media, visual, mappa, formato, variante e
+   * revisioni. Il lavoro editoriale non si perde per aver preso atto che il
+   * sito è cambiato.
+   *
+   * Non legge il sito da sé: il tour normalizzato arriva da chi chiama. E non
+   * salva: il riallineamento è una modifica come le altre, che diventa
+   * persistente solo con `salva`.
+   *
+   * @param {object} tourAttuale il tour già normalizzato, dal chiamante
+   * @returns {{codice: string}} esito esplicito, senza eccezioni
+   */
+  const riallineaAllaFonte = useCallback(
+    (tourAttuale) => {
+      if (!tourAttuale) return { codice: CODICI.fonteAssente };
+      // Dal riferimento, non dallo stato: chi chiama può aver appena scritto.
+      const corrente = contenutoRif.current;
+      if (!corrente) return { codice: CODICI.nessunaBozza };
+
+      /*
+       * L'identità dev'essere la stessa, e dichiarata: senza uno slug non si sa
+       * da quale tour venga la bozza, e accettare l'istantanea di un altro le
+       * farebbe dire di descrivere un percorso che non descrive.
+       */
+      const suo = corrente.fonte;
+      if (
+        corrente.categoria !== CATEGORIA ||
+        suo?.tipo !== "tour" ||
+        !suo?.slug ||
+        suo.slug !== tourAttuale.slug
+      ) {
+        return { codice: CODICI.fonteNonCorrispondente };
+      }
+
+      /*
+       * `riallineaTourAllaFonte` genera `importatoIl`, quindi non è pura: si
+       * chiama **una volta sola**, qui fuori, e all'aggiornatore si dà una
+       * trasformazione che sostituisce soltanto il ramo `fonte`. Così React può
+       * rieseguirla — sotto `StrictMode` lo fa — senza che l'istante cambi e
+       * senza cancellare scritture già accodate.
+       */
+      const nuovaFonte = riallineaTourAllaFonte(corrente, tourAttuale).fonte;
+      aggiorna((c) => ({ ...c, fonte: nuovaFonte }));
+      // `aggiorna` azzera l'esito: questo viene dopo, e resta.
+      setEsito({ codice: CODICI.fonteAccettata });
+      return { codice: CODICI.fonteAccettata };
+    },
+    [aggiorna],
+  );
+
   /* ================================================================ *
    * La protezione del lavoro non salvato
    * ================================================================ */
@@ -520,6 +582,7 @@ export function useBozzaTour({ urlBase = "" } = {}) {
     salva,
     scriviEditoriale,
     scriviFattuale,
+    riallineaAllaFonte,
     ricarica,
   };
 }
