@@ -1377,3 +1377,311 @@ describe("la corsa del recupero", () => {
     radice = createRoot(contenitore);
   });
 });
+
+/** Monta l'hook dentro `StrictMode`, che invoca render e updater due volte. */
+async function montaSevero(archivio = creaArchivioMemoria()) {
+  await act(async () => {
+    radice.render(
+      <React.StrictMode>
+        <FornitoreArchivio archivio={archivio}>
+          <FornitoreTransizione>
+            <Prova />
+          </FornitoreTransizione>
+        </FornitoreArchivio>
+      </React.StrictMode>,
+    );
+  });
+  await respiro();
+  return archivio;
+}
+
+/**
+ * La finestra prima del render.
+ *
+ * Fra una modifica e l'operazione che la segue, nello stesso giro, React non ha
+ * ancora ridisegnato: lo stato è quello di prima. Un'operazione imperativa che
+ * legge lo stato — e non un riferimento aggiornato subito — lavora quindi su
+ * dati vecchi, e il contatore delle modifiche, già incrementato, la fa passare
+ * per buona. È la finestra in cui si perde lavoro senza nemmeno un avviso.
+ */
+describe("modificare e agire nello stesso giro", () => {
+  it("salvare subito dopo aver scritto persiste quello che si è scritto", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const id = canale.api.contenuto.id;
+
+    // Nessun respiro fra le due chiamate: è proprio quello il punto.
+    let promessa;
+    act(() => {
+      canale.api.scriviEditoriale("claim", "B");
+      promessa = canale.api.salva();
+    });
+    await respiro();
+
+    const riletto = await promessa;
+    expect(riletto).toBeTruthy();
+    expect(riletto.editoriale.claim).toBe("B");
+    expect((await pilot.leggiDavvero(id)).editoriale.claim).toBe("B");
+    expect(canale.api.contenuto.editoriale.claim).toBe("B");
+    // Pulito solo perché B è davvero sul disco.
+    expect(canale.api.sporco).toBe(false);
+  });
+
+  it("più modifiche di fila, testi e fatti, arrivano tutte sul disco", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const id = canale.api.contenuto.id;
+
+    let promessa;
+    act(() => {
+      canale.api.scriviEditoriale("claim", "Claim nuovo");
+      canale.api.scriviEditoriale("kicker", "Kicker nuovo");
+      canale.api.scriviFattuale("mezzo", "Moto");
+      promessa = canale.api.salva();
+    });
+    await respiro();
+    await promessa;
+
+    const sul = await pilot.leggiDavvero(id);
+    expect(sul.editoriale.claim).toBe("Claim nuovo");
+    expect(sul.editoriale.kicker).toBe("Kicker nuovo");
+    expect(sul.fattuali.mezzo).toBe("Moto");
+    // La provenienza è quella giusta, e non si è sporcata quella degli altri.
+    expect(sul.fattuali.origine.mezzo).toBe("manuale");
+    expect(sul.fattuali.origine.nome).toBe("sito");
+    // I fatti non toccati sono rimasti come li aveva messi il sito.
+    expect(sul.fattuali.nome).toBe("Prova di Contratto");
+    expect(sul.fattuali.area).toBe("");
+  });
+
+  it("lo stesso vale sotto StrictMode", async () => {
+    const pilot = archivioPilotabile();
+    await montaSevero(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const id = canale.api.contenuto.id;
+
+    let promessa;
+    act(() => {
+      canale.api.scriviEditoriale("claim", "B severo");
+      promessa = canale.api.salva();
+    });
+    await respiro();
+    await promessa;
+
+    expect((await pilot.leggiDavvero(id)).editoriale.claim).toBe("B severo");
+    expect(canale.api.contenuto.editoriale.claim).toBe("B severo");
+    expect(canale.api.sporco).toBe(false);
+  });
+});
+
+describe("la guardia vede la modifica appena fatta", () => {
+  it("creare da un altro tour subito dopo aver scritto chiede prima", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const id = canale.api.contenuto.id;
+
+    // Modifica e sostituzione nello stesso giro: la promessa si prende qui, la
+    // risposta al dialogo arriva dopo.
+    let promessa;
+    act(() => {
+      canale.api.scriviEditoriale("claim", "Non perdermi");
+      promessa = canale.api.creaDaTour(ALTRO_TOUR);
+    });
+    await respiro();
+
+    expect(dialogo()).toBeTruthy();
+    await act(async () => {
+      bottone("Annulla").click();
+    });
+    await respiro();
+
+    expect((await promessa).esito).toBe(ESITI.annullato);
+    expect(canale.api.contenuto.id).toBe(id);
+    expect(canale.api.contenuto.editoriale.claim).toBe("Non perdermi");
+    expect(canale.api.sporco).toBe(true);
+  });
+
+  it("aprire un'altra bozza subito dopo aver scritto non sostituisce di nascosto", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    // Una bozza già persistita da riaprire.
+    await act(async () => {
+      await canale.api.creaDaTour(ALTRO_TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const altra = canale.api.contenuto.id;
+
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const id = canale.api.contenuto.id;
+
+    let promessa;
+    act(() => {
+      canale.api.scriviEditoriale("claim", "Ancora qui");
+      promessa = canale.api.apri(altra);
+    });
+    await respiro();
+
+    expect(dialogo()).toBeTruthy();
+    await act(async () => {
+      bottone("Annulla").click();
+    });
+    await respiro();
+
+    expect((await promessa).esito).toBe(ESITI.annullato);
+    expect(canale.api.contenuto.id).toBe(id);
+    expect(canale.api.contenuto.editoriale.claim).toBe("Ancora qui");
+  });
+
+  it("«Salva e continua» porta sul disco l'ultima modifica, poi sostituisce", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const id = canale.api.contenuto.id;
+
+    let promessa;
+    act(() => {
+      canale.api.scriviEditoriale("claim", "Ultima parola");
+      promessa = canale.api.creaDaTour(ALTRO_TOUR);
+    });
+    await respiro();
+    expect(dialogo()).toBeTruthy();
+    await act(async () => {
+      bottone("Salva e continua").click();
+    });
+    await respiro();
+
+    expect((await promessa).esito).toBe(ESITI.fatto);
+    // La modifica è sul disco, non persa nella sostituzione.
+    expect((await pilot.leggiDavvero(id)).editoriale.claim).toBe("Ultima parola");
+    // E adesso è aperta l'altra.
+    expect(canale.api.contenuto.fonte.slug).toBe("seconda-prova");
+    expect(canale.api.contenuto.id).not.toBe(id);
+  });
+
+  it("«Scarta modifiche» sostituisce soltanto dopo la scelta esplicita", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const id = canale.api.contenuto.id;
+    const scrittureDopoSalva = pilot.scritture.length;
+
+    let promessa;
+    act(() => {
+      canale.api.scriviEditoriale("claim", "Destinata a sparire");
+      promessa = canale.api.creaDaTour(ALTRO_TOUR);
+    });
+    await respiro();
+
+    // Finché non si risponde, niente è cambiato.
+    expect(dialogo()).toBeTruthy();
+    expect(canale.api.contenuto.id).toBe(id);
+    expect(canale.api.contenuto.editoriale.claim).toBe("Destinata a sparire");
+
+    await act(async () => {
+      bottone("Scarta modifiche").click();
+    });
+    await respiro();
+
+    expect((await promessa).esito).toBe(ESITI.fatto);
+    expect(canale.api.contenuto.id).not.toBe(id);
+    // Scartare non scrive: sul disco resta la versione salvata prima.
+    expect(pilot.scritture).toHaveLength(scrittureDopoSalva);
+    expect((await pilot.leggiDavvero(id)).editoriale.claim).not.toBe("Destinata a sparire");
+  });
+
+  it("dopo aver aperto una bozza, sostituirla non chiede più nulla", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    // Due bozze persistite.
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const primo = canale.api.contenuto.id;
+    await act(async () => {
+      await canale.api.creaDaTour(ALTRO_TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+
+    // Si sporca, poi si apre l'altra scartando: da lì l'editor è pulito.
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "Da scartare");
+    });
+    let promessa;
+    act(() => {
+      promessa = canale.api.apri(primo);
+    });
+    await respiro();
+    await act(async () => {
+      bottone("Scarta modifiche").click();
+    });
+    await respiro();
+    expect((await promessa).esito).toBe(ESITI.fatto);
+    expect(canale.api.contenuto.id).toBe(primo);
+    expect(canale.api.sporco).toBe(false);
+
+    // Ora sostituire non deve chiedere: non c'è niente da perdere.
+    let seconda;
+    act(() => {
+      seconda = canale.api.creaDaTour(ALTRO_TOUR);
+    });
+    await respiro();
+    expect(dialogo()).toBeNull();
+    expect((await seconda).esito).toBe(ESITI.fatto);
+    expect(canale.api.contenuto.id).not.toBe(primo);
+  });
+});

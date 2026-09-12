@@ -1740,9 +1740,35 @@ tardivo: un solo controllo di vita, collocato nell'ultimo punto in cui si può
 ancora restituire `null` invece di annunciare un salvataggio a un albero che non
 c'è più.
 
+### 19.3.1 La finestra prima del render
+
+Fra una modifica e l'operazione che la segue, **nello stesso giro**, React non
+ha ancora ridisegnato: lo stato è quello di prima. Chi legge lo stato invece di
+un riferimento aggiornato subito lavora quindi su dati vecchi — e il contatore
+delle modifiche, già incrementato, lo fa passare per buono. Sono due modi di
+perdere lavoro senza nemmeno un avviso:
+
+- `scriviEditoriale(...)` seguito da `salva()` persisteva il contenuto
+  *precedente*, poi la rilettura riscriveva sopra la modifica e l'editor si
+  dichiarava pulito;
+- una modifica seguita da `creaDaTour` o `apri` non incontrava il dialogo,
+  perché la guardia leggeva `sporco` dal render precedente, e la sostituzione
+  passava in silenzio.
+
+La correzione è minima e sta tutta nell'hook: ogni modifica allinea **subito**
+il riferimento al contenuto, e lo stato «non salvato» vive anche in un
+riferimento che la guardia interroga. Non si usano `flushSync`, attese o
+`respiro` nei chiamanti: nascondere il difetto dietro un'attesa obbligatoria
+avrebbe lasciato la superficie pubblica altrettanto fragile.
+
+La funzione di modifica viene applicata due volte — al riferimento e allo stato
+— e per questo dev'essere pura. Non è una precauzione teorica: sotto
+`StrictMode` React invoca gli aggiornatori due volte di suo, e una prova monta
+l'hook proprio lì per verificarlo.
+
 ### 19.4 Che cosa è verificato
 
-`useBozzaTour.test.jsx` — 36 prove — monta l'hook sotto `FornitoreArchivio` e
+`useBozzaTour.test.jsx` — 44 prove — monta l'hook sotto `FornitoreArchivio` e
 `FornitoreTransizione` con archivio in memoria e promesse pilotate, e confronta
 **i dati**: che cosa finisce nell'archivio e che cosa resta in memoria, non i
 messaggi. Copre creazione da tour sintetico con i campi non pubblicati ancora
@@ -1779,6 +1805,16 @@ intatte le proprie revisioni; riapertura dello stesso `id`, dove solo la
 sessione distingue; permanenza sulla stessa bozza, dove le battiture più recenti
 vengono conservate e salvate; smontaggio durante l'attesa.
 
+Otto prove coprono la finestra prima del render, **senza alcun respiro fra le
+chiamate**: scrivere e salvare nello stesso giro; più modifiche di fila, testi e
+fatti, con la provenienza giusta e i fatti non toccati invariati; lo stesso
+sotto `StrictMode`; scrivere e poi creare da un altro tour, dove il dialogo
+deve comparire e «Annulla» conserva identità e modifica; scrivere e poi aprire
+un'altra bozza; «Salva e continua», che porta sul disco l'ultima modifica prima
+di sostituire; «Scarta modifiche», che sostituisce solo dopo la scelta
+esplicita; e un'apertura dopo la quale l'editor è davvero pulito, così che
+sostituire non chieda più nulla.
+
 Il mordente è stato verificato con mutazioni temporanee limitate ai file nuovi:
 senza il filtro di rubrica, senza il contatore in apertura, senza il primo o
 l'ultimo controllo del salvataggio, senza la fusione delle scritture, senza
@@ -1792,7 +1828,11 @@ recupero fallito che lascia scrivere comunque, una; con il `catch` di nuovo
 condiviso, tre; con il debito che ignora l'identità, una. Sulla sessione:
 togliendo il controllo nel recupero falliscono tre prove, facendola cambiare a
 ogni battitura ne falliscono cinque, non incrementandola all'apertura o alla
-creazione una ciascuna. Nessuna mutazione è rimasta.
+creazione una ciascuna. Sulla finestra prima del render: senza allineare il
+riferimento nella modifica falliscono tre prove, con la guardia che torna a
+leggere lo stato quattro, e mancando l'aggiornamento del riferimento «non
+salvato» nella modifica otto, nel salvataggio riuscito undici, nella creazione
+quattro, nell'apertura una. Nessuna mutazione è rimasta.
 
 ### 19.5 I limiti
 

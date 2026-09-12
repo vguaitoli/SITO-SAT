@@ -77,6 +77,15 @@ export function useBozzaTour({ urlBase = "" } = {}) {
   contenutoRif.current = contenuto;
   const modificheRif = useRef(0);
   /*
+   * Lo stato «non salvato», leggibile **senza aspettare il render**.
+   *
+   * La guardia viene interrogata da un gesto che può arrivare nello stesso giro
+   * della modifica: leggere lo stato di React significherebbe leggere quello di
+   * prima, e una sostituzione passerebbe senza chiedere nulla, portandosi via
+   * il lavoro appena scritto.
+   */
+  const sporcoRif = useRef(false);
+  /*
    * La **sessione** del contenuto: cambia solo quando il contenuto viene
    * sostituito — creato o aperto — non quando lo si scrive.
    *
@@ -138,13 +147,35 @@ export function useBozzaTour({ urlBase = "" } = {}) {
    * Scrivere
    * ================================================================ */
 
-  /** Ogni modifica passa da qui: è così che «non salvato» resta veritiero. */
-  const aggiorna = useCallback((fn) => {
-    modificheRif.current += 1;
-    setContenuto((c) => (c ? fn(c) : c));
-    setSporco(true);
-    setEsito(null);
+  /** Cambia insieme stato e riferimento: non devono mai divergere. */
+  const segnaSporco = useCallback((valore) => {
+    sporcoRif.current = valore;
+    setSporco(valore);
   }, []);
+
+  /**
+   * Ogni modifica passa da qui: è così che «non salvato» resta veritiero.
+   *
+   * Il riferimento si aggiorna **subito**, non al render successivo. Fra una
+   * modifica e l'operazione che la segue, nello stesso giro, React non ha
+   * ancora ridisegnato: un salvataggio che leggesse lo stato lavorerebbe su
+   * dati vecchi, e il contatore — già incrementato — lo farebbe passare per
+   * buono, riscrivendo sopra la modifica appena fatta senza un avviso.
+   *
+   * `fn` si applica due volte, al riferimento e allo stato, e per questo
+   * dev'essere pura: sotto `StrictMode` React invoca gli aggiornatori due volte
+   * di suo, e un effetto collaterale qui dentro si vedrebbe doppio.
+   */
+  const aggiorna = useCallback(
+    (fn) => {
+      modificheRif.current += 1;
+      if (contenutoRif.current) contenutoRif.current = fn(contenutoRif.current);
+      setContenuto((c) => (c ? fn(c) : c));
+      segnaSporco(true);
+      setEsito(null);
+    },
+    [segnaSporco],
+  );
 
   const scriviEditoriale = useCallback(
     (campo, valore) =>
@@ -196,10 +227,10 @@ export function useBozzaTour({ urlBase = "" } = {}) {
       // Una bozza appena creata non è sul disco: `salvato` resta vuoto, e il
       // lavoro nasce non salvato.
       salvatoRif.current = null;
-      setSporco(true);
+      segnaSporco(true);
       setEsito({ codice: CODICI.creata });
     },
-    [urlBase],
+    [urlBase, segnaSporco],
   );
 
   /**
@@ -352,7 +383,7 @@ export function useBozzaTour({ urlBase = "" } = {}) {
       setContenuto(riletto);
       contenutoRif.current = riletto;
       salvatoRif.current = riletto;
-      setSporco(false);
+      segnaSporco(false);
 
       /*
        * Anche ricaricare l'elenco è una chiamata all'archivio e può rifiutare.
@@ -390,7 +421,7 @@ export function useBozzaTour({ urlBase = "" } = {}) {
       setEsito({ codice: elencoAggiornato ? CODICI.salvata : CODICI.erroreElenco });
       return riletto;
     },
-    [archivio, ricarica, adottaBasePersistita],
+    [archivio, ricarica, adottaBasePersistita, segnaSporco],
   );
 
   /**
@@ -447,10 +478,10 @@ export function useBozzaTour({ urlBase = "" } = {}) {
       setContenuto(letto);
       contenutoRif.current = letto;
       salvatoRif.current = letto;
-      setSporco(false);
+      segnaSporco(false);
       setEsito({ codice: CODICI.aperta });
     },
-    [archivio],
+    [archivio, segnaSporco],
   );
 
   /* ================================================================ *
@@ -458,7 +489,8 @@ export function useBozzaTour({ urlBase = "" } = {}) {
    * ================================================================ */
 
   useRegistraGuardia({
-    sporco: () => sporco,
+    // Dal riferimento, non dallo stato: vedi `sporcoRif`.
+    sporco: () => sporcoRif.current,
     salva: async () => Boolean(await salva()),
     etichetta: "Questa azione",
   });
