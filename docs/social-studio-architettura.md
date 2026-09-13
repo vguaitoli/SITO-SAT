@@ -1626,14 +1626,17 @@ bozza da un tour già normalizzato, scriverla, salvarla, riaprirla. Vive in
 **Non rende TOUR disponibile.** Il registro continua a dichiararla
 `pianificata`, non esiste un editor né un template, e niente di quanto sta qui è
 raggiungibile dallo Studio — una prova lo verifica sui registri veri. Il modulo
-TOUR non è completato: mancano cancellazione, ripristino revisioni,
-riallineamento alla fonte, media, GPX ed export, che sono passi successivi.
+TOUR non è completato. Il nucleo — creare, scrivere, salvare, riaprire — è di
+6.3C; 6.3D vi ha aggiunto il riallineamento esplicito alla fonte (§19.6).
+Restano fuori cancellazione, ripristino revisioni, media, GPX ed export, che
+sono passi successivi.
 
 ### 19.1 Che cosa espone, e perché come codici
 
 L'hook restituisce `contenuto`, `sporco`, `bozze` (le sole bozze TOUR), `esito`,
 e le operazioni `creaDaTour`, `apri`, `salva`, `scriviEditoriale`,
-`scriviFattuale`, `ricarica`.
+`scriviFattuale`, `riallineaAllaFonte` — i cui esiti stanno in §19.6 — e
+`ricarica`.
 
 `ricarica()` è pubblica e **non rigetta**: riporta `{ codice: null }` oppure
 `{ codice: "errore-elenco" }`. Chi la chiama non deve ricordarsi di metterci un
@@ -1848,6 +1851,36 @@ falliscono nove prove, senza marcare la modifica sei, reimportando anche i fatti
 due, senza il controllo di identità della fonte una. Nessuna mutazione è
 rimasta.
 
+### 19.5 I limiti
+
+- **Non è un editor.** Nessuna interfaccia, nessun template, nessuna variante,
+  nessun pre-flight TOUR. TOUR resta `pianificata` e non selezionabile.
+- **Una guardia sola.** Il fornitore ne tiene una (§18.6): questo hook ne
+  registra una, quindi **non va montato insieme a `EditorEvento`** sotto lo
+  stesso fornitore finché quel limite non è risolto. È il vincolo da chiudere
+  prima di avere due editor, non dopo.
+- **Niente cancellazione, ripristino revisioni, media, GPX o export.**
+  Deliberatamente fuori: ognuno porta con sé difese proprie, e vanno aggiunte
+  una alla volta con le loro prove. Il riallineamento alla fonte, invece, c'è:
+  §19.6.
+- **Nessuna fusione automatica.** Su risposta superata si segnala con un codice
+  e si chiede di ripetere.
+- **Il riallineamento non è sorvegliato da Version History.** Accettare una
+  fonte nuova non genera una revisione, quindi tornare all'istantanea
+  precedente non è previsto. Va deciso quando l'editor esisterà.
+- **Nessun confronto con la fonte è esposto.** `confrontaTourConLaFonte` esiste
+  in `adapter-tour`, ma l'hook non lo espone: sapere *che cosa* è cambiato è un
+  passo successivo, e comporta scelte di presentazione.
+- **Un archivio che non si lascia rileggere blocca il salvataggio di quella
+  bozza.** È deliberato: finché non si sa da dove ripartire, scrivere
+  cancellerebbe uno stato che è sul disco. Il lavoro resta in memoria e
+  l'operazione è riprovabile, ma finché il guasto dura quella bozza non si
+  salva.
+- **Un elenco che non si aggiorna non annulla il salvataggio.** La scrittura è
+  riuscita, quindi `salva()` restituisce il record e l'esito è `errore-elenco`
+  invece di `salvata`: dire che è fallita manderebbe a riscrivere qualcosa che è
+  già sul disco. È la stessa scelta fatta per il cestino di EVENTI (§18.4.1).
+
 ### 19.6 Accettare che il sito è cambiato
 
 `riallineaAllaFonte(tourAttuale)` aggiorna l'istantanea della fonte, e nient'altro.
@@ -1889,32 +1922,3 @@ chiamate cadrebbero nello stesso millisecondo, e sotto orologio finto il tempo �
 fermo — una prova che tentasse di coglierla passerebbe comunque. È una
 correttezza di costruzione, non verificata. Quello che le prove verificano è
 l'effetto osservabile: che ciò che si vede sia ciò che si salva.
-
-### 19.5 I limiti
-
-- **Non è un editor.** Nessuna interfaccia, nessun template, nessuna variante,
-  nessun pre-flight TOUR. TOUR resta `pianificata` e non selezionabile.
-- **Una guardia sola.** Il fornitore ne tiene una (§18.6): questo hook ne
-  registra una, quindi **non va montato insieme a `EditorEvento`** sotto lo
-  stesso fornitore finché quel limite non è risolto. È il vincolo da chiudere
-  prima di avere due editor, non dopo.
-- **Niente cancellazione, ripristino, riallineamento, media, GPX o export.**
-  Deliberatamente fuori: ognuno porta con sé difese proprie, e vanno aggiunte
-  una alla volta con le loro prove.
-- **Nessuna fusione automatica.** Su risposta superata si segnala con un codice
-  e si chiede di ripetere.
-- **Il riallineamento non è sorvegliato da Version History.** Accettare una
-  fonte nuova non genera una revisione, quindi tornare all'istantanea
-  precedente non è previsto. Va deciso quando l'editor esisterà.
-- **Nessun confronto con la fonte è esposto.** `confrontaTourConLaFonte` esiste
-  in `adapter-tour`, ma l'hook non lo espone: sapere *che cosa* è cambiato è un
-  passo successivo, e comporta scelte di presentazione.
-- **Un archivio che non si lascia rileggere blocca il salvataggio di quella
-  bozza.** È deliberato: finché non si sa da dove ripartire, scrivere
-  cancellerebbe uno stato che è sul disco. Il lavoro resta in memoria e
-  l'operazione è riprovabile, ma finché il guasto dura quella bozza non si
-  salva.
-- **Un elenco che non si aggiorna non annulla il salvataggio.** La scrittura è
-  riuscita, quindi `salva()` restituisce il record e l'esito è `errore-elenco`
-  invece di `salvata`: dire che è fallita manderebbe a riscrivere qualcosa che è
-  già sul disco. È la stessa scelta fatta per il cestino di EVENTI (§18.4.1).
