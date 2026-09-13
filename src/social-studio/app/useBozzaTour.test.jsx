@@ -95,17 +95,20 @@ function archivioPilotabile() {
     salva: archivio.salva.bind(archivio),
     leggi: archivio.leggi.bind(archivio),
     elenca: archivio.elenca.bind(archivio),
+    elimina: archivio.elimina.bind(archivio),
   };
   const scritture = [];
-  const soste = { salva: null, leggi: null, elenca: null };
-  const rompi = { salva: false, leggi: false, elenca: false };
+  const eliminazioni = [];
+  const soste = { salva: null, leggi: null, elenca: null, elimina: null };
+  const rompi = { salva: false, leggi: false, elenca: false, elimina: false };
   // `nullo.leggi` simula un record che non c'è più: la lettura riesce, ma non
   // restituisce niente. È un fallimento diverso da un rigetto.
   const nullo = { leggi: false };
 
-  for (const nome of ["salva", "leggi", "elenca"]) {
+  for (const nome of ["salva", "leggi", "elenca", "elimina"]) {
     archivio[nome] = async (...args) => {
       if (nome === "salva") scritture.push(args[0]?.id ?? null);
+      if (nome === "elimina") eliminazioni.push(args[0] ?? null);
       const sosta = soste[nome];
       if (sosta) {
         soste[nome] = null;
@@ -120,6 +123,7 @@ function archivioPilotabile() {
   return {
     archivio,
     scritture,
+    eliminazioni,
     rompi,
     nullo,
     /** Legge dal disco scavalcando i guasti simulati. */
@@ -2303,5 +2307,506 @@ describe("bozze TOUR con una fonte malformata", () => {
     expect(canale.api.sporco).toBe(false);
     expect(pilot.scritture).toHaveLength(scritturePrima);
     expect(JSON.stringify(await pilot.leggiDavvero(id))).toBe(sulDiscoPrima);
+  });
+});
+
+/** Salva una bozza TOUR dal tour dato e restituisce il suo id. */
+async function bozzaSalvata(tour, claim) {
+  await act(async () => {
+    await canale.api.creaDaTour(tour);
+  });
+  await act(async () => {
+    canale.api.scriviEditoriale("claim", claim);
+  });
+  await act(async () => {
+    await canale.api.salva();
+  });
+  await respiro();
+  return canale.api.contenuto.id;
+}
+
+/**
+ * Eliminare è definitivo: non c'è un annulla.
+ *
+ * Per questo non passa dal dialogo delle transizioni — «Salva e continua»
+ * significherebbe salvare proprio ciò che si sta cancellando — e per questo
+ * l'appartenenza si verifica nell'archivio e non nell'elenco, che è una
+ * comodità e può essere vecchio.
+ */
+describe("eliminare una bozza TOUR", () => {
+  it("una bozza non aperta si elimina", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const altra = await bozzaSalvata(ALTRO_TOUR, "Altra");
+    const corrente = await bozzaSalvata(TOUR, "Corrente");
+
+    const esito = await canale.api.elimina(altra);
+    await respiro();
+
+    expect(esito.codice).toBe(CODICI.eliminata);
+    expect(await pilot.leggiDavvero(altra)).toBeNull();
+    expect(canale.api.contenuto.id).toBe(corrente);
+    expect(canale.api.bozze.map((b) => b.id)).toEqual([corrente]);
+  });
+
+  it("la bozza corrente pulita si elimina e l'editor si svuota", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaSalvata(TOUR, "Pulita");
+
+    const esito = await canale.api.elimina(id);
+    await respiro();
+
+    expect(esito.codice).toBe(CODICI.eliminata);
+    expect(canale.api.contenuto).toBeNull();
+    expect(canale.api.sporco).toBe(false);
+    expect(await pilot.leggiDavvero(id)).toBeNull();
+  });
+
+  it("con modifiche non salvate su quella bozza si rifiuta, senza toccare l'archivio", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaSalvata(TOUR, "Salvata");
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "Non perdermi");
+    });
+    const eliminazioniPrima = pilot.eliminazioni.length;
+
+    const esito = await canale.api.elimina(id);
+    await respiro();
+
+    expect(esito.codice).toBe(CODICI.modificheNonSalvate);
+    expect(pilot.eliminazioni).toHaveLength(eliminazioniPrima);
+    expect(canale.api.contenuto.editoriale.claim).toBe("Non perdermi");
+    expect(canale.api.sporco).toBe(true);
+    expect(await pilot.leggiDavvero(id)).toBeTruthy();
+  });
+
+  it("un'altra bozza si elimina anche mentre la corrente è sporca", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const altra = await bozzaSalvata(ALTRO_TOUR, "Altra");
+    const corrente = await bozzaSalvata(TOUR, "Corrente");
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "Lavoro in corso");
+    });
+
+    const esito = await canale.api.elimina(altra);
+    await respiro();
+
+    expect(esito.codice).toBe(CODICI.eliminata);
+    expect(await pilot.leggiDavvero(altra)).toBeNull();
+    expect(canale.api.contenuto.id).toBe(corrente);
+    expect(canale.api.contenuto.editoriale.claim).toBe("Lavoro in corso");
+    expect(canale.api.sporco).toBe(true);
+  });
+
+  it("un id EVENTI o inesistente non viene mai eliminato", async () => {
+    const { contenutoVuoto } = await import("../fondamenta/schema");
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const idEventi = await pilot.archivio.salva({
+      ...contenutoVuoto({ categoria: "eventi", formato: "post" }),
+      titolo: "Bozza EVENTI",
+    });
+    await bozzaSalvata(TOUR, "Corrente");
+    const eliminazioniPrima = pilot.eliminazioni.length;
+
+    expect((await canale.api.elimina(idEventi)).codice).toBe(CODICI.nonUnaBozzaTour);
+    expect((await canale.api.elimina("id-che-non-esiste")).codice).toBe(CODICI.nonUnaBozzaTour);
+    expect((await canale.api.elimina(null)).codice).toBe(CODICI.nonUnaBozzaTour);
+    await respiro();
+
+    expect(pilot.eliminazioni).toHaveLength(eliminazioniPrima);
+    expect(await pilot.leggiDavvero(idEventi)).toBeTruthy();
+  });
+
+  it("due richieste ravvicinate cancellano una volta sola", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const altra = await bozzaSalvata(ALTRO_TOUR, "Altra");
+    await bozzaSalvata(TOUR, "Corrente");
+
+    const sosta = pilot.fermaProssima("leggi");
+    let a;
+    let b;
+    act(() => {
+      a = canale.api.elimina(altra);
+      b = canale.api.elimina(altra);
+    });
+    // La seconda è respinta subito, prima ancora di leggere.
+    expect((await b).codice).toBe(CODICI.eliminazioneOccupata);
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    expect((await a).codice).toBe(CODICI.eliminata);
+    expect(pilot.eliminazioni).toHaveLength(1);
+  });
+
+  it("aprire un'altra bozza durante l'attesa non la svuota", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const altra = await bozzaSalvata(ALTRO_TOUR, "Altra");
+    const corrente = await bozzaSalvata(TOUR, "Corrente");
+
+    // Si cancella quella aperta, ma l'archivio è lento.
+    const sosta = pilot.fermaProssima("elimina");
+    let promessa;
+    act(() => {
+      promessa = canale.api.elimina(corrente);
+    });
+    await respiro();
+
+    await act(async () => {
+      await canale.api.apri(altra);
+    });
+    await respiro();
+    expect(canale.api.contenuto.id).toBe(altra);
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    expect((await promessa).codice).toBe(CODICI.eliminata);
+    // La risposta tardiva non tocca la bozza aperta nel frattempo.
+    expect(canale.api.contenuto.id).toBe(altra);
+    expect(canale.api.contenuto.editoriale.claim).toBe("Altra");
+    expect(canale.api.sporco).toBe(false);
+  });
+
+  it("scrivere durante l'attesa non fa sparire quel che si è scritto", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaSalvata(TOUR, "Prima");
+
+    const sosta = pilot.fermaProssima("elimina");
+    let promessa;
+    act(() => {
+      promessa = canale.api.elimina(id);
+    });
+    await respiro();
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "Scritto mentre spariva");
+    });
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    expect((await promessa).codice).toBe(CODICI.eliminata);
+    expect(canale.api.contenuto.editoriale.claim).toBe("Scritto mentre spariva");
+    expect(canale.api.sporco).toBe(true);
+    expect(await pilot.leggiDavvero(id)).toBeNull();
+  });
+
+  it("errore di lettura ed errore di eliminazione sono esiti distinti", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const altra = await bozzaSalvata(ALTRO_TOUR, "Altra");
+    await bozzaSalvata(TOUR, "Corrente");
+
+    pilot.rompi.leggi = true;
+    expect((await canale.api.elimina(altra)).codice).toBe(CODICI.erroreLettura);
+    pilot.rompi.leggi = false;
+    expect(pilot.eliminazioni).toHaveLength(0);
+
+    pilot.rompi.elimina = true;
+    expect((await canale.api.elimina(altra)).codice).toBe(CODICI.erroreEliminazione);
+    pilot.rompi.elimina = false;
+    expect(await pilot.leggiDavvero(altra)).toBeTruthy();
+
+    // Il blocco si è liberato: si può riprovare, e stavolta passa.
+    expect((await canale.api.elimina(altra)).codice).toBe(CODICI.eliminata);
+    await respiro();
+    expect(await pilot.leggiDavvero(altra)).toBeNull();
+  });
+
+  it("se l'elenco non si aggiorna, la cancellazione resta riuscita", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const altra = await bozzaSalvata(ALTRO_TOUR, "Altra");
+    await bozzaSalvata(TOUR, "Corrente");
+
+    pilot.rompi.elenca = true;
+    const esito = await canale.api.elimina(altra);
+    await respiro();
+    pilot.rompi.elenca = false;
+
+    expect(esito.codice).toBe(CODICI.eliminataElencoNonAggiornato);
+    expect(esito.codice).not.toBe(CODICI.erroreEliminazione);
+    expect(await pilot.leggiDavvero(altra)).toBeNull();
+  });
+
+  it("smontare durante l'operazione non aggiorna più lo stato", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaSalvata(TOUR, "Corrente");
+
+    const sosta = pilot.fermaProssima("elimina");
+    let promessa;
+    act(() => {
+      promessa = canale.api.elimina(id);
+    });
+    await respiro();
+    const contenutoPrima = canale.api.contenuto;
+
+    act(() => radice.unmount());
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+
+    expect((await promessa).codice).toBe(CODICI.eliminata);
+    // Il record è sparito, ma l'ultimo stato React non è stato toccato.
+    expect(await pilot.leggiDavvero(id)).toBeNull();
+    expect(canale.api.contenuto).toBe(contenutoPrima);
+    radice = createRoot(contenitore);
+  });
+});
+
+/**
+ * Salvare ed eliminare la stessa bozza si escludono a vicenda.
+ *
+ * Senza questo vince chi finisce per ultimo: un salvataggio sospeso che ritorna
+ * dopo una cancellazione **ricrea** il record appena eliminato, e la bozza
+ * riappare senza che nessuno l'abbia chiesto. Le due corse si provano con
+ * cancelli pilotati, non con attese.
+ */
+describe("interblocco fra salvataggio ed eliminazione", () => {
+  it("un salvataggio in volo impedisce di eliminare la stessa bozza", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaSalvata(TOUR, "Prima");
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "Seconda");
+    });
+
+    const sosta = pilot.fermaProssima("salva");
+    let salvataggio;
+    act(() => {
+      salvataggio = canale.api.salva();
+    });
+    await respiro();
+
+    const esito = await canale.api.elimina(id);
+    expect(esito.codice).toBe(CODICI.operazioneInConflitto);
+    expect(pilot.eliminazioni).toHaveLength(0);
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    // Il salvataggio è andato a buon fine e il record esiste.
+    expect(await salvataggio).toBeTruthy();
+    expect((await pilot.leggiDavvero(id)).editoriale.claim).toBe("Seconda");
+
+    // Finito quello, si può riprovare: e stavolta passa.
+    expect((await canale.api.elimina(id)).codice).toBe(CODICI.eliminata);
+    await respiro();
+    expect(await pilot.leggiDavvero(id)).toBeNull();
+  });
+
+  it("un'eliminazione in volo impedisce di salvare la stessa bozza", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaSalvata(TOUR, "Prima");
+    const scrittureAllInizio = pilot.scritture.length;
+
+    const sosta = pilot.fermaProssima("elimina");
+    let eliminazione;
+    act(() => {
+      eliminazione = canale.api.elimina(id);
+    });
+    await respiro();
+
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "Scritta mentre spariva");
+    });
+    let esitoSalva;
+    await act(async () => {
+      esitoSalva = await canale.api.salva();
+    });
+    await respiro();
+
+    // Nessuna scrittura nuova, e il rifiuto è esplicito.
+    expect(esitoSalva).toBeNull();
+    expect(pilot.scritture).toHaveLength(scrittureAllInizio);
+    expect(canale.api.esito.codice).toBe(CODICI.operazioneInConflitto);
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    expect((await eliminazione).codice).toBe(CODICI.eliminata);
+    expect(await pilot.leggiDavvero(id)).toBeNull();
+    // Il lavoro scritto nel frattempo è rimasto in memoria, non salvato.
+    expect(canale.api.contenuto.editoriale.claim).toBe("Scritta mentre spariva");
+    expect(canale.api.sporco).toBe(true);
+
+    // E adesso si può salvare di nuovo: il blocco si è liberato.
+    await act(async () => {
+      expect(await canale.api.salva()).toBeTruthy();
+    });
+    await respiro();
+    expect(pilot.scritture.length).toBeGreaterThan(scrittureAllInizio);
+  });
+
+  it("una scrittura su un'altra bozza non blocca l'eliminazione di questa", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const altra = await bozzaSalvata(ALTRO_TOUR, "Altra");
+    const corrente = await bozzaSalvata(TOUR, "Corrente");
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "Modificata");
+    });
+
+    // Il salvataggio in volo riguarda la bozza **corrente**, non l'altra.
+    const sosta = pilot.fermaProssima("salva");
+    let salvataggio;
+    act(() => {
+      salvataggio = canale.api.salva();
+    });
+    await respiro();
+
+    const esito = await canale.api.elimina(altra);
+    expect(esito.codice).toBe(CODICI.eliminata);
+    expect(pilot.eliminazioni).toEqual([altra]);
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    expect(await salvataggio).toBeTruthy();
+    expect(await pilot.leggiDavvero(altra)).toBeNull();
+    expect((await pilot.leggiDavvero(corrente)).editoriale.claim).toBe("Modificata");
+  });
+});
+
+/**
+ * Aprire ed eliminare la stessa bozza si escludono a vicenda.
+ *
+ * Senza questo resta in memoria una bozza dichiarata **pulita** la cui base sul
+ * disco è già stata cancellata: il caso peggiore, perché non avvisa di nulla —
+ * l'editor sembra allineato all'archivio e non lo è.
+ */
+describe("interblocco fra apertura ed eliminazione", () => {
+  it("un'eliminazione in volo impedisce di aprire la stessa bozza", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaSalvata(TOUR, "Corrente");
+
+    const sosta = pilot.fermaProssima("elimina");
+    let eliminazione;
+    act(() => {
+      eliminazione = canale.api.elimina(id);
+    });
+    await respiro();
+
+    let apertura;
+    await act(async () => {
+      apertura = await canale.api.apri(id);
+    });
+    await respiro();
+    expect(apertura.esito).toBe(ESITI.fallito);
+    expect(canale.api.esito.codice).toBe(CODICI.operazioneInConflitto);
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    expect((await eliminazione).codice).toBe(CODICI.eliminata);
+    expect(await pilot.leggiDavvero(id)).toBeNull();
+    // E soprattutto: non è rimasta in memoria come bozza pulita.
+    expect(canale.api.contenuto).toBeNull();
+  });
+
+  it("un'apertura in volo impedisce di eliminare la stessa bozza", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const altra = await bozzaSalvata(ALTRO_TOUR, "Altra");
+    await bozzaSalvata(TOUR, "Corrente");
+
+    const sosta = pilot.fermaProssima("leggi");
+    let apertura;
+    act(() => {
+      apertura = canale.api.apri(altra);
+    });
+    await respiro();
+
+    const esito = await canale.api.elimina(altra);
+    expect(esito.codice).toBe(CODICI.operazioneInConflitto);
+    expect(pilot.eliminazioni).toHaveLength(0);
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    expect((await apertura).esito).toBe(ESITI.fatto);
+    expect(canale.api.contenuto.id).toBe(altra);
+    expect(await pilot.leggiDavvero(altra)).toBeTruthy();
+
+    // Finita l'apertura, il gesto rifiutato si può ripetere.
+    expect((await canale.api.elimina(altra)).codice).toBe(CODICI.eliminata);
+    await respiro();
+    expect(await pilot.leggiDavvero(altra)).toBeNull();
+  });
+
+  it("eliminare una bozza non impedisce di aprirne un'altra", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const a = await bozzaSalvata(TOUR, "A");
+    const b = await bozzaSalvata(ALTRO_TOUR, "B");
+    // Si torna su A, così l'apertura di B è una transizione vera.
+    await act(async () => {
+      await canale.api.apri(a);
+    });
+    await respiro();
+
+    const sosta = pilot.fermaProssima("elimina");
+    let eliminazione;
+    act(() => {
+      eliminazione = canale.api.elimina(a);
+    });
+    await respiro();
+
+    // B si apre lo stesso: il blocco è per id.
+    let apertura;
+    await act(async () => {
+      apertura = await canale.api.apri(b);
+    });
+    await respiro();
+    expect(apertura.esito).toBe(ESITI.fatto);
+    expect(canale.api.contenuto.id).toBe(b);
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    expect((await eliminazione).codice).toBe(CODICI.eliminata);
+    // La risposta tardiva non ha toccato B.
+    expect(canale.api.contenuto.id).toBe(b);
+    expect(canale.api.contenuto.editoriale.claim).toBe("B");
+    expect(canale.api.sporco).toBe(false);
+    expect(await pilot.leggiDavvero(b)).toBeTruthy();
+    expect(await pilot.leggiDavvero(a)).toBeNull();
   });
 });

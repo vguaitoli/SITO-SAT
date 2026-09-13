@@ -70,6 +70,17 @@ export const CODICI = {
   // L'identità corrisponde, ma manca l'istantanea: non c'è niente con cui
   // confrontare. È un caso diverso da una fonte che non corrisponde.
   fonteNonConfrontabile: "fonte-non-confrontabile",
+  // L'eliminazione di una bozza.
+  eliminata: "eliminata",
+  eliminazioneOccupata: "eliminazione-occupata",
+  modificheNonSalvate: "modifiche-non-salvate",
+  erroreEliminazione: "errore-eliminazione",
+  // Cancellata davvero, ma l'elenco è rimasto indietro: non è un fallimento e
+  // non va ripetuta.
+  eliminataElencoNonAggiornato: "eliminata-elenco-non-aggiornato",
+  // Salvare ed eliminare la stessa bozza si escludono a vicenda: chi arriva
+  // secondo aspetta che il primo finisca, e riprova.
+  operazioneInConflitto: "operazione-in-conflitto",
 };
 
 const CATEGORIA = "tour";
@@ -151,6 +162,23 @@ export function useBozzaTour({ urlBase = "" } = {}) {
   /** La scrittura in volo, per non farne partire due per lo stesso gesto. */
   const scritturaRif = useRef(null);
   /**
+   * L'id che quella scrittura sta salvando.
+   *
+   * La promessa da sola non basta: dice *che* si sta scrivendo, non *su cosa*.
+   * Senza questo, un salvataggio sospeso e un'eliminazione della stessa bozza
+   * non si vedono, e chi finisce per ultimo vince — un salvataggio tardivo
+   * ricrea un record appena cancellato.
+   */
+  const scritturaIdRif = useRef(null);
+  /**
+   * L'id che un'apertura sta leggendo.
+   *
+   * Serve per lo stesso motivo dell'id in scrittura: una bozza aperta mentre la
+   * si stava eliminando resterebbe in memoria dichiarata **pulita**, con una
+   * base persistita che sul disco non esiste più.
+   */
+  const aperturaIdRif = useRef(null);
+  /**
    * Il debito lasciato da una scrittura confermata ma non riletta: `{ id }`.
    *
    * Finché c'è, la base in memoria è più vecchia di quella sul disco, e
@@ -159,6 +187,8 @@ export function useBozzaTour({ urlBase = "" } = {}) {
   const recuperoRif = useRef(null);
   /** Falso dopo lo smontaggio: nessun effetto tardivo. */
   const vivoRif = useRef(true);
+  /** L'id in corso di eliminazione, o null: una alla volta. */
+  const eliminazioneRif = useRef(null);
 
   useEffect(() => {
     vivoRif.current = true;
@@ -484,10 +514,24 @@ export function useBozzaTour({ urlBase = "" } = {}) {
   const salva = useCallback(() => {
     // Non `async`: una funzione asincrona avvolge sempre il ritorno in una
     // promessa nuova, e le due chiamate riceverebbero oggetti diversi. Qui la
-    // promessa condivisa dev'essere la **stessa**.
+    // promessa condivisa dev'essere la **stessa**. Questo controllo resta il
+    // primo: due `salva()` concorrenti continuano a condividere la promessa.
     if (scritturaRif.current) return scritturaRif.current;
+
+    const id = contenutoRif.current?.id ?? null;
+    if (id && eliminazioneRif.current === id) {
+      // Quella bozza sta sparendo: scriverla adesso la ricreerebbe.
+      setEsito({ codice: CODICI.operazioneInConflitto });
+      return Promise.resolve(null);
+    }
+
+    scritturaIdRif.current = id;
     const mia = scrivi(contenutoRif.current).finally(() => {
-      if (scritturaRif.current === mia) scritturaRif.current = null;
+      // Ogni blocco lo libera soltanto l'operazione che l'ha preso.
+      if (scritturaRif.current === mia) {
+        scritturaRif.current = null;
+        scritturaIdRif.current = null;
+      }
     });
     scritturaRif.current = mia;
     return mia;
@@ -495,41 +539,58 @@ export function useBozzaTour({ urlBase = "" } = {}) {
 
   const apriSenzaChiedere = useCallback(
     async (id) => {
-      const modificheAllInizio = modificheRif.current;
-
-      let letto = null;
-      try {
-        letto = await archivio.leggi(id);
-      } catch {
-        if (vivoRif.current) setEsito({ codice: CODICI.erroreLettura });
-        throw new Error(CODICI.erroreLettura);
-      }
-      if (!vivoRif.current) return;
-
       /*
-       * Un id che non è una bozza TOUR non apre niente e **non sostituisce**
-       * il lavoro corrente. Vale anche per un id EVENTI passato di mano: il
-       * filtro dell'elenco non è una difesa, è una comodità.
+       * Quella bozza sta sparendo: applicarla adesso lascerebbe in memoria un
+       * contenuto dichiarato pulito la cui base è già stata eliminata. È lo
+       * stesso conflitto del salvataggio, e si chiude allo stesso modo — per
+       * id, così eliminarne una non impedisce di aprirne un'altra.
        */
-      if (!letto || letto.categoria !== CATEGORIA) {
-        setEsito({ codice: CODICI.nonUnaBozzaTour });
-        throw new Error(CODICI.nonUnaBozzaTour);
+      if (eliminazioneRif.current === id) {
+        if (vivoRif.current) setEsito({ codice: CODICI.operazioneInConflitto });
+        throw new Error(CODICI.operazioneInConflitto);
       }
 
-      // Fra la richiesta e la risposta si può aver scritto: applicare adesso
-      // cancellerebbe quelle battute.
-      if (modificheRif.current !== modificheAllInizio) {
-        setEsito({ codice: CODICI.superataDaModifiche });
-        throw new Error(CODICI.superataDaModifiche);
-      }
+      aperturaIdRif.current = id;
+      try {
+        const modificheAllInizio = modificheRif.current;
 
-      modificheRif.current += 1;
-      sessioneRif.current += 1;
-      setContenuto(letto);
-      contenutoRif.current = letto;
-      salvatoRif.current = letto;
-      segnaSporco(false);
-      setEsito({ codice: CODICI.aperta });
+        let letto = null;
+        try {
+          letto = await archivio.leggi(id);
+        } catch {
+          if (vivoRif.current) setEsito({ codice: CODICI.erroreLettura });
+          throw new Error(CODICI.erroreLettura);
+        }
+        if (!vivoRif.current) return;
+
+        /*
+         * Un id che non è una bozza TOUR non apre niente e **non sostituisce**
+         * il lavoro corrente. Vale anche per un id EVENTI passato di mano: il
+         * filtro dell'elenco non è una difesa, è una comodità.
+         */
+        if (!letto || letto.categoria !== CATEGORIA) {
+          setEsito({ codice: CODICI.nonUnaBozzaTour });
+          throw new Error(CODICI.nonUnaBozzaTour);
+        }
+
+        // Fra la richiesta e la risposta si può aver scritto: applicare adesso
+        // cancellerebbe quelle battute.
+        if (modificheRif.current !== modificheAllInizio) {
+          setEsito({ codice: CODICI.superataDaModifiche });
+          throw new Error(CODICI.superataDaModifiche);
+        }
+
+        modificheRif.current += 1;
+        sessioneRif.current += 1;
+        setContenuto(letto);
+        contenutoRif.current = letto;
+        salvatoRif.current = letto;
+        segnaSporco(false);
+        setEsito({ codice: CODICI.aperta });
+      } finally {
+        // Ogni blocco lo libera soltanto l'operazione che l'ha preso.
+        if (aperturaIdRif.current === id) aperturaIdRif.current = null;
+      }
     },
     [archivio, segnaSporco],
   );
@@ -618,6 +679,114 @@ export function useBozzaTour({ urlBase = "" } = {}) {
     };
   }, []);
 
+  /**
+   * Elimina una bozza TOUR. Definitiva, e quindi cauta.
+   *
+   * **Non passa dal dialogo delle transizioni**: quello offre «Salva e
+   * continua», che qui significherebbe salvare proprio la bozza che si sta
+   * cancellando. Con lavoro non salvato su *quella* bozza il gesto si rifiuta
+   * e basta; per eliminarla si salva o si scarta prima, deliberatamente. Una
+   * bozza diversa invece si elimina anche mentre la corrente è sporca: non ha
+   * niente a che vedere con lei.
+   *
+   * L'appartenenza si verifica **nell'archivio**, non nell'elenco: quello è
+   * una comodità, e può essere vecchio.
+   *
+   * @param {string} id
+   * @returns {Promise<{codice: string}>} esito esplicito, senza eccezioni
+   */
+  const elimina = useCallback(
+    async (id) => {
+      // Una alla volta: due richieste ravvicinate non devono cancellare due
+      // volte, e la difesa sta qui, non in un pulsante disabilitato.
+      if (eliminazioneRif.current) return { codice: CODICI.eliminazioneOccupata };
+      if (!id) return { codice: CODICI.nonUnaBozzaTour };
+
+      /*
+       * Una scrittura in volo sulla **stessa** bozza esclude l'eliminazione, e
+       * viceversa: altrimenti chi finisce per ultimo vince, e un salvataggio
+       * tardivo ricrea un record appena cancellato. Una bozza diversa non è
+       * toccata da questo, e resta eliminabile.
+       */
+      if (scritturaIdRif.current === id || aperturaIdRif.current === id) {
+        if (vivoRif.current) setEsito({ codice: CODICI.operazioneInConflitto });
+        return { codice: CODICI.operazioneInConflitto };
+      }
+
+      const corrente = contenutoRif.current;
+      if (corrente?.id === id && sporcoRif.current) {
+        if (vivoRif.current) setEsito({ codice: CODICI.modificheNonSalvate });
+        return { codice: CODICI.modificheNonSalvate };
+      }
+
+      const sessioneAllInizio = sessioneRif.current;
+      const modificheAllInizio = modificheRif.current;
+      eliminazioneRif.current = id;
+      try {
+        let letto = null;
+        try {
+          letto = await archivio.leggi(id);
+        } catch {
+          if (vivoRif.current) setEsito({ codice: CODICI.erroreLettura });
+          return { codice: CODICI.erroreLettura };
+        }
+        if (!letto || letto.categoria !== CATEGORIA) {
+          if (vivoRif.current) setEsito({ codice: CODICI.nonUnaBozzaTour });
+          return { codice: CODICI.nonUnaBozzaTour };
+        }
+
+        try {
+          await archivio.elimina(id);
+        } catch {
+          if (vivoRif.current) setEsito({ codice: CODICI.erroreEliminazione });
+          return { codice: CODICI.erroreEliminazione };
+        }
+
+        /*
+         * Dopo l'attesa si guarda il contenuto **di adesso** e la sessione: nel
+         * frattempo si può aver aperto un'altra bozza, e svuotare quella
+         * sarebbe cancellare lavoro che nessuno ha chiesto di cancellare.
+         */
+        const dopo = contenutoRif.current;
+        if (
+          vivoRif.current &&
+          dopo?.id === id &&
+          sessioneRif.current === sessioneAllInizio
+        ) {
+          modificheRif.current += 1;
+          salvatoRif.current = null;
+          if (modificheRif.current - 1 !== modificheAllInizio) {
+            /*
+             * Si è scritto mentre spariva. L'archivio non ce l'ha più, la
+             * memoria sì: svuotare adesso perderebbe quelle battute in
+             * silenzio. Si tiene quello che c'è, dichiarandolo non salvato.
+             */
+            segnaSporco(true);
+          } else {
+            setContenuto(null);
+            contenutoRif.current = null;
+            segnaSporco(false);
+          }
+        }
+
+        /*
+         * L'elenco è l'ultimo passo, e un suo fallimento non rende fallita la
+         * cancellazione: dire il contrario manderebbe a ripetere un gesto su un
+         * record che non c'è più.
+         */
+        const esitoElenco = await ricarica();
+        const codice = esitoElenco.codice
+          ? CODICI.eliminataElencoNonAggiornato
+          : CODICI.eliminata;
+        if (vivoRif.current) setEsito({ codice });
+        return { codice };
+      } finally {
+        eliminazioneRif.current = null;
+      }
+    },
+    [archivio, ricarica, segnaSporco],
+  );
+
   /* ================================================================ *
    * La protezione del lavoro non salvato
    * ================================================================ */
@@ -656,6 +825,7 @@ export function useBozzaTour({ urlBase = "" } = {}) {
     scriviFattuale,
     riallineaAllaFonte,
     confrontaConLaFonte,
+    elimina,
     ricarica,
   };
 }

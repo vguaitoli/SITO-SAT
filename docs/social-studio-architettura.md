@@ -1635,8 +1635,8 @@ sono passi successivi.
 
 L'hook restituisce `contenuto`, `sporco`, `bozze` (le sole bozze TOUR), `esito`,
 e le operazioni `creaDaTour`, `apri`, `salva`, `scriviEditoriale`,
-`scriviFattuale`, `riallineaAllaFonte` e `confrontaConLaFonte` — i cui esiti
-stanno in §19.6 e §19.7 — e `ricarica`.
+`scriviFattuale`, `riallineaAllaFonte`, `confrontaConLaFonte` ed `elimina` — i
+cui esiti stanno in §19.6, §19.7 e §19.8 — e `ricarica`.
 
 `ricarica()` è pubblica e **non rigetta**: riporta `{ codice: null }` oppure
 `{ codice: "errore-elenco" }`. Chi la chiama non deve ricordarsi di metterci un
@@ -1859,10 +1859,10 @@ rimasta.
   registra una, quindi **non va montato insieme a `EditorEvento`** sotto lo
   stesso fornitore finché quel limite non è risolto. È il vincolo da chiudere
   prima di avere due editor, non dopo.
-- **Niente cancellazione, ripristino revisioni, media, GPX o export.**
-  Deliberatamente fuori: ognuno porta con sé difese proprie, e vanno aggiunte
-  una alla volta con le loro prove. Il riallineamento alla fonte, invece, c'è:
-  §19.6.
+- **Niente ripristino revisioni, media, GPX o export.** Deliberatamente fuori:
+  ognuno porta con sé difese proprie, e vanno aggiunte una alla volta con le
+  loro prove. Riallineamento (§19.6), confronto (§19.7) ed eliminazione (§19.8)
+  invece ci sono.
 - **Nessuna fusione automatica.** Su risposta superata si segnala con un codice
   e si chiede di ripetere.
 - **Il riallineamento non è sorvegliato da Version History.** Accettare una
@@ -1964,3 +1964,73 @@ riallineandola, e da quel momento è confrontabile.
 Il contenuto si legge dal riferimento, non dallo stato: una prova riallinea e
 confronta **nello stesso giro**, e il confronto deve vedere il riallineamento
 appena fatto (§19.3.1).
+
+### 19.8 Eliminare una bozza
+
+`elimina(id)` è definitiva — non c'è un annulla — e per questo è cauta.
+
+**Non passa dal dialogo delle transizioni.** Quello offre «Salva e continua»,
+che qui significherebbe salvare proprio la bozza che si sta cancellando: una
+promessa di conservazione che l'azione successiva annulla. Con lavoro non
+salvato su *quella* bozza il gesto si **rifiuta** (`modifiche-non-salvate`) e
+l'archivio non viene nemmeno interrogato; per eliminarla si salva o si scarta
+prima, deliberatamente. Una bozza **diversa** invece si elimina anche mentre la
+corrente è sporca: non ha niente a che vedere con lei.
+
+**L'appartenenza si verifica nell'archivio**, rileggendo il record: l'elenco è
+una comodità e può essere vecchio. Un id EVENTI, uno inesistente o nullo danno
+`non-una-bozza-tour` senza che nulla venga cancellato.
+
+Una eliminazione alla volta: una seconda richiesta riceve
+`eliminazione-occupata` prima ancora di leggere, e il blocco si rilascia sempre,
+anche in errore. Lettura ed eliminazione hanno `catch` distinti, quindi esiti
+distinti — `errore-lettura` ed `errore-eliminazione` — e da entrambi si può
+riprovare.
+
+Dopo l'attesa si guardano contenuto e **sessione** di adesso (§19.3.1, §19.5):
+
+- se la bozza eliminata è ancora aperta, pulita e nella stessa sessione, si
+  svuota l'editor e la base persistita;
+- se nel frattempo si è scritto su quella stessa bozza, il lavoro **resta in
+  memoria** dichiarato non salvato: l'archivio non ce l'ha più, la memoria sì, e
+  svuotare perderebbe quelle battute in silenzio;
+- se nel frattempo è stata aperta o creata un'altra bozza, non si tocca niente:
+  una risposta tardiva non cancella lavoro nuovo.
+
+L'elenco è l'ultimo passo, e un suo fallimento **non rende fallita la
+cancellazione**: l'esito è `eliminata-elenco-non-aggiornato`, non un errore, e
+non suggerisce di ripetere un gesto su un record che non c'è più.
+
+**Salvataggio ed eliminazione della stessa bozza si escludono a vicenda.** La
+promessa di scrittura da sola dice *che* si sta scrivendo, non *su cosa*: senza
+l'id, un salvataggio sospeso e un'eliminazione della stessa bozza non si vedono,
+e vince chi finisce per ultimo — un salvataggio tardivo **ricrea** un record
+appena cancellato. Un riferimento all'id in scrittura chiude le due direzioni:
+con una scrittura in volo su quella bozza `elimina` si ferma prima di leggere o
+cancellare; con un'eliminazione in corso su quella bozza `salva()` non avvia
+alcuna scrittura e riporta `null`. In entrambi i casi l'esito è
+`operazione-in-conflitto`, ed è **riprovabile**: finita l'operazione in corso, il
+gesto rifiutato riesce.
+
+**Anche apertura ed eliminazione si escludono**, per lo stesso motivo e in
+entrambi gli ordini. Se `elimina(id)` è in corso, `apri(id)` non legge e non
+applica; se `apri(id)` è in corso, `elimina(id)` non cancella. Senza questo si
+ottiene il caso peggiore: una bozza che resta in memoria **dichiarata pulita**
+mentre la sua base sul disco è già stata eliminata — l'editor sembra allineato
+all'archivio e non lo è, e non avvisa di nulla. Un controllo della sessione non
+basterebbe: l'apertura conta come sessione nuova, e la cancellazione la
+lascerebbe intatta proprio perché «è un'altra bozza».
+
+Il blocco è per **id**: eliminare una bozza diversa mentre si salva la corrente
+resta consentito, e così eliminarne una mentre se ne apre un'altra. E ogni blocco lo libera soltanto l'operazione che l'ha preso.
+Due `salva()` concorrenti continuano a condividere la stessa promessa: quel
+controllo resta il primo, e l'interblocco non lo tocca.
+
+I codici sono codici, non frasi: che cosa si legga a schermo resta una scelta
+editoriale.
+
+**Un limite dichiarato.** I ripari dallo smontaggio (`vivoRif`) soddisfano il
+requisito di non aggiornare stato React dopo l'uscita, ma **nessuna prova li
+distingue**: React rende inerti quelle chiamate, e il valore osservabile resta
+l'ultimo reso. Sono correttezza di costruzione, non verificata — a differenza
+delle altre sei difese, per cui una mutazione fa fallire la prova corrispondente.
