@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useArchivio } from "./ContestoArchivio";
+import {
+  leggiSlotDellaRubrica,
+  scriviSlotDellaRubrica,
+  slotDellaRubrica,
+} from "../media/slot";
 import { ESITI, useRegistraGuardia, useRichiediTransizione } from "./transizione";
-import { contenutoVuoto } from "../fondamenta/schema";
+import { contenutoVuoto, ritaglio as schemaRitaglio } from "../fondamenta/schema";
 import {
   confrontaTourConLaFonte,
   daTour,
@@ -90,7 +95,75 @@ export const CODICI = {
   revisioneInesistente: "revisione-inesistente",
   // Il punto di creazione non porta con sé uno stato: non c'è dove tornare.
   revisioneNonRipristinabile: "revisione-non-ripristinabile",
+  // Gli slot fotografici.
+  mediaAssegnato: "media-assegnato",
+  slotMediaNonValido: "slot-media-non-valido",
+  ritaglioMediaNonValido: "ritaglio-media-non-valido",
 };
+
+/**
+ * Un `idBlob` è una **chiave opaca** di SocialStorage, non un modo per portarsi
+ * dentro l'immagine né per indicare un file altrove.
+ *
+ * L'elenco dei prefissi vietati non bastava: era una lista di casi noti, e
+ * bastava uno schema non elencato (`ftp:`), un percorso relativo
+ * (`cartella/foto.jpg`), una unità Windows con lo slash (`C:/foto.jpg`), un
+ * percorso UNC o la stringa vuota per passare indenne. Al posto dell'elenco di
+ * ciò che è vietato c'è la forma di ciò che è ammesso.
+ */
+/** Qualunque separatore di percorso: URL, POSIX, Windows, UNC, relativi. */
+const IDBLOB_SEPARATORE = /[/\\]/;
+/** Qualunque schema URI, non solo quelli che ci erano venuti in mente. */
+const IDBLOB_SCHEMA_URI = /^[A-Za-z][A-Za-z0-9+.-]*:/;
+
+/**
+ * Se questo valore può essere la chiave di un blob.
+ *
+ * Serve una stringa non vuota, senza spazi ai bordi, senza separatori di
+ * percorso e senza schema. Gli id che SocialStorage produce davvero
+ * (`img-1757000000000-a1b2c3`) la soddisfano; un URL, un percorso o un data URL
+ * no.
+ */
+const idBlobAmmesso = (v) =>
+  typeof v === "string" &&
+  v !== "" &&
+  v === v.trim() &&
+  !IDBLOB_SEPARATORE.test(v) &&
+  !IDBLOB_SCHEMA_URI.test(v);
+
+/**
+ * Normalizza un ritaglio, oppure dice che non lo è.
+ *
+ * Filtrare i nomi dei campi non bastava: valori fuori dominio e tipi sbagliati
+ * entravano in memoria e fallivano soltanto al salvataggio, come generico
+ * «errore di scrittura», **dopo** che l'hook aveva già accettato e mostrato la
+ * modifica. La convalida va al confine pubblico, e usa lo schema `ritaglio` che
+ * già esiste — non una seconda definizione di che cosa sia valido.
+ *
+ * Le guardie esplicite su `Blob`, `File` e array non sono ridondanti: quegli
+ * oggetti non hanno le proprietà del ritaglio, e uno schema fatto di soli campi
+ * con valore predefinito li accetterebbe trasformandoli in un ritaglio vuoto —
+ * cioè esattamente nel modo peggiore di fallire.
+ *
+ * Per la stessa ragione un oggetto con `idBlob` assente o `null` non è
+ * un'assegnazione valida: lo schema gli darebbe `null` per difetto e lascerebbe
+ * passare un ritaglio che non indica nessuna fotografia. Per togliere una
+ * fotografia si passa `null` come valore **intero**, non un ritaglio svuotato.
+ *
+ * @returns {{valido: true, valore: object|null}|{valido: false}}
+ */
+function normalizzaRitaglio(r) {
+  if (r === null) return { valido: true, valore: null };
+  if (r === undefined || typeof r !== "object" || Array.isArray(r)) return { valido: false };
+  if (typeof Blob !== "undefined" && r instanceof Blob) return { valido: false };
+  if (typeof File !== "undefined" && r instanceof File) return { valido: false };
+
+  const esito = schemaRitaglio.safeParse(r);
+  if (!esito.success) return { valido: false };
+  const valore = esito.data;
+  if (!idBlobAmmesso(valore.idBlob)) return { valido: false };
+  return { valido: true, valore };
+}
 
 const CATEGORIA = "tour";
 
@@ -628,6 +701,53 @@ export function useBozzaTour({ urlBase = "" } = {}) {
     return mia;
   }, [scrivi]);
 
+  /* ================================================================ *
+   * Fotografie: soltanto riferimenti, mai byte
+   * ================================================================ */
+
+  /** Gli slot che TOUR dichiara: `cover` per il Post, `story` per la Story. */
+  const slotMediaDisponibili = useCallback(() => slotDellaRubrica(CATEGORIA), []);
+
+  /** Il riferimento fotografico di uno slot, dal contenuto corrente. */
+  const leggiMedia = useCallback(
+    (slot) => leggiSlotDellaRubrica(CATEGORIA, contenutoRif.current?.media, slot),
+    [],
+  );
+
+  /**
+   * Assegna, sostituisce o rimuove la fotografia di uno slot.
+   *
+   * È una modifica come le altre: marca la bozza non salvata e **non** scrive
+   * da sola nell'archivio. Il riferimento si allinea subito, così un `salva`
+   * chiamato nello stesso giro persiste quello nuovo (§19.3.1).
+   *
+   * @param {string} slot `cover` o `story`
+   * @param {object|null} riferimento il ritaglio, oppure `null` per togliere
+   * @returns {{codice: string}}
+   */
+  const scriviMedia = useCallback(
+    (slot, riferimento) => {
+      if (!slotDellaRubrica(CATEGORIA).some((s) => s.id === slot)) {
+        return { codice: CODICI.slotMediaNonValido };
+      }
+      if (!contenutoRif.current) return { codice: CODICI.nessunaBozza };
+
+      const normalizzato = normalizzaRitaglio(riferimento);
+      if (!normalizzato.valido) {
+        setEsito({ codice: CODICI.ritaglioMediaNonValido });
+        return { codice: CODICI.ritaglioMediaNonValido };
+      }
+
+      aggiorna((c) => ({
+        ...c,
+        media: scriviSlotDellaRubrica(CATEGORIA, c.media, slot, normalizzato.valore),
+      }));
+      setEsito({ codice: CODICI.mediaAssegnato });
+      return { codice: CODICI.mediaAssegnato };
+    },
+    [aggiorna],
+  );
+
   /** Il riepilogo delle revisioni, dalla più recente. */
   const revisioni = useCallback(
     () => (contenutoRif.current ? elencoRevisioni(contenutoRif.current) : []),
@@ -1089,6 +1209,9 @@ export function useBozzaTour({ urlBase = "" } = {}) {
     elimina,
     revisioni,
     ripristina,
+    slotMediaDisponibili,
+    leggiMedia,
+    scriviMedia,
     ricarica,
   };
 }

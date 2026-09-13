@@ -3652,3 +3652,425 @@ describe("la revisione scelta sopravvive al diradamento", () => {
     expect(canale.api.sporco).toBe(false);
   });
 });
+
+/** Un ritaglio sintetico: nessun file, nessun byte, solo il riferimento. */
+const ritaglio = (idBlob, extra = {}) => ({
+  idBlob,
+  // Entro il dominio dello schema: `zoom` 1–4, `x` e `y` 0–1.
+  zoom: 1.4,
+  x: 0.3,
+  y: 0.7,
+  specchiata: false,
+  ...extra,
+});
+
+/**
+ * Le fotografie stanno in SocialStorage; nel contenuto sta come ritrovarle.
+ *
+ * È la regola che tiene i record piccoli e i backup leggibili: un Blob o un
+ * data URL dentro `media` finirebbe nelle revisioni, nei backup e in ogni
+ * copia del contenuto, e crescerebbe senza che nessuno se ne accorga.
+ */
+describe("gli slot fotografici di TOUR", () => {
+  it("una bozza nuova ha gli slot vuoti e dichiara solo cover e story", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+
+    expect(canale.api.slotMediaDisponibili().map((s) => s.id)).toEqual(["cover", "story"]);
+    expect(canale.api.leggiMedia("cover")).toBeNull();
+    expect(canale.api.leggiMedia("story")).toBeNull();
+    expect(canale.api.contenuto.media.cover).toBeNull();
+    expect(canale.api.contenuto.media.sfondi.tourStory).toBeUndefined();
+  });
+
+  it("assegna, legge, sostituisce e rimuove entrambi gli slot", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+
+    await act(async () => {
+      canale.api.scriviMedia("cover", ritaglio("b-cover"));
+      canale.api.scriviMedia("story", ritaglio("b-story", { specchiata: true }));
+    });
+
+    // Il ritaglio è conservato per intero.
+    expect(canale.api.leggiMedia("cover")).toEqual(ritaglio("b-cover"));
+    expect(canale.api.leggiMedia("story")).toEqual(ritaglio("b-story", { specchiata: true }));
+    // In rami diversi: l'uno non sovrascrive l'altro.
+    expect(canale.api.contenuto.media.cover.idBlob).toBe("b-cover");
+    expect(canale.api.contenuto.media.sfondi.tourStory.idBlob).toBe("b-story");
+
+    // Sostituzione e rimozione.
+    await act(async () => {
+      canale.api.scriviMedia("cover", ritaglio("b-cover-2"));
+      canale.api.scriviMedia("story", null);
+    });
+    expect(canale.api.leggiMedia("cover").idBlob).toBe("b-cover-2");
+    expect(canale.api.leggiMedia("story")).toBeNull();
+  });
+
+  it("nel contenuto entrano solo idBlob e parametri del ritaglio", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+
+    await act(async () => {
+      canale.api.scriviMedia("cover", {
+        ...ritaglio("b-cover"),
+        dati: "data:image/png;base64,AAAA",
+        blob: { fintoByte: true },
+        nomeFile: "foto.jpg",
+      });
+    });
+
+    const salvatoInMemoria = canale.api.contenuto.media.cover;
+    expect(Object.keys(salvatoInMemoria).sort()).toEqual(
+      ["idBlob", "specchiata", "x", "y", "zoom"].sort(),
+    );
+    expect(JSON.stringify(canale.api.contenuto)).not.toContain("base64");
+    expect(JSON.stringify(canale.api.contenuto)).not.toContain("foto.jpg");
+  });
+
+  it("slot non valido e bozza assente non cambiano niente", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+
+    // Senza bozza aperta.
+    expect(canale.api.scriviMedia("cover", ritaglio("b")).codice).toBe(CODICI.nessunaBozza);
+    expect(canale.api.contenuto).toBeNull();
+
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const prima = canale.api.contenuto;
+
+    // Slot che TOUR non dichiara, compresi quelli di EVENTI.
+    for (const slot of ["esperienza-0", "storyNumeri", "inventato"]) {
+      expect(canale.api.scriviMedia(slot, ritaglio("b")).codice).toBe(
+        CODICI.slotMediaNonValido,
+      );
+      expect(canale.api.leggiMedia(slot)).toBeNull();
+    }
+    await respiro();
+    expect(canale.api.contenuto).toBe(prima);
+    expect(canale.api.sporco).toBe(false);
+  });
+
+  it("assegnare una fotografia sporca la bozza senza salvarla", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const scrittureePrima = pilot.scritture.length;
+
+    await act(async () => {
+      canale.api.scriviMedia("cover", ritaglio("b-cover"));
+    });
+    await respiro();
+
+    expect(canale.api.sporco).toBe(true);
+    expect(pilot.scritture).toHaveLength(scrittureePrima);
+  });
+
+  it("scrivere una fotografia e salvare nello stesso giro la persiste", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const id = canale.api.contenuto.id;
+    const revisioniPrima = (await pilot.leggiDavvero(id)).versioni.length;
+
+    let promessa;
+    act(() => {
+      canale.api.scriviMedia("story", ritaglio("b-story"));
+      promessa = canale.api.salva();
+    });
+    await respiro();
+    await promessa;
+
+    const sul = await pilot.leggiDavvero(id);
+    expect(sul.media.sfondi.tourStory).toEqual(ritaglio("b-story"));
+    expect(canale.api.sporco).toBe(false);
+    // Una revisione sola per quella modifica.
+    expect(sul.versioni).toHaveLength(revisioniPrima + 1);
+
+    // E riaprendo, quello che si legge è quello che c'è.
+    await act(async () => {
+      await canale.api.creaDaTour(ALTRO_TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    await act(async () => {
+      await canale.api.apri(id);
+    });
+    await respiro();
+    expect(canale.api.leggiMedia("story")).toEqual(ritaglio("b-story"));
+  });
+
+  it("una risposta tardiva non cancella una fotografia assegnata dopo", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+
+    const sosta = pilot.fermaProssima("salva");
+    let promessa;
+    act(() => {
+      canale.api.scriviEditoriale("claim", "In volo");
+      promessa = canale.api.salva();
+    });
+    await respiro();
+    await act(async () => {
+      canale.api.scriviMedia("cover", ritaglio("b-arrivata-dopo"));
+    });
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    expect(await promessa).toBeNull();
+    expect(canale.api.sporco).toBe(true);
+    expect(canale.api.leggiMedia("cover").idBlob).toBe("b-arrivata-dopo");
+  });
+});
+
+describe("le fotografie del sito restano sul sito", () => {
+  it("creare da un tour non importa nulla in media", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const conFoto = {
+      ...TOUR,
+      foto: "/immagini/tour/prova.jpg",
+      gallery: ["/immagini/tour/a.jpg", "/immagini/tour/b.jpg"],
+      tappe: [{ title: "Uno", desc: "x", foto: "/immagini/tappe/uno.jpg", fotoAlt: "Uno" }],
+    };
+
+    await act(async () => {
+      await canale.api.creaDaTour(conFoto);
+    });
+
+    const c = canale.api.contenuto;
+    // Niente è stato copiato, scaricato o assegnato.
+    expect(c.media.cover).toBeNull();
+    expect(c.media.sfondi.tourStory).toBeUndefined();
+    expect(canale.api.leggiMedia("cover")).toBeNull();
+    expect(canale.api.leggiMedia("story")).toBeNull();
+    // Nessun percorso del sito fuori dall'istantanea della fonte.
+    const senzaFonte = JSON.stringify({ ...c, fonte: null });
+    expect(senzaFonte).not.toContain("/immagini/");
+    expect(senzaFonte).not.toContain(".jpg");
+  });
+});
+
+/**
+ * Un ritaglio si convalida al confine, non al salvataggio.
+ *
+ * Filtrare i nomi dei campi lasciava entrare valori fuori dominio: l'hook
+ * accettava e mostrava la modifica, e il rifiuto arrivava molto dopo, come
+ * generico errore di scrittura.
+ */
+describe("ritagli non validi", () => {
+  const NON_VALIDI = [
+    ["zoom 0", { idBlob: "b", zoom: 0 }],
+    ["zoom oltre 4", { idBlob: "b", zoom: 9 }],
+    ["x fuori dominio", { idBlob: "b", x: -1 }],
+    ["y fuori dominio", { idBlob: "b", y: 2 }],
+    ["zoom come stringa", { idBlob: "b", zoom: "1.4" }],
+    ["specchiata come stringa", { idBlob: "b", specchiata: "sì" }],
+    ["idBlob numerico", { idBlob: 12 }],
+    ["valore primitivo", "non un ritaglio"],
+    ["numero", 42],
+    ["array", [{ idBlob: "b" }]],
+    ["data URL in idBlob", { idBlob: "data:image/png;base64,AAAA" }],
+    ["URL blob: in idBlob", { idBlob: "blob:http://localhost/abc" }],
+    ["percorso assoluto in idBlob", { idBlob: "/immagini/tour/foto.jpg" }],
+    ["percorso file:", { idBlob: "file:///Users/x/foto.jpg" }],
+    /*
+     * Da 6.3H.2: un `idBlob` è una chiave opaca dell'archivio. L'elenco dei
+     * prefissi vietati era una lista di casi noti, e tutto ciò che segue vi
+     * passava attraverso.
+     */
+    ["idBlob vuoto", { idBlob: "" }],
+    ["idBlob di soli spazi", { idBlob: "   " }],
+    ["idBlob null dentro l'oggetto", { idBlob: null }],
+    ["idBlob assente", { zoom: 1.4, x: 0.3, y: 0.7 }],
+    ["spazi iniziali", { idBlob: "  img-1" }],
+    ["spazi finali", { idBlob: "img-1  " }],
+    ["percorso relativo con slash", { idBlob: "cartella/foto.jpg" }],
+    ["unità Windows con backslash", { idBlob: "C:\\foto.jpg" }],
+    ["unità Windows con slash", { idBlob: "C:/foto.jpg" }],
+    ["percorso UNC", { idBlob: "\\\\server\\condivisa\\foto.jpg" }],
+    ["URL http", { idBlob: "http://example.com/foto.jpg" }],
+    ["URL https", { idBlob: "https://example.com/foto.jpg" }],
+    ["URL ftp", { idBlob: "ftp://server/foto.jpg" }],
+    ["schema URI generico", { idBlob: "urn:uuid:8f3a1c22" }],
+  ];
+
+  it.each(NON_VALIDI)("rifiuta %s senza toccare nulla", async (_nome, valore) => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const prima = canale.api.contenuto;
+    const scrittureePrima = pilot.scritture.length;
+
+    let esito;
+    await act(async () => {
+      esito = canale.api.scriviMedia("cover", valore);
+    });
+    await respiro();
+
+    expect(esito.codice).toBe(CODICI.ritaglioMediaNonValido);
+    expect(canale.api.esito.codice).toBe(CODICI.ritaglioMediaNonValido);
+    // Identico per riferimento: non è stato nemmeno ricreato.
+    expect(canale.api.contenuto).toBe(prima);
+    expect(canale.api.sporco).toBe(false);
+    expect(pilot.scritture).toHaveLength(scrittureePrima);
+    expect(canale.api.leggiMedia("cover")).toBeNull();
+  });
+
+  it("un Blob non diventa un ritaglio vuoto", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    const prima = canale.api.contenuto;
+
+    const campioni = [new Blob(["x"], { type: "image/png" })];
+    if (typeof File !== "undefined") {
+      campioni.push(new File(["x"], "foto.jpg", { type: "image/jpeg" }));
+    }
+    for (const campione of campioni) {
+      let esito;
+      await act(async () => {
+        esito = canale.api.scriviMedia("cover", campione);
+      });
+      expect(esito.codice).toBe(CODICI.ritaglioMediaNonValido);
+    }
+    await respiro();
+    expect(canale.api.contenuto).toBe(prima);
+    expect(canale.api.leggiMedia("cover")).toBeNull();
+  });
+
+  it("campi extra vengono filtrati, il ritaglio valido passa", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+
+    await act(async () => {
+      canale.api.scriviMedia("cover", {
+        ...ritaglio("b-cover"),
+        nomeFile: "foto.jpg",
+        byte: 99999,
+      });
+    });
+    expect(canale.api.leggiMedia("cover")).toEqual(ritaglio("b-cover"));
+  });
+
+  /**
+   * La regola è una forma ammessa, non un elenco di divieti — quindi va
+   * verificato anche che gli id veri continuino a passare.
+   */
+  it("gli identificatori che SocialStorage produce davvero passano", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+
+    // La forma di `nuovoId("img")` in archivio.js: prefisso, millisecondi, coda.
+    const veri = ["img-1757000000000-a1b2c3", "img-1757086400000-zk9q0p"];
+    for (const id of veri) {
+      let esito;
+      await act(async () => {
+        esito = canale.api.scriviMedia("cover", ritaglio(id));
+      });
+      expect(esito.codice).toBe(CODICI.mediaAssegnato);
+      expect(canale.api.leggiMedia("cover").idBlob).toBe(id);
+    }
+  });
+
+  it("un rifiuto non blocca l'assegnazione valida dello stesso giro", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+
+    let rifiutato;
+    let accettato;
+    await act(async () => {
+      rifiutato = canale.api.scriviMedia("cover", { idBlob: "cartella/foto.jpg" });
+      accettato = canale.api.scriviMedia("cover", ritaglio("img-1757000000000-a1b2c3"));
+    });
+    await respiro();
+
+    expect(rifiutato.codice).toBe(CODICI.ritaglioMediaNonValido);
+    expect(accettato.codice).toBe(CODICI.mediaAssegnato);
+    // L'ultima parola è dell'assegnazione riuscita, anche nell'esito mostrato.
+    expect(canale.api.esito.codice).toBe(CODICI.mediaAssegnato);
+    expect(canale.api.leggiMedia("cover")).toEqual(ritaglio("img-1757000000000-a1b2c3"));
+    expect(canale.api.sporco).toBe(true);
+  });
+
+  it("dopo un rifiuto si può ancora assegnare e salvare", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      canale.api.scriviMedia("cover", { idBlob: "b", zoom: 99 });
+    });
+    expect(canale.api.esito.codice).toBe(CODICI.ritaglioMediaNonValido);
+
+    await act(async () => {
+      canale.api.scriviMedia("cover", ritaglio("b-buono"));
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+
+    const id = canale.api.contenuto.id;
+    expect((await pilot.leggiDavvero(id)).media.cover).toEqual(ritaglio("b-buono"));
+    expect(canale.api.sporco).toBe(false);
+  });
+});

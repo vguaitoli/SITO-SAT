@@ -1627,16 +1627,17 @@ bozza da un tour già normalizzato, scriverla, salvarla, riaprirla. Vive in
 `pianificata`, non esiste un editor né un template, e niente di quanto sta qui è
 raggiungibile dallo Studio — una prova lo verifica sui registri veri. Il modulo
 TOUR non è completato. Il nucleo — creare, scrivere, salvare, riaprire — è di
-6.3C; 6.3D vi ha aggiunto il riallineamento esplicito alla fonte (§19.6).
-Restano fuori media, GPX ed export, che sono passi successivi.
+6.3C; 6.3D vi ha aggiunto il riallineamento esplicito alla fonte (§19.6) e 6.3H
+gli slot fotografici (§19.10). Restano fuori soltanto GPX ed export, che sono
+passi successivi.
 
 ### 19.1 Che cosa espone, e perché come codici
 
 L'hook restituisce `contenuto`, `sporco`, `bozze` (le sole bozze TOUR), `esito`,
 e le operazioni `creaDaTour`, `apri`, `salva`, `scriviEditoriale`,
 `scriviFattuale`, `riallineaAllaFonte`, `confrontaConLaFonte`, `elimina`,
-`revisioni` e `ripristina` — i cui esiti stanno in §19.6, §19.7, §19.8 e
-§19.9 — e `ricarica`.
+`revisioni`, `ripristina`, `slotMediaDisponibili`, `leggiMedia` e `scriviMedia`
+— i cui esiti stanno in §19.6, §19.7, §19.8, §19.9 e §19.10 — e `ricarica`.
 
 `ricarica()` è pubblica e **non rigetta**: riporta `{ codice: null }` oppure
 `{ codice: "errore-elenco" }`. Chi la chiama non deve ricordarsi di metterci un
@@ -1859,10 +1860,10 @@ rimasta.
   registra una, quindi **non va montato insieme a `EditorEvento`** sotto lo
   stesso fornitore finché quel limite non è risolto. È il vincolo da chiudere
   prima di avere due editor, non dopo.
-- **Niente media, GPX o export.** Deliberatamente fuori: ognuno porta con sé
-  difese proprie, e vanno aggiunte una alla volta con le loro prove.
-  Riallineamento (§19.6), confronto (§19.7), eliminazione (§19.8) e cronologia
-  (§19.9) invece ci sono.
+- **Niente GPX o export.** Deliberatamente fuori: ognuno porta con sé difese
+  proprie, e vanno aggiunte una alla volta con le loro prove. Riallineamento
+  (§19.6), confronto (§19.7), eliminazione (§19.8), cronologia (§19.9) e slot
+  fotografici (§19.10) invece ci sono.
 - **Nessuna fusione automatica.** Su risposta superata si segnala con un codice
   e si chiede di ripetere.
 - **Il riallineamento non è sorvegliato da Version History.** Accettare una
@@ -2126,3 +2127,100 @@ identità, sessione, modifiche sopraggiunte e smontaggio sono quelle di §19.3.1
 §19.5. `revisione-inesistente` e `revisione-non-ripristinabile` sono distinti
 perché il motore lancia per entrambi: un codice solo non direbbe se la revisione
 non c'è o se c'è ma non porta uno stato.
+
+### 19.10 Gli slot fotografici
+
+**Il registro degli slot è per rubrica.** `media/slot.js` dichiarava i nove slot
+EVENTI; ora tiene una tabella per rubrica, con una sola implementazione — gli
+export storici (`SLOT_MEDIA`, `leggiSlot`, `scriviSlot`, `slotPieno`,
+`conRipiegoCover`, `SLOT_SFONDO`) delegano a quella, e EVENTI non cambia di una
+virgola.
+
+Una rubrica sconosciuta **non ha slot e non ne eredita**. È lo stesso principio
+per cui questo file esiste: il ripiego per esclusione — «se non è questo, allora
+sarà quello» — scriveva in `esperienza[NaN]` e faceva sparire le fotografie
+senza un errore. Far ripiegare una rubrica sconosciuta su EVENTI ricreerebbe
+quel difetto a un livello più alto.
+
+TOUR dichiara **due soli slot**: `cover` per il Post, in `media.cover`, e
+`story` per la Story, in `media.sfondi.tourStory`. Sono due ritagli distinti
+perché il Post è 4:5 e la Story 9:16: la stessa fotografia vuole inquadrature
+diverse, e condividerne una sola obbligherebbe a sacrificare un formato. La
+Story ripiega sulla cover quando non ha la propria, ma **solo per il
+rendering**: `slotDellaRubricaPieno` continua a dire che lo slot è vuoto, perché
+lo è. Nessun carosello e nessuno slot «esperienza» in questo capitolo.
+
+**Il registro si convalida alla costruzione**, non all'uso: `costruisciRegistroSlot`
+è esportata e provata da sola. Rifiuta id mancanti, vuoti o duplicati, nomi
+vuoti, destinazioni diverse da `cover`, `esperienza` e `sfondi`, più di una
+cover, indici non interi o negativi, chiavi vuote — e soprattutto **due id che
+puntano alla stessa destinazione**: sarebbero due comandi che modificano lo
+stesso dato, e chi li usa non capirebbe perché l'uno cancella l'altro. Elenchi
+e descrittori sono congelati, e uno slot sconosciuto non legge e non scrive.
+Scoprire questi errori durante l'uso significherebbe scoprirli a fotografia
+sparita.
+
+**Il registro pubblico è `{ elenco, descrizione(id) }`, e niente altro.** Prima
+usciva anche la tabella di ricerca, come `Map`, dentro un oggetto congelato:
+`Object.freeze` congela l'involucro, non il contenuto di una Map, e `set`,
+`delete` e `clear` restavano a disposizione di chiunque avesse il registro in
+mano. Un `registro.perId.set("intruso", …)` produceva due viste discordi dello
+stesso registro — lo slot compariva alla ricerca e mancava dall'elenco — e il
+valore dichiarato «congelato» risultava modificato dall'esterno. La mappa ora
+resta nella chiusura e fuori esce una funzione di sola lettura, che non ha
+`set`, `delete` né `clear` e non dà modo di raggiungere quel che consulta.
+`elenco` e descrittori restano gli stessi riferimenti congelati, `SLOT_MEDIA`
+resta **lo stesso** elenco del registro EVENTI, e gli export storici continuano
+a delegare.
+
+**Nell'hook**: `slotMediaDisponibili()` restituisce quei due slot,
+`leggiMedia(slot)` legge dal riferimento corrente, `scriviMedia(slot, ritaglio)`
+assegna, sostituisce o — con `null` — rimuove. Esiti: `media-assegnato`,
+`slot-media-non-valido`, `nessuna-bozza`. È una modifica come le altre: marca la
+bozza non salvata, **non** scrive da sola nell'archivio, e produce la normale
+revisione al salvataggio successivo. Il riferimento si allinea subito, così un
+`salva` chiamato nello stesso giro persiste la fotografia appena assegnata
+(§19.3.1).
+
+**Il ritaglio si convalida al confine pubblico**, con lo schema `ritaglio` che
+già esiste — non una seconda definizione di che cosa sia valido. Filtrare i nomi
+dei campi non bastava: valori fuori dominio e tipi sbagliati entravano in
+memoria e fallivano soltanto al salvataggio, come generico «errore di
+scrittura», *dopo* che l'hook aveva già accettato e mostrato la modifica. Un
+ritaglio non valido riceve subito `ritaglio-media-non-valido`, e contenuto,
+riferimento, contatore, stato «non salvato», archivio e revisioni restano
+identici.
+
+Si rifiutano zoom e coordinate fuori dominio, tipi sbagliati, primitivi e array.
+`Blob` e `File` hanno una guardia esplicita, e non è ridondante: non avendo
+nessuna delle proprietà del ritaglio, uno schema fatto di soli campi con valore
+predefinito li accetterebbe trasformandoli in un ritaglio **vuoto** — il modo
+peggiore di fallire.
+
+**`idBlob` è una chiave opaca di SocialStorage**, non un modo per portarsi
+dentro l'immagine né per indicare un file altrove. La regola non è più un elenco
+di prefissi vietati — era una lista di casi noti, e `ftp://server/foto.jpg`,
+`cartella/foto.jpg`, `C:/foto.jpg`, un percorso UNC, la stringa vuota e quella
+di soli spazi ci passavano attraverso — ma la **forma di ciò che è ammesso**:
+una stringa non vuota, senza spazi ai bordi, senza `/` né `\` e senza schema
+URI. Così cadono in un colpo solo URL, percorsi POSIX, Windows, UNC e relativi,
+`data:`, `blob:`, `file:`, `http(s):`, `ftp:` e qualunque schema non previsto,
+mentre gli id che l'archivio produce davvero — `img-1757000000000-a1b2c3` —
+continuano a passare.
+
+Un oggetto con `idBlob` assente o `null` **non è un'assegnazione valida**: lo
+schema gli darebbe `null` per difetto e lascerebbe entrare un ritaglio che non
+indica nessuna fotografia. Per togliere una fotografia si passa `null` come
+valore intero, non un ritaglio svuotato.
+
+**Nel contenuto entrano solo `idBlob`, `zoom`, `x`, `y` e `specchiata`**, e nulla
+di più: quel che arriva viene filtrato. Nessun Blob, data URL o byte fotografico,
+perché il contenuto finisce nei record convalidati, nei backup e in ogni
+revisione, e una fotografia dentro lo farebbe crescere senza che nessuno se ne
+accorga. I byte stanno in SocialStorage; qui resta il modo di ritrovarli.
+
+**Le fotografie del sito restano sul sito.** Creare una bozza da un tour non
+copia, non scarica e non assegna niente: `media.cover` resta `null`,
+`media.sfondi.tourStory` non viene creato, e i percorsi fotografici del sito
+compaiono soltanto nell'istantanea della fonte, dove §17.4 li ammette come
+riferimento testuale.
