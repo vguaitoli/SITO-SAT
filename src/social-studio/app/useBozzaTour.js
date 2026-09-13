@@ -7,7 +7,11 @@ import {
   daTour,
   riallineaTourAllaFonte,
 } from "../fondamenta/adapter-tour";
-import { registraRevisione } from "../fondamenta/versioni";
+import {
+  elencoRevisioni,
+  registraRevisione,
+  ripristinaRevisione,
+} from "../fondamenta/versioni";
 
 /**
  * Il ciclo di vita di una bozza TOUR, senza interfaccia.
@@ -81,9 +85,44 @@ export const CODICI = {
   // Salvare ed eliminare la stessa bozza si escludono a vicenda: chi arriva
   // secondo aspetta che il primo finisca, e riprova.
   operazioneInConflitto: "operazione-in-conflitto",
+  // Il ripristino di una revisione.
+  revisioneRipristinata: "revisione-ripristinata",
+  revisioneInesistente: "revisione-inesistente",
+  // Il punto di creazione non porta con sé uno stato: non c'è dove tornare.
+  revisioneNonRipristinabile: "revisione-non-ripristinabile",
 };
 
 const CATEGORIA = "tour";
+
+/**
+ * Uguaglianza strutturale: l'ordine delle chiavi non conta, quello degli
+ * elementi sì.
+ *
+ * `JSON.stringify` sembrava sufficiente e non lo è: due oggetti con le stesse
+ * coppie inserite in ordine diverso producono stringhe diverse. `versione.dati`
+ * è `z.unknown()` — la convalida non normalizza ricorsivamente quello che c'è
+ * dentro — quindi un backup o un record migrato può arrivare qui con le chiavi
+ * in un altro ordine e far sembrare diverso ciò che è identico.
+ */
+function ugualeStrutturalmente(a, b) {
+  if (a === b) return true;
+  if (a === null || b === null) return false;
+  if (typeof a !== "object" || typeof b !== "object") return false;
+
+  const aArray = Array.isArray(a);
+  if (aArray !== Array.isArray(b)) return false;
+  if (aArray) {
+    // Negli array l'ordine è informazione: due sequenze diverse sono diverse.
+    return a.length === b.length && a.every((v, i) => ugualeStrutturalmente(v, b[i]));
+  }
+
+  const chiaviA = Object.keys(a);
+  const chiaviB = Object.keys(b);
+  if (chiaviA.length !== chiaviB.length) return false;
+  return chiaviA.every(
+    (k) => Object.prototype.hasOwnProperty.call(b, k) && ugualeStrutturalmente(a[k], b[k]),
+  );
+}
 
 /**
  * Quel tour e quella bozza parlano dello stesso percorso?
@@ -178,6 +217,26 @@ export function useBozzaTour({ urlBase = "" } = {}) {
    * base persistita che sul disco non esiste più.
    */
   const aperturaIdRif = useRef(null);
+  /**
+   * L'ultima scrittura conclusa: `{ seq, codice }`.
+   *
+   * Il numero progressivo serve a sapere **se quella scrittura è la propria**:
+   * un codice globale, da solo, potrebbe appartenere a un'operazione
+   * precedente, e leggerlo porterebbe a scambiare il successo di una per il
+   * fallimento di un'altra.
+   */
+  const ultimaScritturaRif = useRef({ seq: 0, codice: null });
+  /**
+   * Un ripristino già costruito ma non ancora sul disco:
+   * `{ id, n, sessione }`.
+   *
+   * Lo stato in memoria contiene **già** la voce «stato prima del ripristino»,
+   * perché `ripristinaRevisione` la registra prima di scrivere. Se la scrittura
+   * fallisce, quel contenuto resta lì: un salvataggio ordinario lo tratterebbe
+   * come una modifica qualunque e ne registrerebbe un'altra, duplicando lo
+   * stesso stato nella cronologia.
+   */
+  const ripristinoPendenteRif = useRef(null);
   /**
    * Il debito lasciato da una scrittura confermata ma non riletta: `{ id }`.
    *
@@ -349,8 +408,21 @@ export function useBozzaTour({ urlBase = "" } = {}) {
    * È il valore che la guardia converte in «non si può proseguire».
    */
   const scrivi = useCallback(
-    async (iniziale) => {
+    async (iniziale, { giaRegistrata = false } = {}) => {
       if (!iniziale) return null;
+
+      /**
+       * Registra il motivo **e** lo espone.
+       *
+       * `scrivi` conosce il motivo vero di un fallimento; metterlo solo nello
+       * stato costringerebbe chi chiama a convertirlo in un generico «errore di
+       * scrittura», perdendo la distinzione proprio dove serve.
+       */
+      const conCodice = (codice) => {
+        ultimaScritturaRif.current = { seq: ultimaScritturaRif.current.seq + 1, codice };
+        if (vivoRif.current) setEsito({ codice });
+        return null;
+      };
 
       /*
        * Prima di tutto si salda il debito, se c'è: una scrittura precedente è
@@ -383,14 +455,12 @@ export function useBozzaTour({ urlBase = "" } = {}) {
            * chiesto. Il debito resta dov'era, riferito alla sua identità.
            */
           if (sessioneRif.current !== sessioneAllInizio) {
-            setEsito({ codice: CODICI.superataDaAltroContenuto });
-            return null;
+            return conCodice(CODICI.superataDaAltroContenuto);
           }
           if (!recuperato) {
             // Non si è ancora in grado di sapere da dove ripartire: meglio non
             // scrivere che scrivere sopra. Si può riprovare.
-            setEsito({ codice: CODICI.baseNonRecuperata });
-            return null;
+            return conCodice(CODICI.baseNonRecuperata);
           }
           recuperoRif.current = null;
           adottaBasePersistita(recuperato);
@@ -415,11 +485,17 @@ export function useBozzaTour({ urlBase = "" } = {}) {
        */
       let idSalvato = null;
       try {
-        const conStoria = registraRevisione(daSalvare, salvatoRif.current);
+        /*
+         * Chi ripristina ha già registrato la propria voce — `ripristinaRevisione`
+         * lo fa con `forza` — e passarla di nuovo da qui creerebbe due revisioni
+         * per un gesto solo, sporcando la storia proprio dove serve leggerla.
+         */
+        const conStoria = giaRegistrata
+          ? daSalvare
+          : registraRevisione(daSalvare, salvatoRif.current);
         idSalvato = await archivio.salva(conStoria);
       } catch {
-        if (vivoRif.current) setEsito({ codice: CODICI.erroreScrittura });
-        return null;
+        return conCodice(CODICI.erroreScrittura);
       }
       if (!vivoRif.current) return null;
 
@@ -439,8 +515,7 @@ export function useBozzaTour({ urlBase = "" } = {}) {
          * guardia lo converte in «non si può proseguire».
          */
         recuperoRif.current = { id: idSalvato };
-        setEsito({ codice: CODICI.riletturaFallita });
-        return null;
+        return conCodice(CODICI.riletturaFallita);
       }
 
       // Prima delle ultime attese: applicare un record su un contenuto che non
@@ -449,15 +524,13 @@ export function useBozzaTour({ urlBase = "" } = {}) {
         (contenutoRif.current?.id ?? null) !== idDiPartenza ||
         sessioneRif.current !== sessioneDiPartenza
       ) {
-        setEsito({ codice: CODICI.superataDaAltroContenuto });
-        return null;
+        return conCodice(CODICI.superataDaAltroContenuto);
       }
       if (modificheRif.current !== modificheAllInizio) {
         // La scrittura è riuscita: quello stato è sul disco, e la sua storia
         // dev'essere la base del prossimo tentativo.
         adottaBasePersistita(riletto);
-        setEsito({ codice: CODICI.superataDaModifiche });
-        return null;
+        return conCodice(CODICI.superataDaModifiche);
       }
 
       setContenuto(riletto);
@@ -490,15 +563,22 @@ export function useBozzaTour({ urlBase = "" } = {}) {
         (contenutoRif.current?.id ?? null) !== riletto.id ||
         sessioneRif.current !== sessioneDiPartenza
       ) {
-        setEsito({ codice: CODICI.superataDaAltroContenuto });
-        return null;
+        return conCodice(CODICI.superataDaAltroContenuto);
       }
       if (modificheRif.current !== modificheAllInizio) {
-        setEsito({ codice: CODICI.superataDaModifiche });
-        return null;
+        return conCodice(CODICI.superataDaModifiche);
       }
 
-      setEsito({ codice: elencoAggiornato ? CODICI.salvata : CODICI.erroreElenco });
+      // Il ripristino è arrivato sul disco: non è più pendente.
+      if (
+        ripristinoPendenteRif.current?.id === riletto.id &&
+        ripristinoPendenteRif.current.sessione === sessioneRif.current
+      ) {
+        ripristinoPendenteRif.current = null;
+      }
+      const codice = elencoAggiornato ? CODICI.salvata : CODICI.erroreElenco;
+      ultimaScritturaRif.current = { seq: ultimaScritturaRif.current.seq + 1, codice };
+      if (vivoRif.current) setEsito({ codice });
       return riletto;
     },
     [archivio, ricarica, adottaBasePersistita, segnaSporco],
@@ -526,7 +606,18 @@ export function useBozzaTour({ urlBase = "" } = {}) {
     }
 
     scritturaIdRif.current = id;
-    const mia = scrivi(contenutoRif.current).finally(() => {
+    // Un ripristino rimasto in memoria porta già la sua voce: registrarla di
+    // nuovo duplicherebbe lo stesso stato nella cronologia.
+    /*
+     * Il pendente vale per **quella** sessione di lavoro: riaprire la stessa
+     * bozza ne comincia una nuova, il cui contenuto viene dal disco e non porta
+     * più la revisione forzata. Ereditare il marcatore lì sopprimerebbe una
+     * revisione ordinaria, facendo sparire lo stato precedente.
+     */
+    const pendente = ripristinoPendenteRif.current;
+    const giaRegistrata =
+      pendente?.id === id && pendente.sessione === sessioneRif.current;
+    const mia = scrivi(contenutoRif.current, { giaRegistrata }).finally(() => {
       // Ogni blocco lo libera soltanto l'operazione che l'ha preso.
       if (scritturaRif.current === mia) {
         scritturaRif.current = null;
@@ -536,6 +627,141 @@ export function useBozzaTour({ urlBase = "" } = {}) {
     scritturaRif.current = mia;
     return mia;
   }, [scrivi]);
+
+  /** Il riepilogo delle revisioni, dalla più recente. */
+  const revisioni = useCallback(
+    () => (contenutoRif.current ? elencoRevisioni(contenutoRif.current) : []),
+    [],
+  );
+
+  /**
+   * I rami che Version History conserva in una revisione.
+   *
+   * Servono per riconoscere un ripristino **già avvenuto**: se il disco porta
+   * già quello stato, ripeterlo non aggiungerebbe niente alla cronologia se non
+   * una voce vuota.
+   */
+  const giaRipristinata = (base, dati) =>
+    Object.keys(dati || {}).every((ramo) => ugualeStrutturalmente(base[ramo], dati[ramo]));
+
+  /**
+   * Che cosa impedisce, se qualcosa impedisce, di ripristinare la revisione `n`.
+   *
+   * Sta fuori dall'azione perché queste condizioni vanno riconosciute **prima**
+   * del dialogo: una richiesta impossibile non deve chiedere se salvare o
+   * scartare, e non deve produrre scritture.
+   *
+   * @returns {{codice: string}|null}
+   */
+  const ostacoloAlRipristino = useCallback((n) => {
+    const base = salvatoRif.current;
+    if (!base) return { codice: CODICI.nessunaBozza };
+    const rev = (base.versioni || []).find((v) => v.n === n);
+    if (!rev) return { codice: CODICI.revisioneInesistente };
+    if (!rev.dati) return { codice: CODICI.revisioneNonRipristinabile };
+    return null;
+  }, []);
+
+  /**
+   * I dati della revisione `n`, fotografati adesso.
+   *
+   * Vanno catturati **prima** del dialogo. Un «Salva e continua» aggiunge una
+   * revisione, e con la cronologia vicina al tetto può far diradare proprio
+   * quella scelta: cercarla di nuovo per numero, dopo, la troverebbe sparita e
+   * il ripristino fallirebbe per una revisione che al momento del clic c'era.
+   * La copia è profonda: nessuno deve poter mutare ciò che è stato scelto.
+   */
+  const fotografaRevisione = useCallback(
+    (n) => structuredClone((salvatoRif.current.versioni || []).find((v) => v.n === n).dati),
+    [],
+  );
+
+  /**
+   * Torna a una revisione, e la rende persistente.
+   *
+   * Parte dalla **base davvero sul disco**, non dalla fotografia in memoria:
+   * se si è scelto «Scarta modifiche», quelle modifiche non devono entrare
+   * nella cronologia come «stato prima del ripristino». Scartare vuol dire
+   * buttarle, non archiviarle.
+   */
+  const ripristinaSenzaChiedere = useCallback(
+    async (n, dati, seqPrima) => {
+      const fallisci = (codice) => {
+        if (vivoRif.current) setEsito({ codice });
+        throw new Error(codice);
+      };
+
+      const base = salvatoRif.current;
+      if (!base) fallisci(CODICI.nessunaBozza);
+
+      /*
+       * Se il disco porta già quello stato, il ripristino è compiuto: rifarlo
+       * aggiungerebbe alla cronologia una voce senza cambiamenti. Succede dopo
+       * un «Salva e continua» che ha appena persistito proprio lo stato
+       * richiesto — e quel salvataggio può essere andato a buon fine con
+       * l'elenco rimasto indietro: il suo esito non va coperto.
+       */
+      if (giaRipristinata(base, dati)) {
+        const sua = ultimaScritturaRif.current;
+        const suoFallimento = sua.seq > seqPrima && sua.codice !== CODICI.salvata;
+        if (vivoRif.current && !suoFallimento) {
+          setEsito({ codice: CODICI.revisioneRipristinata });
+        }
+        return;
+      }
+
+      // Le stesse esclusioni del salvataggio: il ripristino è una scrittura.
+      if (eliminazioneRif.current === base.id) fallisci(CODICI.operazioneInConflitto);
+      if (scritturaRif.current) fallisci(CODICI.operazioneInConflitto);
+
+      /*
+       * Si preferisce il motore finché la revisione è ancora al suo posto; se il
+       * diradamento l'ha tolta si compone dalla fotografia, con la stessa voce
+       * forzata che il motore avrebbe registrato.
+       */
+      const ancoraLi = (base.versioni || []).find((v) => v.n === n)?.dati;
+      const ripristinato = ancoraLi
+        ? ripristinaRevisione(base, n)
+        : {
+            ...registraRevisione(base, base, {
+              forza: true,
+              etichetta: `stato prima del ripristino della v${n}`,
+            }),
+            ...dati,
+            modificato: new Date().toISOString(),
+          };
+      ripristinoPendenteRif.current = { id: base.id, n, sessione: sessioneRif.current };
+      modificheRif.current += 1;
+      setContenuto(ripristinato);
+      contenutoRif.current = ripristinato;
+      segnaSporco(true);
+
+      scritturaIdRif.current = base.id;
+      const mia = scrivi(ripristinato, { giaRegistrata: true }).finally(() => {
+        if (scritturaRif.current === mia) {
+          scritturaRif.current = null;
+          scritturaIdRif.current = null;
+        }
+      });
+      scritturaRif.current = mia;
+
+      const salvato = await mia;
+      if (!salvato) {
+        // Il motivo vero lo conosce `scrivi`: convertirlo in un generico
+        // «errore di scrittura» perderebbe proprio la distinzione utile.
+        throw new Error(ultimaScritturaRif.current.codice || CODICI.erroreScrittura);
+      }
+      /*
+       * L'esito lo ha già posto `scrivi`, e può essere `errore-elenco`: il
+       * ripristino è riuscito, è l'elenco a essere rimasto indietro.
+       * Sovrascriverlo con «ripristinata» cancellerebbe quell'informazione.
+       */
+      if (vivoRif.current && ultimaScritturaRif.current.codice === CODICI.salvata) {
+        setEsito({ codice: CODICI.revisioneRipristinata });
+      }
+    },
+    [scrivi, segnaSporco],
+  );
 
   const apriSenzaChiedere = useCallback(
     async (id) => {
@@ -812,6 +1038,41 @@ export function useBozzaTour({ urlBase = "" } = {}) {
     [richiedi, apriSenzaChiedere],
   );
 
+  /*
+   * Ripristinare sostituisce il lavoro in corso come aprire un'altra bozza:
+   * stessa protezione, stesso dialogo.
+   */
+  const ripristina = useCallback(
+    (n) => {
+      /*
+       * Prima del dialogo: una richiesta impossibile non deve far scegliere se
+       * salvare o scartare, e soprattutto non deve produrre scritture. Chiedere
+       * «Salva e continua» per poi scoprire che la revisione non esiste
+       * salverebbe il lavoro per niente.
+       */
+      const ostacolo = ostacoloAlRipristino(n);
+      if (ostacolo) {
+        setEsito(ostacolo);
+        return Promise.resolve({
+          esito: ESITI.fallito,
+          errore: new Error(ostacolo.codice),
+        });
+      }
+      /*
+       * La fotografia e il numero di sequenza si prendono **adesso**, prima del
+       * dialogo: la revisione scelta dev'essere quella richiesta per tutta la
+       * transizione, e l'esito da non coprire è quello della scrittura che
+       * questa transizione provoca, non di una qualunque.
+       */
+      const dati = fotografaRevisione(n);
+      const seqPrima = ultimaScritturaRif.current.seq;
+      return richiedi(() => ripristinaSenzaChiedere(n, dati, seqPrima), {
+        etichetta: "Ripristinare una revisione",
+      });
+    },
+    [richiedi, ripristinaSenzaChiedere, ostacoloAlRipristino, fotografaRevisione],
+  );
+
   return {
     contenuto,
     sporco,
@@ -826,6 +1087,8 @@ export function useBozzaTour({ urlBase = "" } = {}) {
     riallineaAllaFonte,
     confrontaConLaFonte,
     elimina,
+    revisioni,
+    ripristina,
     ricarica,
   };
 }

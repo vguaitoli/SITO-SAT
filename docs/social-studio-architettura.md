@@ -1628,15 +1628,15 @@ bozza da un tour già normalizzato, scriverla, salvarla, riaprirla. Vive in
 raggiungibile dallo Studio — una prova lo verifica sui registri veri. Il modulo
 TOUR non è completato. Il nucleo — creare, scrivere, salvare, riaprire — è di
 6.3C; 6.3D vi ha aggiunto il riallineamento esplicito alla fonte (§19.6).
-Restano fuori cancellazione, ripristino revisioni, media, GPX ed export, che
-sono passi successivi.
+Restano fuori media, GPX ed export, che sono passi successivi.
 
 ### 19.1 Che cosa espone, e perché come codici
 
 L'hook restituisce `contenuto`, `sporco`, `bozze` (le sole bozze TOUR), `esito`,
 e le operazioni `creaDaTour`, `apri`, `salva`, `scriviEditoriale`,
-`scriviFattuale`, `riallineaAllaFonte`, `confrontaConLaFonte` ed `elimina` — i
-cui esiti stanno in §19.6, §19.7 e §19.8 — e `ricarica`.
+`scriviFattuale`, `riallineaAllaFonte`, `confrontaConLaFonte`, `elimina`,
+`revisioni` e `ripristina` — i cui esiti stanno in §19.6, §19.7, §19.8 e
+§19.9 — e `ricarica`.
 
 `ricarica()` è pubblica e **non rigetta**: riporta `{ codice: null }` oppure
 `{ codice: "errore-elenco" }`. Chi la chiama non deve ricordarsi di metterci un
@@ -1859,10 +1859,10 @@ rimasta.
   registra una, quindi **non va montato insieme a `EditorEvento`** sotto lo
   stesso fornitore finché quel limite non è risolto. È il vincolo da chiudere
   prima di avere due editor, non dopo.
-- **Niente ripristino revisioni, media, GPX o export.** Deliberatamente fuori:
-  ognuno porta con sé difese proprie, e vanno aggiunte una alla volta con le
-  loro prove. Riallineamento (§19.6), confronto (§19.7) ed eliminazione (§19.8)
-  invece ci sono.
+- **Niente media, GPX o export.** Deliberatamente fuori: ognuno porta con sé
+  difese proprie, e vanno aggiunte una alla volta con le loro prove.
+  Riallineamento (§19.6), confronto (§19.7), eliminazione (§19.8) e cronologia
+  (§19.9) invece ci sono.
 - **Nessuna fusione automatica.** Su risposta superata si segnala con un codice
   e si chiede di ripetere.
 - **Il riallineamento non è sorvegliato da Version History.** Accettare una
@@ -2034,3 +2034,95 @@ requisito di non aggiornare stato React dopo l'uscita, ma **nessuna prova li
 distingue**: React rende inerti quelle chiamate, e il valore osservabile resta
 l'ultimo reso. Sono correttezza di costruzione, non verificata — a differenza
 delle altre sei difese, per cui una mutazione fa fallire la prova corrispondente.
+
+### 19.9 Cronologia e ripristino
+
+`revisioni()` restituisce il riepilogo di `elencoRevisioni` — dalla più recente,
+con `ripristinabile` che dice quali portano davvero uno stato: il punto di
+creazione non lo porta.
+
+`ripristina(n)` torna a una revisione e **rende persistente** il ritorno.
+Sostituisce il lavoro in corso, quindi passa da `richiedi` come aprire un'altra
+bozza: «Annulla» non cambia nulla, «Salva e continua» salva prima e poi
+ripristina, «Scarta modifiche» butta.
+
+**Due punti valgono più del resto.**
+
+Il primo: **una revisione sola per un gesto solo**. `ripristinaRevisione` scrive
+già la propria voce — «stato prima del ripristino» — e farla ripassare da
+`registraRevisione` ne creerebbe due, sporcando la storia proprio dove serve
+leggerla. Per questo `scrivi` accetta `giaRegistrata`. Ne segue che il ripristino
+è a sua volta reversibile: lo stato precedente resta conservato.
+
+Il secondo: **scartare vuol dire buttare, non archiviare**. Il ripristino parte
+dalla base davvero sul disco (`salvatoRif`), non dalla fotografia sporca rimasta
+in memoria. Partendo dalla memoria, le modifiche appena scartate finirebbero
+nella cronologia come «stato prima del ripristino» — conservate proprio da chi
+aveva chiesto di eliminarle.
+
+**Le condizioni impossibili si riconoscono prima del dialogo.** Revisione
+inesistente, revisione senza dati e assenza di una base persistita vengono
+riconosciute da `ripristina` *prima* di chiamare `richiedi`: altrimenti, con una
+bozza sporca, comparirebbe la scelta fra salvare e scartare, e «Salva e
+continua» salverebbe davvero il lavoro per poi scoprire che non c'è nulla da
+ripristinare. In quei casi non compare alcun dialogo, non si scrive, e il codice
+specifico arriva sia in `esito` sia nel risultato pubblico, senza rigettare.
+
+**Il motivo del fallimento non si appiattisce.** `scrivi` conosce la ragione
+vera — `rilettura-fallita`, `base-non-recuperata`, `superata-da-modifiche`,
+`superata-da-altro-contenuto`, `errore-scrittura` — e la espone a chi l'ha
+chiesta: `esito.codice`, `risultato.esito` e `risultato.errore.message` restano
+coerenti. Convertire tutto in un generico «errore di scrittura» perderebbe la
+distinzione proprio dove serve decidere se riprovare o recuperare.
+
+**Un elenco non aggiornato non cancella il ripristino riuscito.** Se la scrittura
+è andata e solo `ricarica` fallisce, il disco è aggiornato, la bozza è pulita e
+la transizione risulta eseguita, ma l'esito resta `errore-elenco`: non viene
+sovrascritto con `revisione-ripristinata`, e non si suggerisce di ripetere.
+
+Un ripristino fallito lascia in memoria lo stato ripristinato e **non salvato**:
+è corretto, e per questo il tentativo successivo passa di nuovo dal dialogo. Ma
+quello stato porta **già** la propria voce «stato prima del ripristino», quindi
+un salvataggio ordinario non deve registrarla di nuovo: finché il ripristino è
+pendente, `salva` scrive senza registrare. E se il disco porta già lo stato
+richiesto — per esempio dopo un «Salva e continua» che l'ha appena persistito —
+il ripristino riconosce di essere compiuto e non aggiunge una voce senza
+cambiamenti. Il risultato osservabile è che una sola «stato prima del ripristino»
+compare per ciascun ripristino davvero persistito, e che una modifica aggiunta
+dopo un fallimento non si perde.
+
+**Il pendente appartiene a una sessione, non a un id.** Riaprire la stessa bozza
+comincia una sessione nuova, il cui contenuto viene dal disco e **non** porta la
+voce forzata: ereditare lì il marcatore sopprimerebbe una revisione ordinaria, e
+lo stato precedente sparirebbe dalla cronologia. Il marcatore vale quindi solo
+finché dura la sessione che l'ha creato.
+
+**Il codice dell'operazione è legato alla propria scrittura.** Ogni scrittura
+conclusa lascia `{ seq, codice }`: il numero progressivo dice *se quella
+scrittura è la propria*. Serve nel percorso di ritentativo — «Salva e continua»
+persiste lo stato richiesto, la continuazione riconosce il ripristino già
+compiuto, e senza il numero coprirebbe l'`errore-elenco` di quel salvataggio con
+un `revisione-ripristinata` che non descrive nulla. Un codice globale, da solo,
+potrebbe anche appartenere a un'operazione precedente.
+
+**L'uguaglianza è strutturale, non per stringa.** `JSON.stringify` dichiara
+diversi due oggetti con le stesse coppie in ordine diverso; `versione.dati` è
+`z.unknown()`, quindi la convalida non normalizza ciò che sta dentro, e un
+backup o un record migrato può arrivare proprio così. Il confronto ignora
+l'ordine delle chiavi e rispetta quello degli elementi negli array.
+
+**La revisione scelta sopravvive al dialogo.** I suoi dati si fotografano prima,
+con una copia profonda. Un «Salva e continua» aggiunge una revisione e, con la
+cronologia al tetto, il diradamento può togliere proprio quella scelta: cercarla
+di nuovo per numero la troverebbe sparita, e il ripristino fallirebbe per una
+revisione che al momento del clic c'era. Finché il numero è ancora al suo posto
+si usa `ripristinaRevisione`; quando non c'è più, si compone dalla fotografia
+con la stessa voce forzata che il motore avrebbe registrato. `versioni.js` e
+`MASSIME_REVISIONI` restano intatti.
+
+Il ripristino è una scrittura, e usa gli stessi blocchi: non può sovrapporsi a un
+salvataggio o a un'eliminazione della stessa bozza (§19.8), e le difese di
+identità, sessione, modifiche sopraggiunte e smontaggio sono quelle di §19.3.1 e
+§19.5. `revisione-inesistente` e `revisione-non-ripristinabile` sono distinti
+perché il motore lancia per entrambi: un codice solo non direbbe se la revisione
+non c'è o se c'è ma non porta uno stato.

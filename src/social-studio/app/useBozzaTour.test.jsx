@@ -2810,3 +2810,845 @@ describe("interblocco fra apertura ed eliminazione", () => {
     expect(await pilot.leggiDavvero(a)).toBeNull();
   });
 });
+
+/** Riscrive un oggetto con le stesse coppie in ordine inverso, anche annidate. */
+const riordinaProfondo = (o) =>
+  o && typeof o === "object" && !Array.isArray(o)
+    ? Object.fromEntries(
+        Object.entries(o)
+          .reverse()
+          .map(([k, v]) => [k, riordinaProfondo(v)]),
+      )
+    : o;
+
+/** Una bozza salvata tre volte: creazione, A, B. */
+async function bozzaConStoria() {
+  await act(async () => {
+    await canale.api.creaDaTour(TOUR);
+  });
+  await act(async () => {
+    canale.api.scriviEditoriale("claim", "A");
+  });
+  await act(async () => {
+    await canale.api.salva();
+  });
+  await respiro();
+  await act(async () => {
+    canale.api.scriviEditoriale("claim", "B");
+  });
+  await act(async () => {
+    await canale.api.salva();
+  });
+  await respiro();
+  return canale.api.contenuto.id;
+}
+
+/**
+ * Tornare indietro deve lasciare una storia leggibile.
+ *
+ * Due punti delicati: il ripristino non deve registrare **due** revisioni per un
+ * gesto solo — `ripristinaRevisione` ne scrive già una — e non deve archiviare
+ * ciò che l'utente ha appena scelto di scartare. Scartare vuol dire buttare, non
+ * mettere da parte.
+ */
+describe("cronologia e ripristino", () => {
+  it("il riepilogo è dal più recente e dice che cosa è ripristinabile", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await bozzaConStoria();
+
+    const elenco = canale.api.revisioni();
+    expect(elenco.length).toBeGreaterThanOrEqual(2);
+    // Dalla più recente.
+    expect(elenco.map((v) => v.n)).toEqual([...elenco.map((v) => v.n)].sort((a, b) => b - a));
+    // Il punto di creazione non porta uno stato.
+    expect(elenco.at(-1).ripristinabile).toBe(false);
+    expect(elenco[0].ripristinabile).toBe(true);
+    expect(typeof elenco[0].quando).toBe("string");
+  });
+
+  it("ripristina, persiste, e aggiunge una revisione sola", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    const prima = (await pilot.leggiDavvero(id)).versioni.length;
+    const daRipristinare = canale.api.revisioni().find((v) => v.ripristinabile).n;
+
+    await act(async () => {
+      await canale.api.ripristina(daRipristinare);
+    });
+    await respiro();
+
+    expect(canale.api.esito.codice).toBe(CODICI.revisioneRipristinata);
+    const sul = await pilot.leggiDavvero(id);
+    // Quello che si vede è quello che è sul disco, e la bozza è pulita.
+    expect(canale.api.contenuto.editoriale.claim).toBe(sul.editoriale.claim);
+    expect(sul.editoriale.claim).toBe("A");
+    expect(canale.api.sporco).toBe(false);
+    // Una sola revisione in più, non due.
+    expect(sul.versioni).toHaveLength(prima + 1);
+    expect(sul.versioni.map((v) => v.n)).toEqual(sul.versioni.map((_, i) => i + 1));
+    // E si può tornare indietro: lo stato precedente è conservato.
+    expect(sul.versioni.at(-1).dati.editoriale.claim).toBe("B");
+  });
+
+  it("il ripristino si può annullare ripristinando a sua volta", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    const versoA = canale.api.revisioni().find((v) => v.ripristinabile).n;
+    await act(async () => {
+      await canale.api.ripristina(versoA);
+    });
+    await respiro();
+    expect(canale.api.contenuto.editoriale.claim).toBe("A");
+
+    const versoB = canale.api.revisioni().find((v) => v.ripristinabile).n;
+    await act(async () => {
+      await canale.api.ripristina(versoB);
+    });
+    await respiro();
+    expect(canale.api.contenuto.editoriale.claim).toBe("B");
+    expect((await pilot.leggiDavvero(id)).editoriale.claim).toBe("B");
+  });
+
+  it("revisione inesistente e punto di creazione hanno codici distinti", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    const scrittureePrima = pilot.scritture.length;
+    const sulDiscoPrima = JSON.stringify(await pilot.leggiDavvero(id));
+
+    let inesistente;
+    await act(async () => {
+      inesistente = await canale.api.ripristina(999);
+    });
+    expect(inesistente.esito).toBe(ESITI.fallito);
+    expect(canale.api.esito.codice).toBe(CODICI.revisioneInesistente);
+
+    const creazione = canale.api.revisioni().find((v) => !v.ripristinabile).n;
+    let nonRipristinabile;
+    await act(async () => {
+      nonRipristinabile = await canale.api.ripristina(creazione);
+    });
+    expect(nonRipristinabile.esito).toBe(ESITI.fallito);
+    expect(canale.api.esito.codice).toBe(CODICI.revisioneNonRipristinabile);
+
+    await respiro();
+    expect(pilot.scritture).toHaveLength(scrittureePrima);
+    expect(JSON.stringify(await pilot.leggiDavvero(id))).toBe(sulDiscoPrima);
+  });
+});
+
+describe("ripristinare con lavoro non salvato", () => {
+  it("«Annulla» non cambia niente", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "Non salvata");
+    });
+    const scrittureePrima = pilot.scritture.length;
+    const n = canale.api.revisioni().find((v) => v.ripristinabile).n;
+
+    let promessa;
+    act(() => {
+      promessa = canale.api.ripristina(n);
+    });
+    await respiro();
+    expect(dialogo()).toBeTruthy();
+    await act(async () => {
+      bottone("Annulla").click();
+    });
+    await respiro();
+
+    expect((await promessa).esito).toBe(ESITI.annullato);
+    expect(canale.api.contenuto.editoriale.claim).toBe("Non salvata");
+    expect(canale.api.sporco).toBe(true);
+    expect(pilot.scritture).toHaveLength(scrittureePrima);
+    expect((await pilot.leggiDavvero(id)).editoriale.claim).toBe("B");
+  });
+
+  it("«Salva e continua» salva il lavoro e poi ripristina", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "C");
+    });
+    const n = canale.api.revisioni().find((v) => v.ripristinabile).n;
+
+    let promessa;
+    act(() => {
+      promessa = canale.api.ripristina(n);
+    });
+    await respiro();
+    await act(async () => {
+      bottone("Salva e continua").click();
+    });
+    await respiro();
+
+    expect((await promessa).esito).toBe(ESITI.fatto);
+    const sul = await pilot.leggiDavvero(id);
+    expect(sul.editoriale.claim).toBe("A");
+    // C è stato salvato prima, quindi resta nella storia.
+    expect(sul.versioni.map((v) => v.dati?.editoriale?.claim)).toContain("C");
+    expect(canale.api.sporco).toBe(false);
+  });
+
+  it("«Scarta modifiche» non mette in cronologia ciò che è stato scartato", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "Da buttare");
+    });
+    const n = canale.api.revisioni().find((v) => v.ripristinabile).n;
+
+    let promessa;
+    act(() => {
+      promessa = canale.api.ripristina(n);
+    });
+    await respiro();
+    await act(async () => {
+      bottone("Scarta modifiche").click();
+    });
+    await respiro();
+
+    expect((await promessa).esito).toBe(ESITI.fatto);
+    const sul = await pilot.leggiDavvero(id);
+    expect(sul.editoriale.claim).toBe("A");
+    // Scartare vuol dire buttare: quel testo non deve comparire da nessuna parte.
+    expect(JSON.stringify(sul)).not.toContain("Da buttare");
+    expect(sul.versioni.at(-1).dati.editoriale.claim).toBe("B");
+  });
+});
+
+describe("ripristino e corse asincrone", () => {
+  it("scrivere durante il ripristino non dichiara pulito il lavoro", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await bozzaConStoria();
+    const n = canale.api.revisioni().find((v) => v.ripristinabile).n;
+
+    const sosta = pilot.fermaProssima("salva");
+    let promessa;
+    act(() => {
+      promessa = canale.api.ripristina(n);
+    });
+    await respiro();
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "Arrivata dopo");
+    });
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    expect((await promessa).esito).toBe(ESITI.fallito);
+    expect(canale.api.sporco).toBe(true);
+    expect(canale.api.contenuto.editoriale.claim).toBe("Arrivata dopo");
+  });
+
+  it("un'eliminazione in corso impedisce il ripristino", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    const n = canale.api.revisioni().find((v) => v.ripristinabile).n;
+
+    const sosta = pilot.fermaProssima("elimina");
+    let eliminazione;
+    act(() => {
+      eliminazione = canale.api.elimina(id);
+    });
+    await respiro();
+
+    let esito;
+    await act(async () => {
+      esito = await canale.api.ripristina(n);
+    });
+    expect(esito.esito).toBe(ESITI.fallito);
+    expect(canale.api.esito.codice).toBe(CODICI.operazioneInConflitto);
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+    expect((await eliminazione).codice).toBe(CODICI.eliminata);
+    expect(await pilot.leggiDavvero(id)).toBeNull();
+  });
+
+  it("un errore di scrittura è riprovabile", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    const n = canale.api.revisioni().find((v) => v.ripristinabile).n;
+
+    pilot.rompi.salva = true;
+    let esito;
+    await act(async () => {
+      esito = await canale.api.ripristina(n);
+    });
+    await respiro();
+    expect(esito.esito).toBe(ESITI.fallito);
+    expect(canale.api.esito.codice).toBe(CODICI.erroreScrittura);
+    expect((await pilot.leggiDavvero(id)).editoriale.claim).toBe("B");
+
+    /*
+     * Dopo il fallimento il contenuto ripristinato è in memoria e non sul
+     * disco: la bozza è sporca, e il secondo tentativo passa dal dialogo. È
+     * corretto — c'è del lavoro che si sta per sostituire.
+     */
+    expect(canale.api.sporco).toBe(true);
+
+    pilot.rompi.salva = false;
+    let promessa;
+    act(() => {
+      promessa = canale.api.ripristina(n);
+    });
+    await respiro();
+    expect(dialogo()).toBeTruthy();
+    await act(async () => {
+      bottone("Scarta modifiche").click();
+    });
+    await respiro();
+
+    expect((await promessa).esito).toBe(ESITI.fatto);
+    expect((await pilot.leggiDavvero(id)).editoriale.claim).toBe("A");
+    expect(canale.api.sporco).toBe(false);
+  });
+
+  it("smontare durante il ripristino non aggiorna più lo stato", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    const n = canale.api.revisioni().find((v) => v.ripristinabile).n;
+
+    const sosta = pilot.fermaProssima("salva");
+    let promessa;
+    act(() => {
+      promessa = canale.api.ripristina(n);
+    });
+    await respiro();
+    const esitoPrima = canale.api.esito;
+
+    act(() => radice.unmount());
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+
+    await promessa;
+    expect(canale.api.esito).toBe(esitoPrima);
+    expect(await pilot.leggiDavvero(id)).toBeTruthy();
+    radice = createRoot(contenitore);
+  });
+});
+
+/**
+ * Una richiesta impossibile non deve costare niente.
+ *
+ * Il controllo stava dentro l'azione, cioè **dopo** il dialogo: con una bozza
+ * sporca, chiedere di ripristinare una revisione inesistente faceva comparire la
+ * scelta, e «Salva e continua» salvava davvero il lavoro prima di scoprire che
+ * non c'era nulla da ripristinare.
+ */
+describe("ripristini impossibili, con lavoro non salvato", () => {
+  const IMPOSSIBILI = [
+    ["revisione inesistente", () => 999, CODICI.revisioneInesistente],
+    [
+      "punto di creazione",
+      () => canale.api.revisioni().find((v) => !v.ripristinabile).n,
+      CODICI.revisioneNonRipristinabile,
+    ],
+  ];
+
+  it.each(IMPOSSIBILI)("%s: nessun dialogo e nessuna scrittura", async (_nome, quale, atteso) => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "Sporca");
+    });
+    const scrittureePrima = pilot.scritture.length;
+    const sulDiscoPrima = JSON.stringify(await pilot.leggiDavvero(id));
+    const n = quale();
+
+    let esito;
+    await act(async () => {
+      esito = await canale.api.ripristina(n);
+    });
+    await respiro();
+
+    // Nessun dialogo: non si chiede di salvare o scartare per niente.
+    expect(dialogo()).toBeNull();
+    expect(esito.esito).toBe(ESITI.fallito);
+    expect(esito.errore.message).toBe(atteso);
+    expect(canale.api.esito.codice).toBe(atteso);
+    // Memoria, sporco e disco intatti.
+    expect(pilot.scritture).toHaveLength(scrittureePrima);
+    expect(canale.api.contenuto.editoriale.claim).toBe("Sporca");
+    expect(canale.api.sporco).toBe(true);
+    expect(JSON.stringify(await pilot.leggiDavvero(id))).toBe(sulDiscoPrima);
+  });
+});
+
+describe("i motivi del fallimento non si appiattiscono", () => {
+  it("un elenco non aggiornato non cancella il ripristino riuscito", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    const n = canale.api.revisioni().find((v) => v.ripristinabile).n;
+
+    pilot.rompi.elenca = true;
+    let esito;
+    await act(async () => {
+      esito = await canale.api.ripristina(n);
+    });
+    await respiro();
+    pilot.rompi.elenca = false;
+
+    // Il ripristino è riuscito: la transizione è eseguita, il disco aggiornato.
+    expect(esito.esito).toBe(ESITI.fatto);
+    expect((await pilot.leggiDavvero(id)).editoriale.claim).toBe("A");
+    expect(canale.api.contenuto.editoriale.claim).toBe("A");
+    expect(canale.api.sporco).toBe(false);
+    // Ma il motivo resta quello vero: è l'elenco a essere rimasto indietro.
+    expect(canale.api.esito.codice).toBe(CODICI.erroreElenco);
+    expect(canale.api.esito.codice).not.toBe(CODICI.revisioneRipristinata);
+  });
+
+  it("una rilettura fallita riporta il proprio motivo, e si recupera", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    const revisioniPrima = (await pilot.leggiDavvero(id)).versioni.length;
+    const n = canale.api.revisioni().find((v) => v.ripristinabile).n;
+
+    pilot.rompi.leggi = true;
+    let esito;
+    await act(async () => {
+      esito = await canale.api.ripristina(n);
+    });
+    await respiro();
+    pilot.rompi.leggi = false;
+
+    // Il motivo specifico arriva fino al risultato pubblico.
+    expect(esito.esito).toBe(ESITI.fallito);
+    expect(esito.errore.message).toBe(CODICI.riletturaFallita);
+    expect(canale.api.esito.codice).toBe(CODICI.riletturaFallita);
+    expect(canale.api.esito.codice).not.toBe(CODICI.erroreScrittura);
+    // Il dato ripristinato è già sul disco, ma la memoria non si dichiara pulita.
+    expect((await pilot.leggiDavvero(id)).editoriale.claim).toBe("A");
+    expect(canale.api.sporco).toBe(true);
+
+    // Il tentativo successivo recupera la base senza duplicare la storia.
+    let secondo;
+    act(() => {
+      secondo = canale.api.ripristina(n);
+    });
+    await respiro();
+    if (dialogo()) {
+      await act(async () => {
+        bottone("Salva e continua").click();
+      });
+      await respiro();
+    }
+    await secondo;
+    const sul = await pilot.leggiDavvero(id);
+    expect(sul.editoriale.claim).toBe("A");
+    expect(sul.versioni).toHaveLength(revisioniPrima + 1);
+    expect(sul.versioni.map((v) => v.n)).toEqual(sul.versioni.map((_, i) => i + 1));
+  });
+
+  it("una scrittura superata riporta il proprio motivo", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await bozzaConStoria();
+    const n = canale.api.revisioni().find((v) => v.ripristinabile).n;
+
+    const sosta = pilot.fermaProssima("salva");
+    let promessa;
+    act(() => {
+      promessa = canale.api.ripristina(n);
+    });
+    await respiro();
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "Arrivata dopo");
+    });
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    const esito = await promessa;
+    expect(esito.esito).toBe(ESITI.fallito);
+    expect(esito.errore.message).toBe(CODICI.superataDaModifiche);
+    expect(canale.api.esito.codice).toBe(CODICI.superataDaModifiche);
+  });
+});
+
+describe("un ripristino fallito non duplica la storia", () => {
+  it("riprovando con «Salva e continua» resta una revisione sola", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    const revisioniPrima = (await pilot.leggiDavvero(id)).versioni.length;
+    const n = canale.api.revisioni().find((v) => v.ripristinabile).n;
+
+    pilot.rompi.salva = true;
+    await act(async () => {
+      await canale.api.ripristina(n);
+    });
+    await respiro();
+    pilot.rompi.salva = false;
+    expect(canale.api.sporco).toBe(true);
+
+    let promessa;
+    act(() => {
+      promessa = canale.api.ripristina(n);
+    });
+    await respiro();
+    expect(dialogo()).toBeTruthy();
+    await act(async () => {
+      bottone("Salva e continua").click();
+    });
+    await respiro();
+
+    expect((await promessa).esito).toBe(ESITI.fatto);
+    const sul = await pilot.leggiDavvero(id);
+    expect(sul.editoriale.claim).toBe("A");
+    // Una revisione in più, non due o tre: lo stato precedente compare una volta.
+    expect(sul.versioni).toHaveLength(revisioniPrima + 1);
+    expect(sul.versioni.map((v) => v.n)).toEqual(sul.versioni.map((_, i) => i + 1));
+    const primaDelRipristino = sul.versioni.filter(
+      (v) => (v.etichetta || "").includes("prima del ripristino"),
+    );
+    expect(primaDelRipristino).toHaveLength(1);
+    // E resta reversibile.
+    expect(sul.versioni.at(-1).dati.editoriale.claim).toBe("B");
+    expect(canale.api.sporco).toBe(false);
+  });
+
+  it("riprendendo con una modifica, la storia resta corretta", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    const revisioniPrima = (await pilot.leggiDavvero(id)).versioni.length;
+    const n = canale.api.revisioni().find((v) => v.ripristinabile).n;
+
+    pilot.rompi.salva = true;
+    await act(async () => {
+      await canale.api.ripristina(n);
+    });
+    await respiro();
+    pilot.rompi.salva = false;
+
+    await act(async () => {
+      canale.api.scriviEditoriale("kicker", "Aggiunto dopo");
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+
+    const sul = await pilot.leggiDavvero(id);
+    // La modifica non è persa, e lo stato precedente non è duplicato.
+    expect(sul.editoriale.claim).toBe("A");
+    expect(sul.editoriale.kicker).toBe("Aggiunto dopo");
+    expect(sul.versioni).toHaveLength(revisioniPrima + 1);
+    expect(
+      sul.versioni.filter((v) => (v.etichetta || "").includes("prima del ripristino")),
+    ).toHaveLength(1);
+    expect(sul.versioni.at(-1).dati.editoriale.claim).toBe("B");
+  });
+});
+
+/**
+ * Il ripristino pendente appartiene a una sessione, non a un id.
+ *
+ * Dopo un ripristino fallito lo stato in memoria porta già la voce forzata, e
+ * il marcatore serve a non registrarla due volte. Ma riaprire la stessa bozza
+ * comincia una sessione nuova, che dal disco riprende un contenuto **senza**
+ * quella voce: ereditare il marcatore lì sopprimerebbe una revisione ordinaria,
+ * e lo stato precedente sparirebbe dalla cronologia.
+ */
+describe("il pendente non sopravvive a una nuova sessione", () => {
+  it("scartato e riaperto, un salvataggio ordinario registra la sua revisione", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    const revisioniPrima = (await pilot.leggiDavvero(id)).versioni.length;
+    const n = canale.api.revisioni().find((v) => v.ripristinabile).n;
+
+    // Il ripristino fallisce: lo stato resta in memoria, sporco.
+    pilot.rompi.salva = true;
+    await act(async () => {
+      await canale.api.ripristina(n);
+    });
+    await respiro();
+    pilot.rompi.salva = false;
+    expect(canale.api.sporco).toBe(true);
+
+    // Si riapre la stessa bozza scartando: sessione nuova, contenuto dal disco.
+    let apertura;
+    act(() => {
+      apertura = canale.api.apri(id);
+    });
+    await respiro();
+    expect(dialogo()).toBeTruthy();
+    await act(async () => {
+      bottone("Scarta modifiche").click();
+    });
+    await respiro();
+    expect((await apertura).esito).toBe(ESITI.fatto);
+    expect(canale.api.contenuto.editoriale.claim).toBe("B");
+
+    // Una modifica normale, e un salvataggio normale.
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "Dopo la riapertura");
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+
+    const sul = await pilot.leggiDavvero(id);
+    expect(sul.editoriale.claim).toBe("Dopo la riapertura");
+    // Lo stato precedente c'è, una volta sola: la revisione ordinaria è stata
+    // registrata, non soppressa dal marcatore di una sessione finita.
+    expect(sul.versioni).toHaveLength(revisioniPrima + 1);
+    expect(sul.versioni.at(-1).dati.editoriale.claim).toBe("B");
+    expect(sul.versioni.map((v) => v.n)).toEqual(sul.versioni.map((_, i) => i + 1));
+  });
+});
+
+describe("il codice dell'operazione appartiene alla propria scrittura", () => {
+  it("nel percorso no-op, «Salva e continua» con elenco rotto conserva errore-elenco", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    const n = canale.api.revisioni().find((v) => v.ripristinabile).n;
+
+    // Primo ripristino: fallisce prima della scrittura.
+    pilot.rompi.salva = true;
+    await act(async () => {
+      await canale.api.ripristina(n);
+    });
+    await respiro();
+    pilot.rompi.salva = false;
+    const revisioniDopoIlFallimento = (await pilot.leggiDavvero(id)).versioni.length;
+
+    // Retry: «Salva e continua» persiste lo stato richiesto, ma l'elenco rompe.
+    pilot.rompi.elenca = true;
+    let promessa;
+    act(() => {
+      promessa = canale.api.ripristina(n);
+    });
+    await respiro();
+    expect(dialogo()).toBeTruthy();
+    await act(async () => {
+      bottone("Salva e continua").click();
+    });
+    await respiro();
+    pilot.rompi.elenca = false;
+
+    expect((await promessa).esito).toBe(ESITI.fatto);
+    const sul = await pilot.leggiDavvero(id);
+    expect(sul.editoriale.claim).toBe("A");
+    expect(canale.api.sporco).toBe(false);
+    // Nessuna revisione in più oltre quella del salvataggio.
+    expect(sul.versioni).toHaveLength(revisioniDopoIlFallimento + 1);
+    // E il motivo resta quello vero.
+    expect(canale.api.esito.codice).toBe(CODICI.erroreElenco);
+    expect(canale.api.esito.codice).not.toBe(CODICI.revisioneRipristinata);
+  });
+
+  it("un no-op non eredita l'errore di una scrittura precedente", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    const n = canale.api.revisioni().find((v) => v.ripristinabile).n;
+
+    // Un vecchio errore, da una scrittura dell'hook: resta in `ultimaScrittura`.
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "C");
+    });
+    pilot.rompi.elenca = true;
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    pilot.rompi.elenca = false;
+    expect(canale.api.esito.codice).toBe(CODICI.erroreElenco);
+
+    /*
+     * Si prepara nell'archivio un record il cui stato coincide già con i dati
+     * della revisione: è l'unico modo di far passare `ripristina` dal ramo
+     * no-op senza provocare un'altra scrittura dell'hook.
+     */
+    const sul = await pilot.leggiDavvero(id);
+    const rev = sul.versioni.find((v) => v.n === n);
+    await pilot.archivio.salva({ ...sul, ...rev.dati });
+    await act(async () => {
+      await canale.api.apri(id);
+    });
+    await respiro();
+
+    const scrittureePrima = pilot.scritture.length;
+    const revisioniPrima = (await pilot.leggiDavvero(id)).versioni.length;
+
+    await act(async () => {
+      await canale.api.ripristina(n);
+    });
+    await respiro();
+
+    // Nessuna scrittura, nessuna revisione: è un no-op vero.
+    expect(pilot.scritture).toHaveLength(scrittureePrima);
+    expect((await pilot.leggiDavvero(id)).versioni).toHaveLength(revisioniPrima);
+    // E l'esito è quello della richiesta corrente, non il vecchio errore.
+    expect(canale.api.esito.codice).toBe(CODICI.revisioneRipristinata);
+    expect(canale.api.esito.codice).not.toBe(CODICI.erroreElenco);
+  });
+});
+
+describe("l'uguaglianza non dipende dall'ordine delle chiavi", () => {
+  it("stesse coppie in ordine diverso: nessuna revisione nuova", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    const n = canale.api.revisioni().find((v) => v.ripristinabile).n;
+
+    /*
+     * Il ramo principale passa da `convalidaContenuto`, che lo riscrive nel
+     * proprio ordine canonico: riordinare **quello** non proverebbe nulla. È
+     * `versioni[].dati` a essere `z.unknown()`, quindi conserva l'ordine
+     * ricevuto — ed è lì che va messa la differenza.
+     */
+    const sul = await pilot.leggiDavvero(id);
+    const rev = sul.versioni.find((v) => v.n === n);
+    await pilot.archivio.salva({
+      ...sul,
+      // Il contenuto corrente diventa quello della revisione, normalizzato.
+      ...rev.dati,
+      versioni: sul.versioni.map((v) =>
+        v.n === n ? { ...v, dati: { ...v.dati, editoriale: riordinaProfondo(v.dati.editoriale) } } : v,
+      ),
+    });
+    await act(async () => {
+      await canale.api.apri(id);
+    });
+    await respiro();
+
+    // Le precondizioni della prova, dimostrate e non assunte.
+    const dopoLaRilettura = await pilot.leggiDavvero(id);
+    const datiRev = dopoLaRilettura.versioni.find((v) => v.n === n).dati.editoriale;
+    const corrente = dopoLaRilettura.editoriale;
+    expect(Object.keys(datiRev).sort()).toEqual(Object.keys(corrente).sort());
+    for (const k of Object.keys(corrente)) {
+      expect(datiRev[k]).toEqual(corrente[k]);
+    }
+    expect(Object.keys(datiRev)).not.toEqual(Object.keys(corrente));
+    expect(JSON.stringify(datiRev)).not.toBe(JSON.stringify(corrente));
+
+    const revisioniPrima = dopoLaRilettura.versioni.length;
+    const scrittureePrima = pilot.scritture.length;
+
+    await act(async () => {
+      await canale.api.ripristina(n);
+    });
+    await respiro();
+
+    expect(canale.api.esito.codice).toBe(CODICI.revisioneRipristinata);
+    // Riconosciuto come già compiuto: nessuna scrittura, nessuna voce nuova.
+    expect(pilot.scritture).toHaveLength(scrittureePrima);
+    expect((await pilot.leggiDavvero(id)).versioni).toHaveLength(revisioniPrima);
+  });
+
+  it("un valore annidato davvero diverso fa ripristinare per davvero", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConStoria();
+    const n = canale.api.revisioni().find((v) => v.ripristinabile).n;
+    const revisioniPrima = (await pilot.leggiDavvero(id)).versioni.length;
+
+    await act(async () => {
+      await canale.api.ripristina(n);
+    });
+    await respiro();
+
+    const sul = await pilot.leggiDavvero(id);
+    expect(sul.editoriale.claim).toBe("A");
+    expect(sul.versioni).toHaveLength(revisioniPrima + 1);
+  });
+});
+
+describe("la revisione scelta sopravvive al diradamento", () => {
+  it("«Salva e continua» non la fa sparire da sotto i piedi", async () => {
+    const { MASSIME_REVISIONI } = await import("../fondamenta/versioni");
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const id = canale.api.contenuto.id;
+
+    /*
+     * Si porta la cronologia **esattamente** al tetto: la revisione successiva
+     * fa scattare il diradamento, che tiene le ultime metà e una ogni due delle
+     * più vecchie. La seconda voce — la più vecchia ripristinabile — è fra
+     * quelle che spariscono.
+     */
+    let k = 0;
+    while ((await pilot.leggiDavvero(id)).versioni.length < MASSIME_REVISIONI) {
+      k += 1;
+      await act(async () => {
+        canale.api.scriviEditoriale("claim", `v${k}`);
+      });
+      await act(async () => {
+        await canale.api.salva();
+      });
+      await respiro();
+    }
+    const versioniPrima = (await pilot.leggiDavvero(id)).versioni;
+    expect(versioniPrima).toHaveLength(MASSIME_REVISIONI);
+    const scelta = versioniPrima[1].n;
+    const attesi = versioniPrima[1].dati;
+    expect(attesi).toBeTruthy();
+
+    await act(async () => {
+      canale.api.scriviEditoriale("claim", "lavoro da salvare");
+    });
+    let promessa;
+    act(() => {
+      promessa = canale.api.ripristina(scelta);
+    });
+    await respiro();
+    expect(dialogo()).toBeTruthy();
+    await act(async () => {
+      bottone("Salva e continua").click();
+    });
+    await respiro();
+
+    expect((await promessa).esito).toBe(ESITI.fatto);
+    const sul = await pilot.leggiDavvero(id);
+    // Il numero scelto non è più nell'elenco: il diradamento l'ha tolto.
+    expect(sul.versioni.some((v) => v.n === scelta)).toBe(false);
+    // E il ripristino è arrivato comunque ai dati originariamente scelti.
+    expect(sul.editoriale.claim).toBe(attesi.editoriale.claim);
+    // Il lavoro salvato prima del ripristino è nella cronologia.
+    expect(sul.versioni.map((v) => v.dati?.editoriale?.claim)).toContain("lavoro da salvare");
+    // E una sola voce forzata per questo ripristino.
+    expect(
+      sul.versioni.filter((v) => v.etichetta === `stato prima del ripristino della v${scelta}`),
+    ).toHaveLength(1);
+    expect(canale.api.sporco).toBe(false);
+  });
+});
