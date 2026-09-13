@@ -2,7 +2,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useArchivio } from "./ContestoArchivio";
 import { ESITI, useRegistraGuardia, useRichiediTransizione } from "./transizione";
 import { contenutoVuoto } from "../fondamenta/schema";
-import { daTour, riallineaTourAllaFonte } from "../fondamenta/adapter-tour";
+import {
+  confrontaTourConLaFonte,
+  daTour,
+  riallineaTourAllaFonte,
+} from "../fondamenta/adapter-tour";
 import { registraRevisione } from "../fondamenta/versioni";
 
 /**
@@ -60,9 +64,48 @@ export const CODICI = {
   // La bozza aperta non viene da quel tour: accettarne l'istantanea
   // significherebbe dire che descrive un percorso che non descrive.
   fonteNonCorrispondente: "fonte-non-corrispondente",
+  // Il confronto con la fonte: l'istantanea regge, oppure il sito è cambiato.
+  fonteAllineata: "fonte-allineata",
+  fonteCambiata: "fonte-cambiata",
+  // L'identità corrisponde, ma manca l'istantanea: non c'è niente con cui
+  // confrontare. È un caso diverso da una fonte che non corrisponde.
+  fonteNonConfrontabile: "fonte-non-confrontabile",
 };
 
 const CATEGORIA = "tour";
+
+/**
+ * Quel tour e quella bozza parlano dello stesso percorso?
+ *
+ * L'identità dev'essere la stessa **e dichiarata**: senza uno slug non si sa da
+ * quale tour venga la bozza, e accettarne o confrontarne l'istantanea le
+ * farebbe dire di descrivere un percorso che non descrive. È il requisito
+ * comune alle due operazioni sulla fonte: se divergessero, una potrebbe
+ * accettare ciò che l'altra rifiuta.
+ */
+function identitaCompatibile(contenuto, tour) {
+  const suo = contenuto?.fonte;
+  return Boolean(
+    contenuto?.categoria === CATEGORIA &&
+      suo?.tipo === "tour" &&
+      suo?.slug &&
+      tour?.slug &&
+      suo.slug === tour.slug,
+  );
+}
+
+/**
+ * …e c'è qualcosa con cui confrontarlo?
+ *
+ * L'istantanea serve **solo** per confrontare, e va tenuta distinta
+ * dall'identità: una bozza compatibile ma senza istantanea — da un backup o da
+ * un record vecchio — non è confrontabile, ma **si può riallineare**, ed è anzi
+ * il modo di ripararla. Chiedere l'istantanea anche al riallineamento
+ * impedirebbe l'unica operazione capace di ricostruirla.
+ */
+function fonteConfrontabile(contenuto, tour) {
+  return identitaCompatibile(contenuto, tour) && Boolean(contenuto.fonte.istantanea);
+}
 
 /** @param {{urlBase?: string}} opzioni */
 export function useBozzaTour({ urlBase = "" } = {}) {
@@ -515,18 +558,7 @@ export function useBozzaTour({ urlBase = "" } = {}) {
       const corrente = contenutoRif.current;
       if (!corrente) return { codice: CODICI.nessunaBozza };
 
-      /*
-       * L'identità dev'essere la stessa, e dichiarata: senza uno slug non si sa
-       * da quale tour venga la bozza, e accettare l'istantanea di un altro le
-       * farebbe dire di descrivere un percorso che non descrive.
-       */
-      const suo = corrente.fonte;
-      if (
-        corrente.categoria !== CATEGORIA ||
-        suo?.tipo !== "tour" ||
-        !suo?.slug ||
-        suo.slug !== tourAttuale.slug
-      ) {
+      if (!identitaCompatibile(corrente, tourAttuale)) {
         return { codice: CODICI.fonteNonCorrispondente };
       }
 
@@ -545,6 +577,46 @@ export function useBozzaTour({ urlBase = "" } = {}) {
     },
     [aggiorna],
   );
+
+  /**
+   * Dice se il sito è cambiato rispetto all'istantanea, e in che cosa.
+   *
+   * **Non tocca niente**: né contenuto, né «non salvato», né esito, né
+   * archivio, né revisioni. È una domanda, non un'operazione — e non legge il
+   * sito da sé: il tour normalizzato arriva da chi chiama.
+   *
+   * Gli scostamenti vengono da `confrontaTourConLaFonte`, che resta l'unico
+   * posto dove quella logica vive.
+   *
+   * Nei casi in cui il confronto non si può fare, `allineato` è `null` e non
+   * `false`: non si sa, e fingere di sapere sarebbe peggio che ammetterlo.
+   * Nessuno di quei casi viene mai presentato come «fonte allineata», e nessuno
+   * inventa scostamenti.
+   *
+   * @param {object} tourAttuale il tour già normalizzato, dal chiamante
+   * @returns {{codice: string, allineato: boolean|null, scostamenti: Array}}
+   */
+  const confrontaConLaFonte = useCallback((tourAttuale) => {
+    const vuoto = { allineato: null, scostamenti: [] };
+    if (!tourAttuale) return { codice: CODICI.fonteAssente, ...vuoto };
+    // Dal riferimento: chi chiama può aver appena riallineato nello stesso giro.
+    const corrente = contenutoRif.current;
+    if (!corrente) return { codice: CODICI.nessunaBozza, ...vuoto };
+    if (!identitaCompatibile(corrente, tourAttuale)) {
+      return { codice: CODICI.fonteNonCorrispondente, ...vuoto };
+    }
+    if (!fonteConfrontabile(corrente, tourAttuale)) {
+      // La fonte corrisponde: è l'istantanea a mancare.
+      return { codice: CODICI.fonteNonConfrontabile, ...vuoto };
+    }
+
+    const { allineato, scostamenti } = confrontaTourConLaFonte(corrente, tourAttuale);
+    return {
+      codice: allineato ? CODICI.fonteAllineata : CODICI.fonteCambiata,
+      allineato,
+      scostamenti,
+    };
+  }, []);
 
   /* ================================================================ *
    * La protezione del lavoro non salvato
@@ -583,6 +655,7 @@ export function useBozzaTour({ urlBase = "" } = {}) {
     scriviEditoriale,
     scriviFattuale,
     riallineaAllaFonte,
+    confrontaConLaFonte,
     ricarica,
   };
 }

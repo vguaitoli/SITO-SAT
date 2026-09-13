@@ -2009,3 +2009,299 @@ describe("riallineare nello stesso giro di altre operazioni", () => {
     expect((await pilot.leggiDavvero(id)).fonte.istantanea.prezzo).toBe("150 €");
   });
 });
+
+/**
+ * Chiedere se il sito è cambiato non deve cambiare niente.
+ *
+ * È il tipo di operazione che sembra innocua e non lo è: se sporcasse la bozza,
+ * o azzerasse l'esito di un salvataggio appena riuscito, chi la chiama per
+ * mostrare un avviso finirebbe per alterare lo stato che sta descrivendo.
+ */
+describe("confrontare la bozza con la fonte", () => {
+  it("con la fonte invariata dice allineata, senza scostamenti", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await bozzaConLavoroEditoriale();
+
+    const esito = canale.api.confrontaConLaFonte(TOUR);
+    expect(esito.codice).toBe(CODICI.fonteAllineata);
+    expect(esito.allineato).toBe(true);
+    expect(esito.scostamenti).toHaveLength(0);
+  });
+
+  it("con la fonte cambiata elenca gli scostamenti veri", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await bozzaConLavoroEditoriale();
+
+    const esito = canale.api.confrontaConLaFonte(TOUR_CAMBIATO);
+    expect(esito.codice).toBe(CODICI.fonteCambiata);
+    expect(esito.allineato).toBe(false);
+    const campi = esito.scostamenti.map((s) => s.campo);
+    expect(campi).toContain("prezzo");
+    expect(campi).toContain("km");
+    const prezzo = esito.scostamenti.find((s) => s.campo === "prezzo");
+    expect(prezzo.prima).toBe("100 €");
+    expect(prezzo.adesso).toBe("150 €");
+    expect(typeof prezzo.nome).toBe("string");
+    expect(prezzo.nome.length).toBeGreaterThan(0);
+  });
+
+  it("i casi impossibili non si travestono da «allineata»", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+
+    // Nessuna bozza aperta.
+    const senzaBozza = canale.api.confrontaConLaFonte(TOUR);
+    expect(senzaBozza.codice).toBe(CODICI.nessunaBozza);
+    expect(senzaBozza.allineato).toBeNull();
+    expect(senzaBozza.scostamenti).toHaveLength(0);
+
+    await bozzaConLavoroEditoriale();
+
+    // Tour assente.
+    const senzaTour = canale.api.confrontaConLaFonte(null);
+    expect(senzaTour.codice).toBe(CODICI.fonteAssente);
+    expect(senzaTour.allineato).toBeNull();
+
+    // Slug diverso.
+    const altroSlug = canale.api.confrontaConLaFonte(ALTRO_TOUR);
+    expect(altroSlug.codice).toBe(CODICI.fonteNonCorrispondente);
+    expect(altroSlug.allineato).toBeNull();
+
+    // Tour senza slug: l'identità non è dichiarabile da quel lato.
+    for (const rotto of [
+      { ...TOUR, slug: "" },
+      { ...TOUR, slug: null },
+    ]) {
+      const e = canale.api.confrontaConLaFonte(rotto);
+      expect(e.codice).toBe(CODICI.fonteNonCorrispondente);
+      expect(e.allineato).toBeNull();
+      expect(e.scostamenti).toHaveLength(0);
+    }
+
+    // Nessuno di questi esiti è mai «allineata».
+    for (const e of [senzaBozza, senzaTour, altroSlug]) {
+      expect(e.codice).not.toBe(CODICI.fonteAllineata);
+    }
+  });
+
+  it("una bozza TOUR senza istantanea non è confrontabile", async () => {
+    const { contenutoVuoto } = await import("../fondamenta/schema");
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+
+    /*
+     * Un record che arriva da un backup o da una versione precedente può essere
+     * TOUR e avere uno slug, ma non avere istantanea. Il motore, in quel caso,
+     * risponde «allineato: true» — una risposta vuota. Qui non deve mai
+     * diventare un esito positivo: non c'è niente con cui confrontare.
+     */
+    const id = await pilot.archivio.salva({
+      ...contenutoVuoto({ categoria: "tour", formato: "post" }),
+      titolo: "Senza istantanea",
+      fonte: {
+        tipo: "tour",
+        slug: TOUR.slug,
+        istantanea: null,
+        importatoIl: "2026-01-01T00:00:00.000Z",
+      },
+    });
+    await act(async () => {
+      await canale.api.apri(id);
+    });
+    await respiro();
+    expect(canale.api.contenuto.id).toBe(id);
+    expect(canale.api.contenuto.fonte.istantanea).toBeNull();
+
+    const esito = canale.api.confrontaConLaFonte(TOUR);
+    // Non «non corrispondente»: la fonte corrisponde, manca l'istantanea.
+    expect(esito.codice).toBe(CODICI.fonteNonConfrontabile);
+    expect(esito.allineato).toBeNull();
+    expect(esito.scostamenti).toHaveLength(0);
+  });
+
+  it("non scrive, non sporca e non tocca l'esito", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaConLavoroEditoriale();
+    const scrittureDopoSalva = pilot.scritture.length;
+    const contenutoPrima = canale.api.contenuto;
+    const esitoPrima = canale.api.esito;
+    const sulDiscoPrima = JSON.stringify(await pilot.leggiDavvero(id));
+
+    await act(async () => {
+      canale.api.confrontaConLaFonte(TOUR_CAMBIATO);
+      canale.api.confrontaConLaFonte(TOUR);
+    });
+    await respiro();
+
+    // Identico, per riferimento: non è stato nemmeno ricreato.
+    expect(canale.api.contenuto).toBe(contenutoPrima);
+    expect(canale.api.esito).toBe(esitoPrima);
+    expect(canale.api.sporco).toBe(false);
+    expect(pilot.scritture).toHaveLength(scrittureDopoSalva);
+    expect(JSON.stringify(await pilot.leggiDavvero(id))).toBe(sulDiscoPrima);
+  });
+
+  it("vede un riallineamento fatto nello stesso giro", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await bozzaConLavoroEditoriale();
+
+    // Prima è cambiata…
+    expect(canale.api.confrontaConLaFonte(TOUR_CAMBIATO).allineato).toBe(false);
+
+    // …si riallinea e si richiede subito, senza respiro fra le due chiamate.
+    let dopo;
+    act(() => {
+      canale.api.riallineaAllaFonte(TOUR_CAMBIATO);
+      dopo = canale.api.confrontaConLaFonte(TOUR_CAMBIATO);
+    });
+
+    expect(dopo.codice).toBe(CODICI.fonteAllineata);
+    expect(dopo.allineato).toBe(true);
+    expect(dopo.scostamenti).toHaveLength(0);
+  });
+
+  it("è davvero esposta dall'hook", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    expect(typeof canale.api.confrontaConLaFonte).toBe("function");
+  });
+});
+
+/** Una bozza TOUR con identità valida ma senza istantanea, come da backup. */
+async function bozzaSenzaIstantanea(pilot) {
+  const { contenutoVuoto } = await import("../fondamenta/schema");
+  const id = await pilot.archivio.salva({
+    ...contenutoVuoto({ categoria: "tour", formato: "post" }),
+    titolo: "Senza istantanea",
+    fonte: {
+      tipo: "tour",
+      slug: TOUR.slug,
+      istantanea: null,
+      importatoIl: "2026-01-01T00:00:00.000Z",
+    },
+  });
+  await act(async () => {
+    await canale.api.apri(id);
+  });
+  await respiro();
+  return id;
+}
+
+/**
+ * Identità e confrontabilità sono due cose diverse.
+ *
+ * Confondere le due è una regressione sottile: una bozza compatibile ma senza
+ * istantanea non è confrontabile — non c'è niente con cui confrontare — ma **si
+ * può riallineare**, ed è anzi l'unico modo di ripararla. Chiedere l'istantanea
+ * anche al riallineamento chiuderebbe la porta proprio a chi ne ha bisogno.
+ */
+describe("riallineare una bozza senza istantanea", () => {
+  it("la ripara, e solo dopo diventa confrontabile", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const id = await bozzaSenzaIstantanea(pilot);
+    const scrittureDopoApertura = pilot.scritture.length;
+
+    // 1-2. Non confrontabile, ma per la ragione giusta.
+    const primaDelConfronto = canale.api.confrontaConLaFonte(TOUR);
+    expect(primaDelConfronto.codice).toBe(CODICI.fonteNonConfrontabile);
+    expect(primaDelConfronto.allineato).toBeNull();
+
+    // 3-5. Il riallineamento passa, ricostruisce l'istantanea, e il confronto
+    // fatto nello stesso giro la vede.
+    let esitoRiallineamento;
+    let dopo;
+    act(() => {
+      esitoRiallineamento = canale.api.riallineaAllaFonte(TOUR);
+      dopo = canale.api.confrontaConLaFonte(TOUR);
+    });
+    expect(esitoRiallineamento.codice).toBe(CODICI.fonteAccettata);
+    expect(dopo.codice).toBe(CODICI.fonteAllineata);
+    expect(dopo.allineato).toBe(true);
+    expect(dopo.scostamenti).toHaveLength(0);
+
+    await respiro();
+    expect(canale.api.contenuto.fonte.istantanea).toBeTruthy();
+    expect(canale.api.contenuto.fonte.istantanea.prezzo).toBe(TOUR.prezzo);
+
+    // 6. Sporca, ma non salvata da sola.
+    expect(canale.api.sporco).toBe(true);
+    expect(pilot.scritture).toHaveLength(scrittureDopoApertura);
+    expect((await pilot.leggiDavvero(id)).fonte.istantanea).toBeNull();
+  });
+
+  it("uno slug diverso continua a impedire il riallineamento", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await bozzaSenzaIstantanea(pilot);
+
+    const esito = canale.api.riallineaAllaFonte(ALTRO_TOUR);
+    expect(esito.codice).toBe(CODICI.fonteNonCorrispondente);
+    expect(canale.api.contenuto.fonte.istantanea).toBeNull();
+    expect(canale.api.sporco).toBe(false);
+  });
+});
+
+/**
+ * Una fonte malformata si raggiunge davvero.
+ *
+ * `apriSenzaChiedere` rifiuta solo `categoria !== "tour"`: un record con
+ * categoria giusta ma `fonte.tipo` sbagliato o slug mancante passa il filtro,
+ * si apre, e arriva a entrambe le API della fonte. Non è un caso di scuola —
+ * un backup importato o un record scritto da una versione precedente può avere
+ * esattamente quella forma.
+ */
+describe("bozze TOUR con una fonte malformata", () => {
+  const MALFORMATE = [
+    ["tipo sbagliato", { tipo: "evento", slug: TOUR.slug }],
+    ["slug mancante", { tipo: "tour", slug: null }],
+  ];
+
+  it.each(MALFORMATE)("con %s: si apre, ma non si confronta né si riallinea", async (_nome, fonteRotta) => {
+    const { contenutoVuoto } = await import("../fondamenta/schema");
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+
+    const id = await pilot.archivio.salva({
+      ...contenutoVuoto({ categoria: "tour", formato: "post" }),
+      titolo: "Fonte malformata",
+      fonte: {
+        ...fonteRotta,
+        istantanea: { nome: TOUR.name, prezzo: TOUR.prezzo },
+        importatoIl: "2026-01-01T00:00:00.000Z",
+      },
+    });
+
+    // 3. La bozza si apre davvero: il filtro di `apri` guarda solo la categoria.
+    await act(async () => {
+      await canale.api.apri(id);
+    });
+    await respiro();
+    expect(canale.api.contenuto.id).toBe(id);
+
+    const contenutoPrima = canale.api.contenuto;
+    const scritturePrima = pilot.scritture.length;
+    const sulDiscoPrima = JSON.stringify(await pilot.leggiDavvero(id));
+
+    // 4. Il confronto rifiuta per identità, non per confrontabilità.
+    const confronto = canale.api.confrontaConLaFonte(TOUR);
+    expect(confronto.codice).toBe(CODICI.fonteNonCorrispondente);
+    expect(confronto.allineato).toBeNull();
+    expect(confronto.scostamenti).toHaveLength(0);
+
+    // 5. E nemmeno il riallineamento accetta un'identità che non torna.
+    const riallineamento = canale.api.riallineaAllaFonte(TOUR);
+    expect(riallineamento.codice).toBe(CODICI.fonteNonCorrispondente);
+
+    // 6. Niente è cambiato: né in memoria, né sul disco.
+    await respiro();
+    expect(canale.api.contenuto).toBe(contenutoPrima);
+    expect(canale.api.sporco).toBe(false);
+    expect(pilot.scritture).toHaveLength(scritturePrima);
+    expect(JSON.stringify(await pilot.leggiDavvero(id))).toBe(sulDiscoPrima);
+  });
+});

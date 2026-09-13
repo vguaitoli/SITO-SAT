@@ -1635,8 +1635,8 @@ sono passi successivi.
 
 L'hook restituisce `contenuto`, `sporco`, `bozze` (le sole bozze TOUR), `esito`,
 e le operazioni `creaDaTour`, `apri`, `salva`, `scriviEditoriale`,
-`scriviFattuale`, `riallineaAllaFonte` — i cui esiti stanno in §19.6 — e
-`ricarica`.
+`scriviFattuale`, `riallineaAllaFonte` e `confrontaConLaFonte` — i cui esiti
+stanno in §19.6 e §19.7 — e `ricarica`.
 
 `ricarica()` è pubblica e **non rigetta**: riporta `{ codice: null }` oppure
 `{ codice: "errore-elenco" }`. Chi la chiama non deve ricordarsi di metterci un
@@ -1868,9 +1868,9 @@ rimasta.
 - **Il riallineamento non è sorvegliato da Version History.** Accettare una
   fonte nuova non genera una revisione, quindi tornare all'istantanea
   precedente non è previsto. Va deciso quando l'editor esisterà.
-- **Nessun confronto con la fonte è esposto.** `confrontaTourConLaFonte` esiste
-  in `adapter-tour`, ma l'hook non lo espone: sapere *che cosa* è cambiato è un
-  passo successivo, e comporta scelte di presentazione.
+- **Il confronto dice che cosa è cambiato, non come mostrarlo.** `§19.7` espone
+  gli scostamenti grezzi; la loro presentazione — quali evidenziare, con quali
+  parole — resta una scelta da fare quando l'interfaccia esisterà.
 - **Un archivio che non si lascia rileggere blocca il salvataggio di quella
   bozza.** È deliberato: finché non si sa da dove ripartire, scrivere
   cancellerebbe uno stato che è sul disco. Il lavoro resta in memoria e
@@ -1901,7 +1901,13 @@ lancia.
 la cui fonte sia di tipo `tour` con uno slug non vuoto uguale a quello del tour
 ricevuto. Senza slug non si sa da quale tour venga la bozza, e accettare
 l'istantanea di un altro le farebbe dire di descrivere un percorso che non
-descrive.
+descrive. È il requisito che `identitaCompatibile` condivide con il confronto
+(§19.7).
+
+**Non serve invece un'istantanea già presente**, ed è deliberato: una bozza
+compatibile ma senza istantanea — da un backup o da un record vecchio — si
+ripara proprio riallineandola. Chiedere l'istantanea anche qui chiuderebbe la
+porta all'unica operazione capace di ricostruirla.
 
 Il contenuto si legge dal riferimento, non dallo stato: chi chiama può aver
 appena scritto nello stesso giro (§19.3.1). Il riallineamento incrementa il
@@ -1922,3 +1928,39 @@ chiamate cadrebbero nello stesso millisecondo, e sotto orologio finto il tempo �
 fermo — una prova che tentasse di coglierla passerebbe comunque. È una
 correttezza di costruzione, non verificata. Quello che le prove verificano è
 l'effetto osservabile: che ciò che si vede sia ciò che si salva.
+
+### 19.7 Chiedere se il sito è cambiato
+
+`confrontaConLaFonte(tourAttuale)` risponde a una domanda e **non tocca niente**:
+né contenuto, né «non salvato», né esito, né archivio, né revisioni. Una prova lo
+verifica per riferimento — il contenuto non viene nemmeno ricreato. Non legge il
+sito da sé: il tour normalizzato arriva da chi chiama.
+
+Gli scostamenti vengono da `confrontaTourConLaFonte` (§17.4), che resta l'unico
+posto dove quella logica vive: `{ campo, nome, prima, adesso }`. Restituisce
+`{ codice, allineato, scostamenti }` — `fonte-allineata` con `allineato: true`,
+oppure `fonte-cambiata` con `allineato: false` e gli scostamenti veri.
+
+**Quando il confronto non si può fare, `allineato` è `null` e non `false`:** non
+si sa, e fingere di saperlo sarebbe peggio che ammetterlo. Succede con tour
+assente (`fonte-assente`), nessuna bozza aperta (`nessuna-bozza`), e identità
+incompatibile (`fonte-non-corrispondente`) — categoria diversa, fonte senza tipo
+`tour`, slug mancante o diverso da quello del tour. Nessuno di questi casi viene
+mai presentato come «fonte allineata», e nessuno inventa scostamenti.
+
+**Identità e confrontabilità non sono la stessa cosa**, e il quarto codice serve
+a non confonderle. Una bozza senza istantanea — da un backup o da un record
+vecchio — ha una fonte che *corrisponde* perfettamente, ma non c'è niente con
+cui confrontarla: l'esito è `fonte-non-confrontabile`, non
+`fonte-non-corrispondente`. Il motore in quel caso risponderebbe «allineato»
+perché non ha nulla da paragonare — una risposta vuota che, presa per buona,
+direbbe che il sito non è cambiato quando non se ne sa nulla.
+
+`identitaCompatibile` è condivisa con il riallineamento (§19.6), così i due non
+possono divergere; `fonteConfrontabile` vi aggiunge l'istantanea, e quel
+requisito vale **solo qui**. Una bozza non confrontabile si ripara
+riallineandola, e da quel momento è confrontabile.
+
+Il contenuto si legge dal riferimento, non dallo stato: una prova riallinea e
+confronta **nello stesso giro**, e il confronto deve vedere il riallineamento
+appena fatto (§19.3.1).
