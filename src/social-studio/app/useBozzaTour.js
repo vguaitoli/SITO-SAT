@@ -5,6 +5,7 @@ import {
   scriviSlotDellaRubrica,
   slotDellaRubrica,
 } from "../media/slot";
+import { analizzaGpx } from "../motori/gpx";
 import { ESITI, useRegistraGuardia, useRichiediTransizione } from "./transizione";
 import { contenutoVuoto, ritaglio as schemaRitaglio } from "../fondamenta/schema";
 import {
@@ -99,6 +100,36 @@ export const CODICI = {
   mediaAssegnato: "media-assegnato",
   slotMediaNonValido: "slot-media-non-valido",
   ritaglioMediaNonValido: "ritaglio-media-non-valido",
+  /*
+   * Il ciclo GPX. Viaggiano su `esitoGpx`, non su `esito`: la ricostruzione
+   * della traccia è asincrona e arriva dopo un'apertura o un ripristino, e
+   * scriverla nello stesso canale coprirebbe l'esito di quel gesto — «aperta»
+   * diventerebbe «blob assente», e chi ha aperto la bozza non saprebbe più se
+   * l'apertura è riuscita.
+   */
+  gpxCaricato: "gpx-caricato",
+  gpxRicostruito: "gpx-ricostruito",
+  gpxRimosso: "gpx-rimosso",
+  // Tolto un caricamento che non era ancora arrivato nel contenuto: non c'è
+  // nessun riferimento da togliere, quindi non è una «rimozione».
+  gpxCaricamentoAnnullato: "gpx-caricamento-annullato",
+  // Non c'è nessun riferimento da ricostruire o da togliere: non è un errore.
+  nessunGpx: "nessun-gpx",
+  // Non è un Blob, o non se ne riesce a leggere il testo.
+  fileGpxNonValido: "file-gpx-non-valido",
+  // XML malformato, oppure un XML che non è un GPX.
+  gpxIllegibile: "gpx-illeggibile",
+  // GPX legittimo, ma senza un solo segmento utilizzabile: non c'è geometria.
+  gpxSenzaTraccia: "gpx-senza-traccia",
+  // Il riferimento c'è, il binario nell'archivio no. Il riferimento **resta**.
+  gpxBlobAssente: "gpx-blob-assente",
+  erroreArchivioGpx: "errore-archivio-gpx",
+  gpxOccupato: "gpx-occupato",
+  // La risposta è arrivata quando non contava più: non si applica, e non
+  // sostituisce né la traccia né l'esito della sessione nuova.
+  gpxSuperato: "gpx-superato",
+  conservaGpxAggiornata: "conserva-gpx-aggiornata",
+  conservaGpxNonValida: "conserva-gpx-non-valida",
 };
 
 /**
@@ -416,6 +447,352 @@ export function useBozzaTour({ urlBase = "" } = {}) {
   );
 
   /* ================================================================ *
+   * GPX: il riferimento si salva, la geometria no
+   * ================================================================ */
+
+  /**
+   * Tre cose distinte, e conviene tenerle separate a mente:
+   *
+   * 1. il **riferimento** `{ idBlob, nome, byte }` in `mappa.gpx`, che è l'unica
+   *    parte che entra nel record salvato, nei backup e nelle revisioni;
+   * 2. il **binario** nell'archivio, privato, che non esce mai dal browser se
+   *    non su richiesta esplicita;
+   * 3. la **geometria derivata** — segmenti, waypoint, metriche — che vive solo
+   *    qui in memoria e si ricostruisce dal file ogni volta che serve.
+   *
+   * Copiare la geometria nel contenuto sembrerebbe più comodo, e sarebbe il
+   * modo più rapido di far crescere senza controllo record, revisioni e
+   * backup: una traccia di poche migliaia di punti pesa più di tutto il resto
+   * della bozza messo insieme, e verrebbe duplicata a ogni revisione.
+   */
+  const [tracciaGpx, setTracciaGpx] = useState(null);
+  /**
+   * Il canale separato degli esiti GPX.
+   *
+   * `esito` racconta che cosa è successo alla **bozza**; questo che cosa è
+   * successo alla **traccia**. Tenerli insieme farebbe sparire il primo: la
+   * ricostruzione parte da sola dopo un'apertura, e il suo esito arriverebbe
+   * dopo, coprendo «aperta» con un problema del file.
+   */
+  const [esitoGpx, setEsitoGpx] = useState(null);
+  const tracciaGpxRif = useRef(null);
+  /** Un'operazione GPX chiesta da fuori alla volta: la seconda non parte. */
+  const gpxInVoloRif = useRef(false);
+  /**
+   * La generazione del ciclo GPX.
+   *
+   * Ogni operazione la incrementa, e una risposta si applica **solo** se la
+   * generazione è ancora la sua. È ciò che rende innocua una lettura partita
+   * per la bozza A e tornata quando è aperta la B: senza, il file di A
+   * comparirebbe sotto il contenuto di B, che non lo riferisce.
+   */
+  const gpxTokenRif = useRef(0);
+
+  /** Traccia e riferimento cambiano insieme: non devono mai divergere. */
+  const poniTraccia = useCallback((t) => {
+    tracciaGpxRif.current = t;
+    setTracciaGpx(t);
+  }, []);
+
+  /** Registra l'esito GPX **e** lo restituisce: nessuna rejection, mai. */
+  const riportaGpx = useCallback((codice) => {
+    if (vivoRif.current) setEsitoGpx(codice ? { codice } : null);
+    return { codice };
+  }, []);
+
+  /**
+   * Se una risposta tardiva conta ancora.
+   *
+   * Tre condizioni, e servono tutte: l'albero è ancora montato, nessuna altra
+   * operazione GPX è partita nel frattempo, e la bozza è la stessa sessione di
+   * lavoro — riaprire la stessa bozza dà lo stesso `id` ma non è la stessa
+   * sessione, e una risposta di prima non le appartiene.
+   */
+  const gpxAncoraMia = useCallback(
+    (token, sessione) =>
+      vivoRif.current &&
+      gpxTokenRif.current === token &&
+      sessioneRif.current === sessione &&
+      Boolean(contenutoRif.current),
+    [],
+  );
+
+  /**
+   * Rilegge il binario e ricostruisce la geometria, senza toccare la bozza.
+   *
+   * Un fallimento **non cancella il riferimento**: il file manca o è rotto, ma
+   * il fatto che quella bozza abbia quel GPX è un dato, e buttarlo via per un
+   * problema di lettura significherebbe perdere l'unica traccia di che cosa
+   * ricaricare. Si lascia il riferimento, si azzera la geometria e si dice
+   * perché.
+   *
+   * @returns {Promise<{codice: string}>}
+   */
+  const ricostruisciGpx = useCallback(
+    async (rif, token, sessione) => {
+      // Anche il riferimento dev'essere ancora quello: sostituire il GPX
+      // mentre si legge il vecchio rende il vecchio irrilevante.
+      const mia = () =>
+        gpxAncoraMia(token, sessione) &&
+        (contenutoRif.current?.mappa?.gpx?.idBlob ?? null) === rif.idBlob;
+      const superata = { codice: CODICI.gpxSuperato };
+
+      let binario = null;
+      try {
+        binario = await archivio.leggiBlob(rif.idBlob);
+      } catch {
+        if (!mia()) return superata;
+        poniTraccia(null);
+        return riportaGpx(CODICI.erroreArchivioGpx);
+      }
+      if (!mia()) return superata;
+
+      if (!binario) {
+        poniTraccia(null);
+        return riportaGpx(CODICI.gpxBlobAssente);
+      }
+
+      let analisi = null;
+      try {
+        analisi = analizzaGpx(await binario.text(), rif.nome || "percorso.gpx");
+      } catch {
+        if (!mia()) return superata;
+        poniTraccia(null);
+        return riportaGpx(CODICI.gpxIllegibile);
+      }
+      if (!mia()) return superata;
+
+      if (!analisi.segmenti.length) {
+        poniTraccia(null);
+        return riportaGpx(CODICI.gpxSenzaTraccia);
+      }
+
+      poniTraccia({ ...analisi, nomeFile: rif.nome || "", idBlob: rif.idBlob });
+      return riportaGpx(CODICI.gpxRicostruito);
+    },
+    [archivio, gpxAncoraMia, poniTraccia, riportaGpx],
+  );
+
+  /**
+   * Riallinea la traccia al contenuto appena sostituito.
+   *
+   * Si chiama dopo ogni sostituzione — creazione, apertura, ripristino — e la
+   * prima cosa che fa è **azzerare** la geometria precedente: appartiene alla
+   * bozza di prima, e lasciarla lì un istante di troppo mostrerebbe il percorso
+   * sbagliato sotto il contenuto nuovo. Non aspetta: la lettura del binario è
+   * asincrona, e l'apertura non deve dipendere da un file che potrebbe non
+   * esserci.
+   */
+  const riallineaGpxAlContenuto = useCallback(
+    (c) => {
+      const token = (gpxTokenRif.current += 1);
+      const sessione = sessioneRif.current;
+      poniTraccia(null);
+      const rif = c?.mappa?.gpx;
+      if (!rif?.idBlob) {
+        if (vivoRif.current) setEsitoGpx(null);
+        return Promise.resolve({ codice: CODICI.nessunGpx });
+      }
+      return ricostruisciGpx(rif, token, sessione);
+    },
+    [poniTraccia, ricostruisciGpx],
+  );
+
+  /**
+   * Prende un file, lo analizza, e **solo se regge** lo mette nell'archivio.
+   *
+   * L'ordine non è un dettaglio: analizzare dopo aver salvato lascerebbe
+   * nell'archivio il binario di ogni file sbagliato — un XML rotto, un PDF
+   * rinominato — senza nessun contenuto che lo riferisca e senza nessuno che se
+   * ne ricordi. Si convalida prima, si scrive dopo.
+   *
+   * Non salva la bozza: caricare un file è una modifica come le altre, e
+   * diventa persistente solo con `salva`.
+   *
+   * @param {Blob|File} file
+   * @returns {Promise<{codice: string}>} esito esplicito, senza eccezioni
+   */
+  const caricaGpx = useCallback(
+    async (file) => {
+      if (!contenutoRif.current) return riportaGpx(CODICI.nessunaBozza);
+      if (gpxInVoloRif.current) return riportaGpx(CODICI.gpxOccupato);
+      if (typeof Blob === "undefined" || !(file instanceof Blob)) {
+        return riportaGpx(CODICI.fileGpxNonValido);
+      }
+
+      const token = (gpxTokenRif.current += 1);
+      const sessione = sessioneRif.current;
+      gpxInVoloRif.current = true;
+      // Una risposta che non conta più non scrive nulla: né traccia né esito.
+      const chiudi = (codice) =>
+        gpxAncoraMia(token, sessione) ? riportaGpx(codice) : { codice: CODICI.gpxSuperato };
+
+      try {
+        const nome = typeof file.name === "string" && file.name ? file.name : "percorso.gpx";
+        const byte = Number.isFinite(file.size) ? file.size : 0;
+
+        let testo = null;
+        try {
+          testo = await file.text();
+        } catch {
+          return chiudi(CODICI.fileGpxNonValido);
+        }
+
+        let analisi = null;
+        try {
+          analisi = analizzaGpx(testo, nome);
+        } catch {
+          return chiudi(CODICI.gpxIllegibile);
+        }
+        if (!analisi.segmenti.length) return chiudi(CODICI.gpxSenzaTraccia);
+
+        /*
+         * Leggere il file è un'attesa come le altre, e in mezzo il caricamento
+         * può essere stato annullato o superato. Chiedersene conto **qui**, un
+         * istante prima di scrivere, evita di far nascere un binario che
+         * nessuno collegherà mai a un contenuto: un orfano non creato non ha
+         * bisogno di pulizia, e la pulizia è un tentativo che può fallire.
+         */
+        if (!gpxAncoraMia(token, sessione)) return { codice: CODICI.gpxSuperato };
+
+        let idBlob = null;
+        try {
+          idBlob = await archivio.salvaBlob("gpx", file, { nome });
+        } catch {
+          return chiudi(CODICI.erroreArchivioGpx);
+        }
+
+        if (!gpxAncoraMia(token, sessione)) {
+          /*
+           * L'unico binario che si può cancellare subito: è appena nato, non è
+           * mai stato collegato a un contenuto e non lo sarà. È l'unico caso in
+           * cui non si rischia di togliere il file a una versione salvata o a
+           * una revisione. La pulizia è un tentativo: se fallisce resta un
+           * orfano, che è meno grave di un riferimento applicato alla bozza
+           * sbagliata.
+           */
+          try {
+            await archivio.eliminaBlob(idBlob);
+          } catch {
+            /* best effort: un orfano non giustifica una rejection */
+          }
+          return { codice: CODICI.gpxSuperato };
+        }
+
+        aggiorna((c) => ({ ...c, mappa: { ...c.mappa, gpx: { idBlob, nome, byte } } }));
+        poniTraccia({ ...analisi, nomeFile: nome, idBlob });
+        return riportaGpx(CODICI.gpxCaricato);
+      } finally {
+        gpxInVoloRif.current = false;
+      }
+    },
+    [archivio, aggiorna, gpxAncoraMia, poniTraccia, riportaGpx],
+  );
+
+  /**
+   * Riprova la ricostruzione senza riaprire la bozza.
+   *
+   * Serve dopo un `gpx-blob-assente`: si reimporta il backup con i GPX, o si
+   * rimette a posto l'archivio, e si riprova. Riaprire la bozza funzionerebbe
+   * anche, ma costringerebbe a passare dal dialogo del lavoro non salvato.
+   *
+   * @returns {Promise<{codice: string}>}
+   */
+  const ricaricaGpx = useCallback(() => {
+    const corrente = contenutoRif.current;
+    if (!corrente) return Promise.resolve(riportaGpx(CODICI.nessunaBozza));
+    if (gpxInVoloRif.current) return Promise.resolve(riportaGpx(CODICI.gpxOccupato));
+
+    const rif = corrente.mappa?.gpx;
+    if (!rif?.idBlob) {
+      poniTraccia(null);
+      return Promise.resolve(riportaGpx(CODICI.nessunGpx));
+    }
+
+    const token = (gpxTokenRif.current += 1);
+    const sessione = sessioneRif.current;
+    gpxInVoloRif.current = true;
+    return ricostruisciGpx(rif, token, sessione).finally(() => {
+      gpxInVoloRif.current = false;
+    });
+  }, [poniTraccia, riportaGpx, ricostruisciGpx]);
+
+  /**
+   * Toglie il GPX, e **non** cancella il binario.
+   *
+   * Il file resta nell'archivio di proposito. La versione già salvata può
+   * ancora riferirlo, una revisione della cronologia può riportarlo, e chi
+   * scarta le modifiche deve ritrovare la base di prima: cancellare il binario
+   * qui renderebbe quei tre ritorni indietro impossibili, e in silenzio.
+   * Lo stesso vale sostituendo un GPX con un altro. La pulizia dei binari non
+   * più riferiti è una decisione a parte, e non appartiene a questo gesto.
+   *
+   * **Vale anche contro un caricamento partito prima.** Guardare solo il
+   * riferimento non bastava: durante il primo caricamento di una bozza vuota,
+   * riferimento e traccia sono ancora entrambi nulli, e il gesto rispondeva
+   * «nessun GPX» senza invalidare niente — la risposta di `salvaBlob` arrivava
+   * dopo e assegnava il file a una bozza da cui era appena stato tolto. Chi
+   * toglie deve vincere: il caricamento in volo si invalida, e il suo risultato
+   * diventa innocuo.
+   *
+   * Il blocco **non** si libera da qui: lo libera nel proprio `finally` solo
+   * l'operazione che l'ha preso. Rilasciarlo prima farebbe partire un secondo
+   * caricamento mentre il primo è ancora in volo, cioè esattamente la corsa che
+   * il blocco esiste per impedire.
+   *
+   * @returns {{codice: string}} `gpx-rimosso`, `gpx-caricamento-annullato`,
+   *   `nessun-gpx` o `nessuna-bozza`
+   */
+  const rimuoviGpx = useCallback(() => {
+    const corrente = contenutoRif.current;
+    if (!corrente) return riportaGpx(CODICI.nessunaBozza);
+
+    const haRiferimento = Boolean(corrente.mappa?.gpx);
+    // Una traccia senza riferimento non esiste: si pone solo dopo che il
+    // riferimento è nel contenuto, e si azzera insieme a lui. Guardarla qui
+    // sarebbe una condizione che nessuna prova può rendere vera.
+    if (!haRiferimento && !gpxInVoloRif.current) {
+      // Non c'è niente da togliere: marcare «non salvato» per un gesto che non
+      // cambia nulla renderebbe falso proprio lo stato che serve a decidere.
+      return riportaGpx(CODICI.nessunGpx);
+    }
+
+    // Qualunque lettura o caricamento in volo smette di contare: non viene
+    // interrotto — non si può — ma il suo risultato non verrà applicato.
+    gpxTokenRif.current += 1;
+    poniTraccia(null);
+
+    if (!haRiferimento) {
+      // Si annulla un caricamento che nel contenuto non era ancora arrivato:
+      // non c'è niente da riscrivere, e la bozza non diventa «non salvata» per
+      // una modifica che non c'è stata.
+      return riportaGpx(CODICI.gpxCaricamentoAnnullato);
+    }
+
+    aggiorna((c) => ({ ...c, mappa: { ...c.mappa, gpx: null } }));
+    return riportaGpx(CODICI.gpxRimosso);
+  }, [aggiorna, poniTraccia, riportaGpx]);
+
+  /**
+   * La politica di conservazione del binario dopo l'export.
+   *
+   * Qui si scrive soltanto: chi cancella davvero sarà il capitolo dell'export,
+   * e questo interruttore è il dato su cui dovrà decidere.
+   *
+   * @param {boolean} valore
+   * @returns {{codice: string}}
+   */
+  const impostaConservaGpx = useCallback(
+    (valore) => {
+      if (!contenutoRif.current) return riportaGpx(CODICI.nessunaBozza);
+      if (typeof valore !== "boolean") return riportaGpx(CODICI.conservaGpxNonValida);
+      aggiorna((c) => ({ ...c, mappa: { ...c.mappa, conservaGpx: valore } }));
+      return riportaGpx(CODICI.conservaGpxAggiornata);
+    },
+    [aggiorna, riportaGpx],
+  );
+
+  /* ================================================================ *
    * Creare, salvare, aprire
    * ================================================================ */
 
@@ -441,8 +818,11 @@ export function useBozzaTour({ urlBase = "" } = {}) {
       salvatoRif.current = null;
       segnaSporco(true);
       setEsito({ codice: CODICI.creata });
+      // Una bozza nuova non ha percorso: la traccia di quella di prima non le
+      // appartiene, e va tolta subito.
+      riallineaGpxAlContenuto(nuovo);
     },
-    [urlBase, segnaSporco],
+    [urlBase, segnaSporco, riallineaGpxAlContenuto],
   );
 
   /**
@@ -855,6 +1235,13 @@ export function useBozzaTour({ urlBase = "" } = {}) {
       setContenuto(ripristinato);
       contenutoRif.current = ripristinato;
       segnaSporco(true);
+      /*
+       * La revisione può portare un altro riferimento GPX — o nessuno — e la
+       * geometria in memoria è ancora quella di prima. Si ricostruisce da qui,
+       * sul contenuto già ripristinato: aspettare la scrittura significherebbe
+       * mostrare per tutto quel tempo il percorso di uno stato che non c'è più.
+       */
+      riallineaGpxAlContenuto(ripristinato);
 
       scritturaIdRif.current = base.id;
       const mia = scrivi(ripristinato, { giaRegistrata: true }).finally(() => {
@@ -880,7 +1267,7 @@ export function useBozzaTour({ urlBase = "" } = {}) {
         setEsito({ codice: CODICI.revisioneRipristinata });
       }
     },
-    [scrivi, segnaSporco],
+    [scrivi, segnaSporco, riallineaGpxAlContenuto],
   );
 
   const apriSenzaChiedere = useCallback(
@@ -933,12 +1320,19 @@ export function useBozzaTour({ urlBase = "" } = {}) {
         salvatoRif.current = letto;
         segnaSporco(false);
         setEsito({ codice: CODICI.aperta });
+        /*
+         * La traccia si ricostruisce dal binario, e **non** si aspetta: un file
+         * mancante o lento non deve tenere in sospeso l'apertura, che è già
+         * riuscita. L'esito della ricostruzione viaggia su `esitoGpx`, così non
+         * copre «aperta». La bozza non viene toccata e resta pulita.
+         */
+        riallineaGpxAlContenuto(letto);
       } finally {
         // Ogni blocco lo libera soltanto l'operazione che l'ha preso.
         if (aperturaIdRif.current === id) aperturaIdRif.current = null;
       }
     },
-    [archivio, segnaSporco],
+    [archivio, segnaSporco, riallineaGpxAlContenuto],
   );
 
   /**
@@ -1212,6 +1606,12 @@ export function useBozzaTour({ urlBase = "" } = {}) {
     slotMediaDisponibili,
     leggiMedia,
     scriviMedia,
+    tracciaGpx,
+    esitoGpx,
+    caricaGpx,
+    ricaricaGpx,
+    rimuoviGpx,
+    impostaConservaGpx,
     ricarica,
   };
 }

@@ -6,6 +6,7 @@ import { useBozzaTour, CODICI } from "./useBozzaTour";
 import { FornitoreArchivio } from "./ContestoArchivio";
 import { FornitoreTransizione, ESITI } from "./transizione";
 import { creaArchivioMemoria } from "../fondamenta/archivio";
+import { contenutoVuoto } from "../fondamenta/schema";
 import { editorPerRubrica, statoRubrica } from "./registro-editor";
 
 /**
@@ -112,6 +113,7 @@ function archivioPilotabile() {
       const sosta = soste[nome];
       if (sosta) {
         soste[nome] = null;
+        sosta.segnalaArrivo();
         await sosta.promessa;
       }
       if (rompi[nome]) throw new Error(`${nome} non disponibile`);
@@ -120,16 +122,70 @@ function archivioPilotabile() {
     };
   }
 
+  /*
+   * I binari hanno il loro giro di controlli: `salvaBlob` per vedere *se* e
+   * *quando* un file entra nell'archivio, `leggiBlob` per simulare un binario
+   * che manca o un archivio che non risponde, `eliminaBlob` per dimostrare che
+   * nessuno cancella i file di nascosto.
+   */
+  const BINARI = ["salvaBlob", "leggiBlob", "eliminaBlob"];
+  // Chiesti all'ingresso, salvati alla risposta: la differenza fra i due dice
+  // se una richiesta è partita e non è ancora tornata.
+  const blobChiesti = [];
+  const blobSalvati = [];
+  const blobEliminati = [];
+  for (const nome of BINARI) {
+    veri[nome] = archivio[nome].bind(archivio);
+    soste[nome] = null;
+    rompi[nome] = false;
+  }
+  // `nullo.leggiBlob` è il binario che non c'è più: la lettura riesce e non
+  // restituisce niente. È diverso da un archivio che rifiuta.
+  nullo.leggiBlob = false;
+
+  for (const nome of BINARI) {
+    archivio[nome] = async (...args) => {
+      if (nome === "salvaBlob") blobChiesti.push(args[2]?.nome ?? null);
+      if (nome === "eliminaBlob") blobEliminati.push(args[0] ?? null);
+      const sosta = soste[nome];
+      if (sosta) {
+        soste[nome] = null;
+        sosta.segnalaArrivo();
+        await sosta.promessa;
+      }
+      if (rompi[nome]) throw new Error(`${nome} non disponibile`);
+      if (nome === "leggiBlob" && nullo.leggiBlob) return null;
+      const esito = veri[nome](...args);
+      if (nome === "salvaBlob") esito.then((id) => blobSalvati.push(id));
+      return esito;
+    };
+  }
+
   return {
     archivio,
     scritture,
     eliminazioni,
+    blobChiesti,
+    blobSalvati,
+    blobEliminati,
     rompi,
     nullo,
     /** Legge dal disco scavalcando i guasti simulati. */
     leggiDavvero: veri.leggi,
+    /** Legge un binario scavalcando i guasti simulati. */
+    leggiBlobDavvero: (id) => veri.leggiBlob(id),
+    /**
+     * Ferma la prossima chiamata a quel metodo, e dice **quando** è arrivata.
+     *
+     * `arrivata` è ciò che rende deterministiche le prove sulle corse: senza,
+     * per sapere che l'operazione ha raggiunto la sosta bisognerebbe aspettare
+     * un tempo e sperare — e una prova che spera non dimostra niente.
+     */
     fermaProssima(nome) {
       const sosta = rinviata();
+      const arrivo = rinviata();
+      sosta.arrivata = arrivo.promessa;
+      sosta.segnalaArrivo = arrivo.risolvi;
       soste[nome] = sosta;
       return sosta;
     },
@@ -4072,5 +4128,1045 @@ describe("ritagli non validi", () => {
     const id = canale.api.contenuto.id;
     expect((await pilot.leggiDavvero(id)).media.cover).toEqual(ritaglio("b-buono"));
     expect(canale.api.sporco).toBe(false);
+  });
+});
+
+/* ================================================================== *
+ * GPX: il riferimento si salva, la geometria no
+ * ================================================================== */
+
+/*
+ * GPX sintetici, scritti qui: nessun percorso reale entra nel repository, e
+ * nemmeno nelle prove. Le coordinate sono inventate e servono solo a far
+ * esistere due punti distinti.
+ */
+const GPX_DUE_PUNTI = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk><name>Prima prova</name><trkseg>
+    <trkpt lat="40.0000" lon="9.0000"><ele>100</ele></trkpt>
+    <trkpt lat="40.0100" lon="9.0100"><ele>140</ele></trkpt>
+  </trkseg></trk>
+  <wpt lat="40.0050" lon="9.0050"><name>Punto inventato</name></wpt>
+</gpx>`;
+
+/** Un secondo GPX, riconoscibile dal primo: tre punti e un altro nome. */
+const GPX_ALTRO = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk><name>Seconda prova</name><trkseg>
+    <trkpt lat="41.0000" lon="8.0000"><ele>10</ele></trkpt>
+    <trkpt lat="41.0100" lon="8.0100"><ele>20</ele></trkpt>
+    <trkpt lat="41.0200" lon="8.0200"><ele>30</ele></trkpt>
+  </trkseg></trk>
+</gpx>`;
+
+const GPX_MALFORMATO = `<?xml version="1.0"?><gpx><trk><trkseg></gpx>`;
+const XML_NON_GPX = `<?xml version="1.0"?><cartella><voce nome="niente"/></cartella>`;
+/** GPX legittimo, ma senza un segmento utilizzabile: un punto solo e un wpt. */
+const GPX_SENZA_TRACCIA = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk><trkseg><trkpt lat="40.0000" lon="9.0000"/></trkseg></trk>
+  <wpt lat="40.0050" lon="9.0050"><name>Solo un punto</name></wpt>
+</gpx>`;
+
+const fileGpx = (testo, nome = "percorso.gpx") =>
+  new File([testo], nome, { type: "application/gpx+xml" });
+
+/** Crea una bozza, le assegna un GPX e la salva. Restituisce id e idBlob. */
+async function bozzaConGpx(pilot, testo = GPX_DUE_PUNTI, nome = "percorso.gpx") {
+  await act(async () => {
+    await canale.api.creaDaTour(TOUR);
+  });
+  await act(async () => {
+    await canale.api.caricaGpx(fileGpx(testo, nome));
+  });
+  await act(async () => {
+    await canale.api.salva();
+  });
+  await respiro();
+  return { id: canale.api.contenuto.id, idBlob: canale.api.contenuto.mappa.gpx.idBlob };
+}
+
+describe("il GPX entra come riferimento, non come geometria", () => {
+  it("senza una bozza non legge e non scrive niente", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+
+    let esiti;
+    await act(async () => {
+      esiti = [
+        await canale.api.caricaGpx(fileGpx(GPX_DUE_PUNTI)),
+        await canale.api.ricaricaGpx(),
+        canale.api.rimuoviGpx(),
+        canale.api.impostaConservaGpx(true),
+      ];
+    });
+
+    expect(esiti.map((e) => e.codice)).toEqual([
+      CODICI.nessunaBozza,
+      CODICI.nessunaBozza,
+      CODICI.nessunaBozza,
+      CODICI.nessunaBozza,
+    ]);
+    expect(canale.api.esitoGpx.codice).toBe(CODICI.nessunaBozza);
+    expect(pilot.blobSalvati).toHaveLength(0);
+    expect(pilot.scritture).toHaveLength(0);
+    expect(canale.api.tracciaGpx).toBeNull();
+    expect(canale.api.contenuto).toBeNull();
+  });
+
+  const NON_FILE = [
+    ["null", null],
+    ["indefinito", undefined],
+    ["una stringa", GPX_DUE_PUNTI],
+    ["un numero", 42],
+    ["un oggetto qualunque", { name: "percorso.gpx", size: 10 }],
+    ["un array", [GPX_DUE_PUNTI]],
+  ];
+
+  it.each(NON_FILE)("rifiuta %s senza toccare l'archivio", async (_nome, valore) => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    const prima = canale.api.contenuto;
+
+    let esito;
+    await act(async () => {
+      esito = await canale.api.caricaGpx(valore);
+    });
+
+    expect(esito.codice).toBe(CODICI.fileGpxNonValido);
+    expect(canale.api.esitoGpx.codice).toBe(CODICI.fileGpxNonValido);
+    expect(pilot.blobSalvati).toHaveLength(0);
+    // Identico per riferimento: non è stato nemmeno ricreato.
+    expect(canale.api.contenuto).toBe(prima);
+    expect(canale.api.tracciaGpx).toBeNull();
+  });
+
+  const NON_ANALIZZABILI = [
+    ["XML malformato", GPX_MALFORMATO, "gpxIllegibile"],
+    ["XML che non è un GPX", XML_NON_GPX, "gpxIllegibile"],
+    ["GPX senza un segmento utilizzabile", GPX_SENZA_TRACCIA, "gpxSenzaTraccia"],
+  ];
+
+  it.each(NON_ANALIZZABILI)(
+    "%s: nessun binario entra nell'archivio",
+    async (_nome, testo, codice) => {
+      const pilot = archivioPilotabile();
+      await monta(pilot.archivio);
+      await act(async () => {
+        await canale.api.creaDaTour(TOUR);
+      });
+      const prima = canale.api.contenuto;
+
+      let esito;
+      await act(async () => {
+        esito = await canale.api.caricaGpx(fileGpx(testo, "rotto.gpx"));
+      });
+
+      expect(esito.codice).toBe(CODICI[codice]);
+      expect(canale.api.esitoGpx.codice).toBe(CODICI[codice]);
+      // Il punto dell'ordine: si analizza **prima** di salvare.
+      expect(pilot.blobSalvati).toHaveLength(0);
+      expect(canale.api.contenuto).toBe(prima);
+      expect(canale.api.contenuto.mappa.gpx).toBeNull();
+      expect(canale.api.tracciaGpx).toBeNull();
+    },
+  );
+
+  it("un GPX valido salva il binario, scrive il riferimento e tiene la geometria in memoria", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    const file = fileGpx(GPX_DUE_PUNTI, "prova-sintetica.gpx");
+
+    let esito;
+    await act(async () => {
+      esito = await canale.api.caricaGpx(file);
+    });
+
+    expect(esito.codice).toBe(CODICI.gpxCaricato);
+    expect(canale.api.esitoGpx.codice).toBe(CODICI.gpxCaricato);
+
+    // Un solo binario, ed è quello riferito dal contenuto.
+    expect(pilot.blobSalvati).toHaveLength(1);
+    const rif = canale.api.contenuto.mappa.gpx;
+    expect(rif.idBlob).toBe(pilot.blobSalvati[0]);
+    expect(rif.nome).toBe("prova-sintetica.gpx");
+    expect(rif.byte).toBe(file.size);
+    // Il riferimento è solo questo: niente geometria, niente byte.
+    expect(Object.keys(rif).sort()).toEqual(["byte", "idBlob", "nome"]);
+
+    // La geometria vive soltanto in memoria.
+    expect(canale.api.tracciaGpx.segmenti).toHaveLength(1);
+    expect(canale.api.tracciaGpx.segmenti[0]).toHaveLength(2);
+    expect(canale.api.tracciaGpx.idBlob).toBe(rif.idBlob);
+    expect(canale.api.tracciaGpx.metriche.distanzaKm).toBeGreaterThan(0);
+    expect(canale.api.tracciaGpx.metriche.punti).toBe(2);
+  });
+
+  it("nel contenuto non finiscono coordinate, segmenti né XML", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.caricaGpx(fileGpx(GPX_DUE_PUNTI));
+    });
+
+    const serializzato = JSON.stringify(canale.api.contenuto);
+    for (const spia of ["trkpt", "trkseg", "<gpx", "segmenti", "waypoint", "metriche", "9.0100"]) {
+      expect(serializzato, `«${spia}» nel contenuto`).not.toContain(spia);
+    }
+    // E la traccia in memoria invece ce l'ha: la prova non è vuota.
+    expect(canale.api.tracciaGpx.segmenti[0][1].lon).toBeCloseTo(9.01, 4);
+  });
+
+  it("i waypoint restano etichette: nessuna località e nessuna tappa", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.caricaGpx(fileGpx(GPX_DUE_PUNTI));
+    });
+
+    // Il waypoint c'è, ed è noto.
+    expect(canale.api.tracciaGpx.waypoint).toHaveLength(1);
+    expect(canale.api.tracciaGpx.waypoint[0].nome).toBe("Punto inventato");
+    // Ma non è diventato un dato della bozza.
+    expect(canale.api.contenuto.mappa.localita).toEqual([]);
+    expect(canale.api.contenuto.fattuali.tappe).toEqual([]);
+    expect(JSON.stringify(canale.api.contenuto)).not.toContain("Punto inventato");
+  });
+
+  it("caricare non tocca fatti, media, fonte e testi, e non salva da solo", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const prima = canale.api.contenuto;
+    const scrittureePrima = pilot.scritture.length;
+
+    await act(async () => {
+      await canale.api.caricaGpx(fileGpx(GPX_DUE_PUNTI));
+    });
+
+    // I rami che non c'entrano restano gli **stessi oggetti**.
+    expect(canale.api.contenuto.fattuali).toBe(prima.fattuali);
+    expect(canale.api.contenuto.editoriale).toBe(prima.editoriale);
+    expect(canale.api.contenuto.media).toBe(prima.media);
+    expect(canale.api.contenuto.fonte).toBe(prima.fonte);
+    expect(canale.api.contenuto.editoriale.caption.testo).toBe("");
+    // Modifica come le altre: non salvata, e non salvata da sola.
+    expect(canale.api.sporco).toBe(true);
+    expect(pilot.scritture).toHaveLength(scrittureePrima);
+  });
+
+  it("il salvataggio persiste il riferimento e registra una revisione sola", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const { id, idBlob } = await bozzaConGpx(pilot);
+
+    const sul = await pilot.leggiDavvero(id);
+    expect(sul.mappa.gpx.idBlob).toBe(idBlob);
+    expect(sul.mappa.gpx.nome).toBe("percorso.gpx");
+    expect(sul.versioni).toHaveLength(1);
+    expect(JSON.stringify(sul)).not.toContain("trkpt");
+    expect(canale.api.sporco).toBe(false);
+  });
+});
+
+describe("ricostruire la traccia dal binario", () => {
+  it("aprire una bozza ricostruisce la geometria senza sporcarla", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const { id, idBlob } = await bozzaConGpx(pilot);
+
+    // Si passa ad altro, così la traccia in memoria non è più quella.
+    await act(async () => {
+      await canale.api.creaDaTour(ALTRO_TOUR);
+    });
+    expect(canale.api.tracciaGpx).toBeNull();
+
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    await act(async () => {
+      await canale.api.apri(id);
+    });
+    await respiro();
+
+    expect(canale.api.esito.codice).toBe(CODICI.aperta);
+    expect(canale.api.esitoGpx.codice).toBe(CODICI.gpxRicostruito);
+    expect(canale.api.tracciaGpx.idBlob).toBe(idBlob);
+    expect(canale.api.tracciaGpx.segmenti[0]).toHaveLength(2);
+    // Ricostruire non è modificare.
+    expect(canale.api.sporco).toBe(false);
+    expect(canale.api.contenuto.mappa.gpx.idBlob).toBe(idBlob);
+  });
+
+  it("binario assente: il riferimento resta, la traccia no", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const { id, idBlob } = await bozzaConGpx(pilot);
+
+    // Il file sparisce dall'archivio: un backup importato senza GPX, o il
+    // browser che ha ripulito lo spazio.
+    pilot.nullo.leggiBlob = true;
+    await act(async () => {
+      await canale.api.creaDaTour(ALTRO_TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    await act(async () => {
+      await canale.api.apri(id);
+    });
+    await respiro();
+
+    expect(canale.api.esito.codice).toBe(CODICI.aperta);
+    expect(canale.api.esitoGpx.codice).toBe(CODICI.gpxBlobAssente);
+    expect(canale.api.tracciaGpx).toBeNull();
+    // Il riferimento **non** si cancella per un file che manca.
+    expect(canale.api.contenuto.mappa.gpx.idBlob).toBe(idBlob);
+    expect(canale.api.sporco).toBe(false);
+  });
+
+  it("binario illeggibile: il riferimento resta e il motivo è esplicito", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    // Un binario che c'è ma non si lascia analizzare.
+    const rotto = new Blob([GPX_MALFORMATO], { type: "application/gpx+xml" });
+    const idBlob = await pilot.archivio.salvaBlob("gpx", rotto, { nome: "rotto.gpx" });
+    const id = await pilot.archivio.salva({
+      ...contenutoVuoto({ categoria: "tour", formato: "post" }),
+      titolo: "Con un file rotto",
+      mappa: { gpx: { idBlob, nome: "rotto.gpx", byte: rotto.size } },
+    });
+
+    await act(async () => {
+      await canale.api.apri(id);
+    });
+    await respiro();
+
+    expect(canale.api.esito.codice).toBe(CODICI.aperta);
+    expect(canale.api.esitoGpx.codice).toBe(CODICI.gpxIllegibile);
+    expect(canale.api.tracciaGpx).toBeNull();
+    expect(canale.api.contenuto.mappa.gpx.idBlob).toBe(idBlob);
+    expect(canale.api.sporco).toBe(false);
+  });
+
+  it("ricaricaGpx riprova quando il binario torna disponibile", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const { id, idBlob } = await bozzaConGpx(pilot);
+
+    pilot.nullo.leggiBlob = true;
+    await act(async () => {
+      await canale.api.creaDaTour(ALTRO_TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    await act(async () => {
+      await canale.api.apri(id);
+    });
+    await respiro();
+    expect(canale.api.esitoGpx.codice).toBe(CODICI.gpxBlobAssente);
+
+    // Il file torna: si riprova senza riaprire la bozza.
+    pilot.nullo.leggiBlob = false;
+    let esito;
+    await act(async () => {
+      esito = await canale.api.ricaricaGpx();
+    });
+    await respiro();
+
+    expect(esito.codice).toBe(CODICI.gpxRicostruito);
+    expect(canale.api.tracciaGpx.idBlob).toBe(idBlob);
+    expect(canale.api.sporco).toBe(false);
+    // E l'esito della bozza non è stato toccato da nessuna delle due prove.
+    expect(canale.api.esito.codice).toBe(CODICI.aperta);
+  });
+
+  it("un archivio che rifiuta la lettura è un esito, non una rejection", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await bozzaConGpx(pilot);
+
+    pilot.rompi.leggiBlob = true;
+    let esito;
+    await act(async () => {
+      esito = await canale.api.ricaricaGpx();
+    });
+
+    expect(esito.codice).toBe(CODICI.erroreArchivioGpx);
+    expect(canale.api.esitoGpx.codice).toBe(CODICI.erroreArchivioGpx);
+    expect(canale.api.tracciaGpx).toBeNull();
+  });
+});
+
+/**
+ * Una risposta che arriva tardi non deve parlare per la sessione nuova.
+ *
+ * È la stessa difesa del resto dell'hook, applicata a un canale in più: fra la
+ * richiesta del binario e la sua risposta si può aprire un'altra bozza,
+ * sostituire il file o toglierlo, e applicare comunque quel risultato
+ * mostrerebbe il percorso di una bozza sotto il contenuto di un'altra.
+ */
+describe("le risposte GPX superate non tornano in memoria", () => {
+  it("la lettura di A non tocca la traccia di B aperta nel frattempo", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const a = await bozzaConGpx(pilot, GPX_DUE_PUNTI, "prima.gpx");
+    await act(async () => {
+      await canale.api.creaDaTour(ALTRO_TOUR);
+    });
+    await act(async () => {
+      await canale.api.caricaGpx(fileGpx(GPX_ALTRO, "seconda.gpx"));
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const b = { id: canale.api.contenuto.id, idBlob: canale.api.contenuto.mappa.gpx.idBlob };
+
+    // Si apre A e la sua lettura si ferma prima di rispondere.
+    const sosta = pilot.fermaProssima("leggiBlob");
+    await act(async () => {
+      await canale.api.apri(a.id);
+      await sosta.arrivata;
+    });
+
+    // Si apre B, la cui ricostruzione va fino in fondo.
+    await act(async () => {
+      await canale.api.apri(b.id);
+    });
+    await respiro();
+    expect(canale.api.tracciaGpx.idBlob).toBe(b.idBlob);
+
+    // Solo adesso risponde la lettura di A.
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    expect(canale.api.contenuto.id).toBe(b.id);
+    expect(canale.api.tracciaGpx.idBlob).toBe(b.idBlob);
+    expect(canale.api.tracciaGpx.segmenti[0]).toHaveLength(3);
+    expect(canale.api.esitoGpx.codice).toBe(CODICI.gpxRicostruito);
+  });
+
+  it("la lettura del vecchio id non resuscita un GPX appena rimosso", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await bozzaConGpx(pilot);
+
+    const sosta = pilot.fermaProssima("leggiBlob");
+    let tardiva;
+    await act(async () => {
+      tardiva = canale.api.ricaricaGpx();
+      await sosta.arrivata;
+    });
+
+    await act(async () => {
+      canale.api.rimuoviGpx();
+    });
+    expect(canale.api.tracciaGpx).toBeNull();
+    expect(canale.api.contenuto.mappa.gpx).toBeNull();
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    expect((await tardiva).codice).toBe(CODICI.gpxSuperato);
+    // Né la traccia né l'esito della rimozione sono stati sostituiti.
+    expect(canale.api.tracciaGpx).toBeNull();
+    expect(canale.api.contenuto.mappa.gpx).toBeNull();
+    expect(canale.api.esitoGpx.codice).toBe(CODICI.gpxRimosso);
+  });
+
+  it("la ricostruzione automatica non sostituisce il GPX caricato nel frattempo", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const a = await bozzaConGpx(pilot, GPX_DUE_PUNTI, "prima.gpx");
+    await act(async () => {
+      await canale.api.creaDaTour(ALTRO_TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+
+    /*
+     * La ricostruzione che parte da sola all'apertura non prende il blocco —
+     * non è un gesto di chi lavora — quindi si può caricare un altro file
+     * mentre è in volo. È proprio la corsa che il controllo sull'idBlob esiste
+     * per chiudere.
+     */
+    const sosta = pilot.fermaProssima("leggiBlob");
+    await act(async () => {
+      await canale.api.apri(a.id);
+      await sosta.arrivata;
+    });
+
+    await act(async () => {
+      await canale.api.caricaGpx(fileGpx(GPX_ALTRO, "seconda.gpx"));
+    });
+    const nuovo = canale.api.contenuto.mappa.gpx.idBlob;
+    expect(nuovo).not.toBe(a.idBlob);
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    // Il file vecchio non torna: né come traccia né come esito.
+    expect(canale.api.contenuto.mappa.gpx.idBlob).toBe(nuovo);
+    expect(canale.api.tracciaGpx.idBlob).toBe(nuovo);
+    expect(canale.api.tracciaGpx.segmenti[0]).toHaveLength(3);
+    expect(canale.api.esitoGpx.codice).toBe(CODICI.gpxCaricato);
+  });
+
+  it("due caricamenti insieme: il secondo non parte alla cieca", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+
+    const sosta = pilot.fermaProssima("salvaBlob");
+    let primo;
+    await act(async () => {
+      primo = canale.api.caricaGpx(fileGpx(GPX_DUE_PUNTI, "prima.gpx"));
+      await sosta.arrivata;
+    });
+
+    let secondo;
+    await act(async () => {
+      secondo = await canale.api.caricaGpx(fileGpx(GPX_ALTRO, "seconda.gpx"));
+    });
+    expect(secondo.codice).toBe(CODICI.gpxOccupato);
+    // Il secondo non è nemmeno arrivato all'archivio: una sola richiesta, ed è
+    // quella del primo file, ancora ferma.
+    expect(pilot.blobChiesti).toEqual(["prima.gpx"]);
+    expect(pilot.blobSalvati).toHaveLength(0);
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    expect((await primo).codice).toBe(CODICI.gpxCaricato);
+    expect(pilot.blobChiesti).toEqual(["prima.gpx"]);
+    expect(pilot.blobSalvati).toHaveLength(1);
+    expect(canale.api.contenuto.mappa.gpx.nome).toBe("prima.gpx");
+    expect(canale.api.tracciaGpx.segmenti[0]).toHaveLength(2);
+  });
+
+  it("smontare mentre si salva il binario non lascia effetti né riferimenti", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    const prima = canale.api.contenuto;
+
+    const sosta = pilot.fermaProssima("salvaBlob");
+    let promessa;
+    await act(async () => {
+      promessa = canale.api.caricaGpx(fileGpx(GPX_DUE_PUNTI));
+      await sosta.arrivata;
+    });
+
+    act(() => radice.unmount());
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+
+    expect((await promessa).codice).toBe(CODICI.gpxSuperato);
+    // Il binario è nato e non lo riferisce nessuno: si ripulisce.
+    expect(pilot.blobSalvati).toHaveLength(1);
+    expect(pilot.blobEliminati).toEqual([pilot.blobSalvati[0]]);
+    expect(await pilot.leggiBlobDavvero(pilot.blobSalvati[0])).toBeNull();
+    // L'ultimo contenuto reso non ha ricevuto nessun riferimento.
+    expect(prima.mappa.gpx).toBeNull();
+
+    radice = createRoot(contenitore);
+  });
+
+  it("smontare mentre si legge il binario non applica la traccia", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await bozzaConGpx(pilot);
+
+    const sosta = pilot.fermaProssima("leggiBlob");
+    let promessa;
+    await act(async () => {
+      promessa = canale.api.ricaricaGpx();
+      await sosta.arrivata;
+    });
+
+    act(() => radice.unmount());
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+
+    expect((await promessa).codice).toBe(CODICI.gpxSuperato);
+    expect(pilot.blobEliminati).toEqual([]);
+
+    radice = createRoot(contenitore);
+  });
+});
+
+/**
+ * Il binario non si cancella insieme al riferimento.
+ *
+ * Tre ritorni indietro dipendono da questo: la versione già salvata che lo
+ * riferisce ancora, una revisione della cronologia che lo riporta, e lo scarto
+ * delle modifiche. Cancellarlo qui li renderebbe impossibili tutti e tre, e in
+ * silenzio.
+ */
+describe("togliere e sostituire un GPX", () => {
+  it("rimuovere toglie riferimento e traccia, e lascia il binario dov'è", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const { idBlob } = await bozzaConGpx(pilot);
+
+    let esito;
+    await act(async () => {
+      esito = canale.api.rimuoviGpx();
+    });
+
+    expect(esito.codice).toBe(CODICI.gpxRimosso);
+    expect(canale.api.esitoGpx.codice).toBe(CODICI.gpxRimosso);
+    expect(canale.api.contenuto.mappa.gpx).toBeNull();
+    expect(canale.api.tracciaGpx).toBeNull();
+    expect(canale.api.sporco).toBe(true);
+    // Nessuna cancellazione, e il file è ancora leggibile.
+    expect(pilot.blobEliminati).toEqual([]);
+    expect(await pilot.leggiBlobDavvero(idBlob)).not.toBeNull();
+  });
+
+  it("rimuovere quando non c'è nulla da togliere non sporca la bozza", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const prima = canale.api.contenuto;
+
+    let esito;
+    await act(async () => {
+      esito = canale.api.rimuoviGpx();
+    });
+
+    expect(esito.codice).toBe(CODICI.nessunGpx);
+    expect(canale.api.contenuto).toBe(prima);
+    expect(canale.api.sporco).toBe(false);
+  });
+
+  it("sostituire un GPX non cancella il precedente", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const { idBlob: vecchio } = await bozzaConGpx(pilot, GPX_DUE_PUNTI, "prima.gpx");
+
+    await act(async () => {
+      await canale.api.caricaGpx(fileGpx(GPX_ALTRO, "seconda.gpx"));
+    });
+
+    const nuovo = canale.api.contenuto.mappa.gpx.idBlob;
+    expect(nuovo).not.toBe(vecchio);
+    expect(pilot.blobEliminati).toEqual([]);
+    // Tutti e due i binari sono ancora nell'archivio.
+    expect(await pilot.leggiBlobDavvero(vecchio)).not.toBeNull();
+    expect(await pilot.leggiBlobDavvero(nuovo)).not.toBeNull();
+    expect(canale.api.tracciaGpx.segmenti[0]).toHaveLength(3);
+  });
+});
+
+/**
+ * Il GPX è una modifica come le altre, quindi entra nella cronologia dalla
+ * porta principale: si salva, si registra una revisione, si torna indietro.
+ */
+describe("GPX e Version History", () => {
+  it("ripristinare una revisione ricostruisce la traccia di allora", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const { idBlob: primo } = await bozzaConGpx(pilot, GPX_DUE_PUNTI, "prima.gpx");
+
+    await act(async () => {
+      await canale.api.caricaGpx(fileGpx(GPX_ALTRO, "seconda.gpx"));
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    expect(canale.api.tracciaGpx.segmenti[0]).toHaveLength(3);
+
+    // La revisione più recente conserva lo stato con il primo GPX.
+    const versoIlPrimo = canale.api.revisioni()[0];
+    expect(versoIlPrimo.ripristinabile).toBe(true);
+
+    await act(async () => {
+      await canale.api.ripristina(versoIlPrimo.n);
+    });
+    await respiro();
+
+    expect(canale.api.esito.codice).toBe(CODICI.revisioneRipristinata);
+    expect(canale.api.contenuto.mappa.gpx.idBlob).toBe(primo);
+    expect(canale.api.tracciaGpx.idBlob).toBe(primo);
+    expect(canale.api.tracciaGpx.segmenti[0]).toHaveLength(2);
+    expect(canale.api.esitoGpx.codice).toBe(CODICI.gpxRicostruito);
+  });
+
+  it("un GPX rimosso e salvato si può ancora ripristinare", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const { idBlob } = await bozzaConGpx(pilot);
+
+    await act(async () => {
+      canale.api.rimuoviGpx();
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    expect(canale.api.contenuto.mappa.gpx).toBeNull();
+
+    const versoIlGpx = canale.api.revisioni()[0];
+    await act(async () => {
+      await canale.api.ripristina(versoIlGpx.n);
+    });
+    await respiro();
+
+    // Il binario non era stato cancellato: il ritorno indietro è completo.
+    expect(canale.api.contenuto.mappa.gpx.idBlob).toBe(idBlob);
+    expect(canale.api.tracciaGpx.idBlob).toBe(idBlob);
+    expect(canale.api.tracciaGpx.segmenti[0]).toHaveLength(2);
+  });
+});
+
+describe("la politica di conservazione del binario", () => {
+  const NON_BOOLEANI = [["una stringa", "sì"], ["un numero", 1], ["null", null], ["undefined", undefined]];
+
+  it.each(NON_BOOLEANI)("rifiuta %s senza toccare contenuto e stato", async (_nome, valore) => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const prima = canale.api.contenuto;
+
+    let esito;
+    await act(async () => {
+      esito = canale.api.impostaConservaGpx(valore);
+    });
+
+    expect(esito.codice).toBe(CODICI.conservaGpxNonValida);
+    expect(canale.api.esitoGpx.codice).toBe(CODICI.conservaGpxNonValida);
+    expect(canale.api.contenuto).toBe(prima);
+    expect(canale.api.sporco).toBe(false);
+  });
+
+  it("un booleano aggiorna la politica, marca non salvato e non scrive", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const scrittureePrima = pilot.scritture.length;
+    // Il valore predefinito è conservare.
+    expect(canale.api.contenuto.mappa.conservaGpx).toBe(true);
+
+    let esito;
+    await act(async () => {
+      esito = canale.api.impostaConservaGpx(false);
+    });
+
+    expect(esito.codice).toBe(CODICI.conservaGpxAggiornata);
+    expect(canale.api.contenuto.mappa.conservaGpx).toBe(false);
+    expect(canale.api.sporco).toBe(true);
+    expect(pilot.scritture).toHaveLength(scrittureePrima);
+
+    // E si persiste come qualunque altra modifica.
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    expect((await pilot.leggiDavvero(canale.api.contenuto.id)).mappa.conservaGpx).toBe(false);
+  });
+});
+
+/**
+ * Il file resta un asset dell'attività: esce solo se qualcuno lo chiede.
+ */
+describe("il binario non esce per abitudine", () => {
+  it("il backup ordinario non contiene il GPX, quello esplicito sì", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const { idBlob } = await bozzaConGpx(pilot);
+
+    const ordinario = await pilot.archivio.esportaBackup();
+    expect(ordinario.gpx).toBeUndefined();
+    const serializzato = JSON.stringify(ordinario);
+    expect(serializzato).not.toContain("trkpt");
+    expect(serializzato).not.toContain("<gpx");
+    // Il riferimento invece c'è: è un dato della bozza.
+    expect(serializzato).toContain(idBlob);
+
+    // La prova non è vuota: chiedendolo, il file esce davvero.
+    const completo = await pilot.archivio.esportaBackup({ includiGpx: true });
+    expect(completo.gpx).toHaveLength(1);
+    expect(completo.gpx[0].contenuto).toContain("trkpt");
+  });
+});
+
+/**
+ * Togliere un GPX deve vincere anche contro un caricamento partito prima.
+ *
+ * La guardia iniziale di `rimuoviGpx` guardava solo il riferimento e la
+ * traccia, e durante il primo caricamento di una bozza vuota sono **entrambi
+ * ancora vuoti**: il gesto tornava «nessun GPX» senza invalidare nulla, e la
+ * risposta di `salvaBlob` arrivava dopo e assegnava il file a una bozza da cui
+ * era appena stato tolto.
+ */
+describe("annullare un caricamento GPX non ancora applicato", () => {
+  it("su una bozza vuota: il caricamento in volo non torna indietro", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const prima = canale.api.contenuto;
+
+    const sosta = pilot.fermaProssima("salvaBlob");
+    let caricamento;
+    await act(async () => {
+      caricamento = canale.api.caricaGpx(fileGpx(GPX_DUE_PUNTI));
+      await sosta.arrivata;
+    });
+    // La finestra del difetto: il file è già analizzato, ma non applicato.
+    expect(canale.api.contenuto.mappa.gpx).toBeNull();
+    expect(canale.api.tracciaGpx).toBeNull();
+
+    let esito;
+    await act(async () => {
+      esito = canale.api.rimuoviGpx();
+    });
+
+    expect(esito.codice).toBe(CODICI.gpxCaricamentoAnnullato);
+    // Non c'era nessun riferimento da togliere: la bozza non si sporca.
+    expect(canale.api.contenuto).toBe(prima);
+    expect(canale.api.sporco).toBe(false);
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    expect((await caricamento).codice).toBe(CODICI.gpxSuperato);
+    expect(canale.api.contenuto.mappa.gpx).toBeNull();
+    expect(canale.api.tracciaGpx).toBeNull();
+    // Il binario è nato e non lo riferisce nessuno: si ripulisce.
+    expect(pilot.blobEliminati).toEqual([pilot.blobSalvati[0]]);
+    // E l'esito resta quello del gesto, non quello della risposta tardiva.
+    expect(canale.api.esitoGpx.codice).toBe(CODICI.gpxCaricamentoAnnullato);
+  });
+
+  it("durante una sostituzione: toglie il vecchio e il nuovo non arriva", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    const { idBlob: vecchio } = await bozzaConGpx(pilot, GPX_DUE_PUNTI, "prima.gpx");
+
+    const sosta = pilot.fermaProssima("salvaBlob");
+    let caricamento;
+    await act(async () => {
+      caricamento = canale.api.caricaGpx(fileGpx(GPX_ALTRO, "seconda.gpx"));
+      await sosta.arrivata;
+    });
+
+    let esito;
+    await act(async () => {
+      esito = canale.api.rimuoviGpx();
+    });
+
+    // Qui un riferimento c'era davvero: è una rimozione, e sporca la bozza.
+    expect(esito.codice).toBe(CODICI.gpxRimosso);
+    expect(canale.api.contenuto.mappa.gpx).toBeNull();
+    expect(canale.api.tracciaGpx).toBeNull();
+    expect(canale.api.sporco).toBe(true);
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    expect((await caricamento).codice).toBe(CODICI.gpxSuperato);
+    expect(canale.api.contenuto.mappa.gpx).toBeNull();
+    expect(canale.api.tracciaGpx).toBeNull();
+    expect(canale.api.esitoGpx.codice).toBe(CODICI.gpxRimosso);
+
+    // Il vecchio binario resta — una revisione può riportarlo — e il nuovo,
+    // che non ha mai raggiunto un contenuto, se ne va.
+    const nuovo = pilot.blobSalvati.at(-1);
+    expect(nuovo).not.toBe(vecchio);
+    expect(pilot.blobEliminati).toEqual([nuovo]);
+    expect(await pilot.leggiBlobDavvero(vecchio)).not.toBeNull();
+    expect(await pilot.leggiBlobDavvero(nuovo)).toBeNull();
+  });
+
+  it("annullando mentre si legge il file, il binario non nasce nemmeno", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+
+    // La sosta sta sulla lettura del file, che non passa dall'archivio.
+    const sosta = rinviata();
+    const arrivo = rinviata();
+    const file = fileGpx(GPX_DUE_PUNTI);
+    const testoVero = file.text.bind(file);
+    file.text = async () => {
+      arrivo.risolvi();
+      await sosta.promessa;
+      return testoVero();
+    };
+
+    let caricamento;
+    await act(async () => {
+      caricamento = canale.api.caricaGpx(file);
+      await arrivo.promessa;
+    });
+
+    let esito;
+    await act(async () => {
+      esito = canale.api.rimuoviGpx();
+    });
+    expect(esito.codice).toBe(CODICI.gpxCaricamentoAnnullato);
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+
+    expect((await caricamento).codice).toBe(CODICI.gpxSuperato);
+    // L'archivio non è stato nemmeno sfiorato: nessun orfano da ripulire.
+    expect(pilot.blobChiesti).toEqual([]);
+    expect(pilot.blobSalvati).toEqual([]);
+    expect(pilot.blobEliminati).toEqual([]);
+    expect(canale.api.contenuto.mappa.gpx).toBeNull();
+    expect(canale.api.sporco).toBe(false);
+  });
+
+  it("il blocco lo libera solo chi l'ha preso, non chi annulla", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+
+    const sosta = pilot.fermaProssima("salvaBlob");
+    let caricamento;
+    await act(async () => {
+      caricamento = canale.api.caricaGpx(fileGpx(GPX_DUE_PUNTI, "prima.gpx"));
+      await sosta.arrivata;
+    });
+    await act(async () => {
+      canale.api.rimuoviGpx();
+    });
+
+    // L'operazione di prima è ancora in volo: nessun'altra parte.
+    let durante;
+    await act(async () => {
+      durante = await canale.api.caricaGpx(fileGpx(GPX_ALTRO, "seconda.gpx"));
+    });
+    expect(durante.codice).toBe(CODICI.gpxOccupato);
+    expect(pilot.blobChiesti).toEqual(["prima.gpx"]);
+
+    await act(async () => {
+      sosta.risolvi();
+      await sosta.promessa;
+    });
+    await respiro();
+    expect((await caricamento).codice).toBe(CODICI.gpxSuperato);
+
+    // Finita quella, il blocco è libero e un nuovo caricamento riesce.
+    let dopo;
+    await act(async () => {
+      dopo = await canale.api.caricaGpx(fileGpx(GPX_ALTRO, "terza.gpx"));
+    });
+
+    expect(dopo.codice).toBe(CODICI.gpxCaricato);
+    expect(canale.api.contenuto.mappa.gpx.nome).toBe("terza.gpx");
+    expect(canale.api.tracciaGpx.segmenti[0]).toHaveLength(3);
+  });
+
+  it("senza riferimento e senza niente in volo resta «nessun GPX»", async () => {
+    const pilot = archivioPilotabile();
+    await monta(pilot.archivio);
+    await act(async () => {
+      await canale.api.creaDaTour(TOUR);
+    });
+    await act(async () => {
+      await canale.api.salva();
+    });
+    await respiro();
+    const prima = canale.api.contenuto;
+
+    let esito;
+    await act(async () => {
+      esito = canale.api.rimuoviGpx();
+    });
+
+    expect(esito.codice).toBe(CODICI.nessunGpx);
+    expect(canale.api.contenuto).toBe(prima);
+    expect(canale.api.sporco).toBe(false);
+    expect(pilot.blobEliminati).toEqual([]);
   });
 });

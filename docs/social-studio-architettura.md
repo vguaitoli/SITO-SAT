@@ -1627,9 +1627,9 @@ bozza da un tour già normalizzato, scriverla, salvarla, riaprirla. Vive in
 `pianificata`, non esiste un editor né un template, e niente di quanto sta qui è
 raggiungibile dallo Studio — una prova lo verifica sui registri veri. Il modulo
 TOUR non è completato. Il nucleo — creare, scrivere, salvare, riaprire — è di
-6.3C; 6.3D vi ha aggiunto il riallineamento esplicito alla fonte (§19.6) e 6.3H
-gli slot fotografici (§19.10). Restano fuori soltanto GPX ed export, che sono
-passi successivi.
+6.3C; 6.3D vi ha aggiunto il riallineamento esplicito alla fonte (§19.6), 6.3H
+gli slot fotografici (§19.10) e 6.3I il ciclo GPX (§19.11). Resta fuori soltanto
+l'export, che è un passo successivo.
 
 ### 19.1 Che cosa espone, e perché come codici
 
@@ -1638,6 +1638,11 @@ e le operazioni `creaDaTour`, `apri`, `salva`, `scriviEditoriale`,
 `scriviFattuale`, `riallineaAllaFonte`, `confrontaConLaFonte`, `elimina`,
 `revisioni`, `ripristina`, `slotMediaDisponibili`, `leggiMedia` e `scriviMedia`
 — i cui esiti stanno in §19.6, §19.7, §19.8, §19.9 e §19.10 — e `ricarica`.
+Il ciclo GPX (§19.11) aggiunge `tracciaGpx`, `esitoGpx`, `caricaGpx`,
+`ricaricaGpx`, `rimuoviGpx` e `impostaConservaGpx`: `esitoGpx` è un **secondo
+canale**, distinto da `esito`, perché la ricostruzione della traccia è asincrona
+e arriva dopo un'apertura o un ripristino — sullo stesso canale ne coprirebbe
+l'esito.
 
 `ricarica()` è pubblica e **non rigetta**: riporta `{ codice: null }` oppure
 `{ codice: "errore-elenco" }`. Chi la chiama non deve ricordarsi di metterci un
@@ -1860,10 +1865,13 @@ rimasta.
   registra una, quindi **non va montato insieme a `EditorEvento`** sotto lo
   stesso fornitore finché quel limite non è risolto. È il vincolo da chiudere
   prima di avere due editor, non dopo.
-- **Niente GPX o export.** Deliberatamente fuori: ognuno porta con sé difese
-  proprie, e vanno aggiunte una alla volta con le loro prove. Riallineamento
-  (§19.6), confronto (§19.7), eliminazione (§19.8), cronologia (§19.9) e slot
-  fotografici (§19.10) invece ci sono.
+- **Niente export.** Deliberatamente fuori: porta con sé difese proprie, e vanno
+  aggiunte con le loro prove. Riallineamento (§19.6), confronto (§19.7),
+  eliminazione (§19.8), cronologia (§19.9), slot fotografici (§19.10) e ciclo
+  GPX (§19.11) invece ci sono.
+- **Il GPX si carica, non si disegna.** §19.11 tiene riferimento, binario e
+  geometria; non esiste nessuna mappa, nessun profilo altimetrico e nessun
+  pre-flight TOUR che li guardi.
 - **Nessuna fusione automatica.** Su risposta superata si segnala con un codice
   e si chiede di ripetere.
 - **Il riallineamento non è sorvegliato da Version History.** Accettare una
@@ -2224,3 +2232,111 @@ copia, non scarica e non assegna niente: `media.cover` resta `null`,
 `media.sfondi.tourStory` non viene creato, e i percorsi fotografici del sito
 compaiono soltanto nell'istantanea della fonte, dove §17.4 li ammette come
 riferimento testuale.
+
+### 19.11 Il ciclo GPX
+
+**Tre cose distinte, e conviene chiamarle con tre nomi diversi.**
+
+1. Il **riferimento persistito**: `mappa.gpx = { idBlob, nome, byte }`. È l'unica
+   parte che entra nel record salvato, nelle revisioni e nei backup. Lo schema
+   `riferimentoBlob` esisteva già e non è stato toccato.
+2. Il **binario privato**: il file vero, in SocialStorage, sotto un `idBlob`.
+   Non esce dal browser: `esportaBackup()` lo include solo con `includiGpx`,
+   perché un GPX è un asset dell'attività, non un allegato del contenuto.
+3. La **geometria derivata**: segmenti, waypoint, origine e metriche, che
+   `analizzaGpx` ricava dal file. Vive **soltanto in memoria**, in `tracciaGpx`,
+   e si ricostruisce ogni volta che serve.
+
+Copiare la geometria nel contenuto sarebbe più rapido, e sarebbe il modo più
+sicuro di far crescere senza controllo record, revisioni e backup: una traccia
+di qualche migliaio di punti pesa più di tutta la bozza messa insieme, e
+verrebbe duplicata a ogni revisione. Nel contenuto non entrano coordinate,
+segmenti, metriche né XML: una prova serializza la bozza e lo verifica.
+
+**Caricare: prima si analizza, poi si salva.** `caricaGpx(file)` accetta solo un
+`Blob`, ne legge il testo, lo passa ad `analizzaGpx` e **solo se regge** chiama
+`archivio.salvaBlob("gpx", …)`. L'ordine inverso lascerebbe nell'archivio il
+binario di ogni file sbagliato — un XML rotto, un PDF rinominato — senza nessun
+contenuto che lo riferisca e senza nessuno che se ne ricordi. È una modifica
+come le altre: marca la bozza non salvata e **non** scrive da sola. Non tocca
+fatti, media, fonte o testi editoriali, e i waypoint restano etichette della
+traccia: non diventano località né tappe, perché un dato derivato da un file non
+è un dato dichiarato dal sito.
+
+**Ricostruire: dopo l'apertura e dopo il ripristino.** Il riferimento dice dove
+ritrovare il file, e la geometria si rifà da lì. Non si aspetta: un binario
+lento o mancante non deve tenere in sospeso un'apertura che è già riuscita.
+Ricostruire non modifica la bozza e non la sporca. Un fallimento **non cancella
+il riferimento**: il file manca o è rotto, ma il fatto che quella bozza abbia
+quel GPX resta un dato, e buttarlo via toglierebbe l'unica traccia di che cosa
+ricaricare. Esiti distinti per ogni causa — `gpx-blob-assente`,
+`gpx-illeggibile`, `errore-archivio-gpx` — e `ricaricaGpx()` per riprovare senza
+riaprire la bozza, cioè senza passare dal dialogo del lavoro non salvato.
+
+**Le risposte tardive non parlano per la sessione nuova.** Una risposta si
+applica solo se sono ancora suoi la generazione del ciclo GPX, la sessione della
+bozza e l'`idBlob` che stava leggendo. Aprire un'altra bozza, sostituire il file,
+toglierlo o avviare un'altra operazione rendono innocua quella di prima, che
+torna `gpx-superato` **senza toccare né la traccia né l'esito** di chi è
+arrivato dopo. Le operazioni chieste da fuori sono una alla volta:
+`caricaGpx` e `ricaricaGpx` prendono un blocco e la seconda riceve
+`gpx-occupato` invece di partire alla cieca.
+
+**I binari vecchi non si cancellano.** Togliere il riferimento con `rimuoviGpx()`
+— o sostituirlo con un altro file — lascia il binario dov'è, di proposito: la
+versione già salvata può ancora riferirlo, una revisione della cronologia può
+riportarlo, e chi scarta le modifiche deve ritrovare la base di prima.
+Cancellarlo qui renderebbe impossibili quei tre ritorni indietro, e in silenzio.
+
+**Togliere vince anche contro un caricamento partito prima.** Guardare solo il
+riferimento non bastava: durante il primo caricamento di una bozza vuota,
+riferimento e traccia sono ancora entrambi nulli, e il gesto rispondeva «nessun
+GPX» senza invalidare niente — la risposta di `salvaBlob` arrivava dopo e
+assegnava il file a una bozza da cui era appena stato tolto. `rimuoviGpx()`
+distingue quindi tre situazioni:
+
+- **rimozione di un riferimento esistente** — con o senza un caricamento in
+  volo: il riferimento sparisce, la traccia si azzera, la bozza diventa non
+  salvata, e l'esito è `gpx-rimosso`;
+- **annullamento di un caricamento non ancora applicato** — nel contenuto non
+  c'era ancora niente da togliere: la traccia si azzera, il **contenuto non si
+  tocca** e la bozza non diventa «non salvata» per una modifica che non c'è
+  stata; l'esito è `gpx-caricamento-annullato`;
+- **niente riferimento e niente in volo** — `nessun-gpx`, e nulla cambia:
+  marcare non salvato per un gesto senza effetti renderebbe falso proprio lo
+  stato che serve a decidere.
+
+Il lavoro sottostante **non viene interrotto** — una lettura o una scrittura già
+partita non si può richiamare indietro — ma viene **invalidato**: chi annulla
+incrementa la generazione del ciclo GPX, e il risultato che arriverà è innocuo.
+`rimuoviGpx()` non libera il blocco: lo libera nel proprio `finally` solo
+l'operazione che l'ha preso, quindi finché quella non finisce un nuovo
+`caricaGpx`/`ricaricaGpx` continua a ricevere `gpx-occupato`. Rilasciarlo prima
+farebbe partire un secondo caricamento mentre il primo è ancora in volo, cioè
+esattamente la corsa che il blocco esiste per impedire.
+
+**Un caricamento invalidato finisce in due modi diversi**, e la differenza è
+quanto sporco lascia dietro:
+
+- **prima di `salvaBlob`** — il controllo sta un istante prima della scrittura,
+  appena dopo la lettura del file e l'analisi: il binario non nasce nemmeno, e
+  non c'è niente da ripulire;
+- **dopo che `salvaBlob` è partito** — se ne attende la risposta, il nuovo
+  binario **non** viene collegato al contenuto, e si tenta di eliminarlo come
+  orfano appena creato: è l'unico caso in cui cancellare è sicuro, perché
+  nessuno lo riferisce e nessuno lo riferirà. È un tentativo, non una garanzia —
+  un orfano è meno grave di un riferimento applicato alla bozza sbagliata — e un
+  fallimento della pulizia non produce una rejection.
+
+In entrambi i casi il caricamento torna `gpx-superato` e **non sostituisce**
+l'esito prodotto da chi ha annullato.
+
+**La politica di conservazione.** `impostaConservaGpx(valore)` accetta solo un
+booleano e scrive `mappa.conservaGpx`, come qualunque altra modifica: marca non
+salvato e non scrive da sola. Qui si registra soltanto l'intenzione; **chi
+cancella davvero sarà il capitolo dell'export**, che non esiste ancora.
+
+**Version History.** `mappa.gpx` e `mappa.conservaGpx` passano dal normale ciclo
+di salvataggio: caricare non crea revisioni, salvare ne crea una sola, e
+ripristinare una revisione con un altro riferimento — o senza — ricostruisce la
+traccia che le corrisponde. `versioni.js` non è stato toccato.
