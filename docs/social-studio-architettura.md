@@ -1628,8 +1628,20 @@ bozza da un tour già normalizzato, scriverla, salvarla, riaprirla. Vive in
 raggiungibile dallo Studio — una prova lo verifica sui registri veri. Il modulo
 TOUR non è completato. Il nucleo — creare, scrivere, salvare, riaprire — è di
 6.3C; 6.3D vi ha aggiunto il riallineamento esplicito alla fonte (§19.6), 6.3H
-gli slot fotografici (§19.10) e 6.3I il ciclo GPX (§19.11). Resta fuori soltanto
-l'export, che è un passo successivo.
+gli slot fotografici (§19.10) e 6.3I il ciclo GPX (§19.11).
+
+Conviene tenere separate due cose che è facile scambiare l'una per l'altra:
+
+- **il ciclo dati della bozza** è quello che questi capitoli hanno costruito, e
+  comprende persistenza, fonte, media e GPX. È completo nel senso che i dati di
+  una bozza TOUR si creano, si scrivono, si salvano, si riaprono, si confrontano
+  con il sito, si cancellano e si ripristinano;
+- **il modulo TOUR** è un'altra cosa, e non è completo: mancano `EditorTour`, il
+  template, la preview e il rendering, la mappa e il profilo altimetrico, il
+  pre-flight TOUR e l'export.
+
+L'export non è quindi l'unico lavoro residuo: è l'ultimo di un elenco che
+comincia dall'interfaccia. §19.5 tiene i limiti per esteso.
 
 ### 19.1 Che cosa espone, e perché come codici
 
@@ -1777,7 +1789,7 @@ l'hook proprio lì per verificarlo.
 
 ### 19.4 Che cosa è verificato
 
-`useBozzaTour.test.jsx` — 53 prove — monta l'hook sotto `FornitoreArchivio` e
+`useBozzaTour.test.jsx` monta l'hook sotto `FornitoreArchivio` e
 `FornitoreTransizione` con archivio in memoria e promesse pilotate, e confronta
 **i dati**: che cosa finisce nell'archivio e che cosa resta in memoria, non i
 messaggi. Copre creazione da tour sintetico con i campi non pubblicati ancora
