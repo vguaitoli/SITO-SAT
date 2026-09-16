@@ -324,6 +324,33 @@
         "È richiesta una minima esperienza in guida fuoristrada"
       ],
       "stages": []
+    },
+    {
+      "name": "Capodanno 2026 in Sardegna – Sette giorni fuori strada per cambiare anno",
+      "slug": "capodanno-2026-sardegna",
+      "updatedAt": "2026-09-16T00:00:00.000Z",
+      "type": "4x4",
+      "duration": "7 Giorni",
+      "distance": "560 km",
+      "level": "Facile-Medio",
+      "offroad": "75%",
+      "interest": "Sud della Sardegna: mare, montagne e strade selvagge",
+      "startLocation": "Cagliari",
+      "lunchIncluded": true,
+      "accommodation": "Pernottamento in strutture selezionate",
+      "period": "30 dicembre 2026 – 5 gennaio 2027",
+      "startDate": "2026-12-30T00:00:00.000Z",
+      "endDate": "2027-01-05T00:00:00.000Z",
+      "price": "",
+      "description": "Sette giorni per salutare l'anno che finisce nel sud della Sardegna, con le ruote fuori dall'asfalto.\nUn viaggio in 4x4 tra mare, montagne e strade selvagge: la costa del sud, l'entroterra di pietra e macchia mediterranea, i panorami che si aprono dopo l'ultima salita. Si guida con calma, si arriva dove la strada asfaltata non porta, e la sera si dorme in strutture selezionate.\nNel mezzo, il passaggio al nuovo anno e un pranzo tipico dall'allevatore, di quelli che da soli varrebbero il viaggio. Perché questo non è soltanto un viaggio: è una grande famiglia che si ritrova a fine anno.",
+      "programNote": "Il percorso si sviluppa nel sud dell'isola, con tappe giornaliere di circa 80 km fra sterrati, piste e strade panoramiche. Il programma dettagliato viene condiviso prima della partenza e può essere adattato alle condizioni del meteo e del fondo.",
+      "included": [
+        "Pranzo tipico dall'allevatore"
+      ],
+      "exclusions": [],
+      "equipment": [],
+      "stages": [],
+      "sourceUrl": ""
     }
   ]
 }
