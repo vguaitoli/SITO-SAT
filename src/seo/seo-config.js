@@ -1,4 +1,5 @@
 import { CATEGORIE } from "../data/categorie.js";
+import { HERO_IMAGES } from "../data/hero-images.js";
 import { blogPosts, getBlogPost } from "../data/blogPosts.js";
 import tourCatalogContent from "../../content/tours/index.json" with { type: "json" };
 import eventCatalogContent from "../../content/events/index.json" with { type: "json" };
@@ -293,8 +294,21 @@ function blogStructuredData(locale, post, path) {
   };
 }
 
+/**
+ * L'immagine che rappresenta un tour o un evento nelle anteprime dei link.
+ *
+ * Prima l'apertura scelta a mano, che è la stessa che vede chi apre la pagina:
+ * se qui si ripiegasse sulla tappa, condividere il link mostrerebbe una foto
+ * diversa da quella della pagina. Poi la prima tappa con foto, infine
+ * l'immagine generica della categoria.
+ */
 function catalogImage(item) {
-  return item.tappe?.find((stage) => stage.foto)?.foto || catalogFallbackImages[item.type] || DEFAULT_IMAGE;
+  return (
+    HERO_IMAGES[item.slug]?.src ||
+    item.tappe?.find((stage) => stage.foto)?.foto ||
+    catalogFallbackImages[item.type] ||
+    DEFAULT_IMAGE
+  );
 }
 
 function compactDescription(value, maxLength = 158) {
