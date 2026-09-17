@@ -11,6 +11,7 @@ import { creaLavoroExport } from "../motori/export/esporta";
 import { leggiMemoria } from "../motori/export/cattura";
 import { analizzaGpx } from "../motori/gpx";
 import { tracciaDiProva } from "./tracciaProva";
+import AnteprimaTour from "./AnteprimaTour";
 
 /**
  * Banco di prova dell'esportazione.
@@ -120,6 +121,7 @@ export default function StressTest() {
   };
 
   return (
+    <div className="space-y-8">
     <section className="border border-[var(--border-on-dark)] p-5">
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
         <h2 className="font-button text-xs uppercase tracking-[0.2em] text-[var(--accent-soft)]">
@@ -212,6 +214,10 @@ export default function StressTest() {
         </FornitoreProblemi>
       </div>
     </section>
+
+    {/* Il banco visivo TOUR: stessa area diagnostica, strumento diverso. */}
+    <AnteprimaTour />
+    </div>
   );
 }
 

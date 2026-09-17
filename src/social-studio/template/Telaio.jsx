@@ -25,6 +25,17 @@ export default function Telaio({
   sfondo,
   children,
   conLogo = true,
+  /**
+   * L'intestazione comune — marcatore della rubrica e numerazione.
+   *
+   * Sta a `margine.alto − 12` nel Post e `− 90` nella Story, cioè **fuori**
+   * dall'area di sicurezza: nel Post è una scelta grafica innocua, perché
+   * Instagram non ritaglia il 4:5, nella Story finisce dentro i ~250 px che
+   * l'interfaccia copre davvero. Una rubrica che vuole il marcatore dentro
+   * l'area utile lo spegne qui e lo disegna da sé — come fa TOUR — senza che
+   * chi il telaio lo usa già veda cambiare un pixel.
+   */
+  conIntestazione = true,
   conIsoipse = true,
   riferimento,
 }) {
@@ -78,7 +89,9 @@ export default function Telaio({
       )}
 
       {/* Intestazione: marcatore della rubrica a sinistra, numerazione a destra. */}
+      {conIntestazione && (
       <div
+        data-parte="intestazione-telaio"
         style={{
           position: "absolute",
           top: f.margine.alto - (formato === "story" ? 90 : 12),
@@ -101,6 +114,7 @@ export default function Telaio({
           </MicroEtichetta>
         )}
       </div>
+      )}
 
       {children}
 
