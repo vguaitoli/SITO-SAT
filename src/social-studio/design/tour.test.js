@@ -7,6 +7,7 @@ import {
   GEOMETRIA,
   PRIORITA,
   QUANTI_DATI,
+  STATI_FOTO,
   ZONE_INSTAGRAM,
   datiVisibili,
   fotoDelPost,
@@ -274,11 +275,30 @@ describe("quale fotografia disegna ogni formato", () => {
   it("il Post usa la cover, e non ripiega su nient'altro", () => {
     const media = { cover: ritaglio("b-cover"), esperienza: [], sfondi: { tourStory: ritaglio("b-story") } };
     const f = fotoDelPost({ media, sorgenteCover: "cover.webp" });
-    expect(f).toEqual({ sorgente: "cover.webp", ritaglio: media.cover, ripiego: false });
+    expect(f).toEqual({
+      sorgente: "cover.webp",
+      ritaglio: media.cover,
+      ripiego: false,
+      stato: STATI_FOTO.propria,
+      quale: "cover",
+    });
 
     // Senza cover non prende la Story: resta senza fotografia.
     const senzaCover = { cover: null, esperienza: [], sfondi: { tourStory: ritaglio("b-story") } };
-    expect(fotoDelPost({ media: senzaCover, sorgenteCover: null }).sorgente).toBeNull();
+    const vuoto = fotoDelPost({ media: senzaCover, sorgenteCover: null });
+    expect(vuoto.sorgente).toBeNull();
+    expect(vuoto.stato).toBe(STATI_FOTO.assente);
+  });
+
+  it("una cover assegnata che non si risolve è irrecuperabile, non assente", () => {
+    // Due guasti diversi: «non l'hai scelta» e «l'hai scelta e non c'è».
+    const media = { cover: ritaglio("b-cover"), esperienza: [], sfondi: {} };
+    const f = fotoDelPost({ media, sorgenteCover: null });
+    expect(f.sorgente).toBeNull();
+    expect(f.stato).toBe(STATI_FOTO.irrecuperabile);
+    expect(f.quale).toBe("cover");
+    // Il ritaglio resta: manca il binario, non il riferimento.
+    expect(f.ritaglio.idBlob).toBe("b-cover");
   });
 
   it("la Story preferisce il proprio slot", () => {
@@ -287,6 +307,7 @@ describe("quale fotografia disegna ogni formato", () => {
     expect(f.sorgente).toBe("story.webp");
     expect(f.ritaglio.idBlob).toBe("b-story");
     expect(f.ripiego).toBe(false);
+    expect(f.stato).toBe(STATI_FOTO.propria);
   });
 
   it("senza slot Story ripiega sulla cover, e lo dichiara", () => {
@@ -295,12 +316,68 @@ describe("quale fotografia disegna ogni formato", () => {
     expect(f.sorgente).toBe("cover.webp");
     expect(f.ritaglio.idBlob).toBe("b-cover");
     expect(f.ripiego).toBe(true);
+    expect(f.stato).toBe(STATI_FOTO.ripiego);
+    expect(f.quale).toBe("cover");
+  });
+
+  /**
+   * Il difetto A: sorgente e ritaglio di due fotografie diverse.
+   *
+   * Con lo slot Story assegnato e la sua sorgente non risolta, la selezione
+   * finiva su `conRipiegoCoverDellaRubrica`, che — vedendo lo slot pieno —
+   * restituiva il ritaglio **della Story**; e quel ritaglio veniva applicato
+   * all'URL **della cover**. Zoom 1.35 e fuoco 0.52/0.38 scelti su una
+   * fotografia, applicati a un'altra, con `ripiego: true` a raccontare un
+   * ripiego mai avvenuto.
+   */
+  it("uno slot Story assegnato e irrecuperabile non ripiega e non presta il proprio ritaglio", () => {
+    const media = { cover: ritaglio("b-cover"), esperienza: [], sfondi: { tourStory: ritaglio("b-story") } };
+    const f = fotoDellaStory({ media, sorgenteStory: null, sorgenteCover: "cover.webp" });
+
+    expect(f.sorgente).toBeNull();
+    expect(f.ripiego).toBe(false);
+    expect(f.stato).toBe(STATI_FOTO.irrecuperabile);
+    expect(f.quale).toBe("story");
+    // Il ritaglio è quello dello slot assegnato, non della cover.
+    expect(f.ritaglio.idBlob).toBe("b-story");
+  });
+
+  it("sorgente e ritaglio appartengono sempre alla stessa fotografia", () => {
+    /*
+     * La regola in forma generale, su tutte le combinazioni: quando c'è una
+     * sorgente, l'id del ritaglio è quello dello slot da cui quella sorgente
+     * proviene. È la prova che nessuna coppia può nascere incrociata.
+     */
+    const cover = ritaglio("b-cover");
+    const story = ritaglio("b-story");
+    const casi = [
+      { media: { cover, esperienza: [], sfondi: { tourStory: story } }, s: "story.webp", c: "cover.webp", atteso: "b-story" },
+      { media: { cover, esperienza: [], sfondi: {} }, s: null, c: "cover.webp", atteso: "b-cover" },
+      { media: { cover, esperienza: [], sfondi: {} }, s: "story.webp", c: "cover.webp", atteso: "b-cover" },
+      { media: { cover: null, esperienza: [], sfondi: { tourStory: story } }, s: "story.webp", c: null, atteso: "b-story" },
+    ];
+    for (const { media, s, c, atteso } of casi) {
+      const f = fotoDellaStory({ media, sorgenteStory: s, sorgenteCover: c });
+      expect(f.sorgente, JSON.stringify({ s, c })).not.toBeNull();
+      expect(f.ritaglio.idBlob, JSON.stringify({ s, c })).toBe(atteso);
+    }
   });
 
   it("senza né Story né cover non c'è fotografia", () => {
     const media = { cover: null, esperienza: [], sfondi: {} };
     const f = fotoDellaStory({ media, sorgenteStory: null, sorgenteCover: null });
-    expect(f).toEqual({ sorgente: null, ritaglio: null, ripiego: false });
+    expect(f).toEqual({
+      sorgente: null,
+      ritaglio: null,
+      ripiego: false,
+      stato: STATI_FOTO.assente,
+      quale: null,
+    });
+  });
+
+  it("gli stati sono quattro e congelati", () => {
+    expect(Object.keys(STATI_FOTO)).toEqual(["propria", "ripiego", "irrecuperabile", "assente"]);
+    expect(Object.isFrozen(STATI_FOTO)).toBe(true);
   });
 });
 

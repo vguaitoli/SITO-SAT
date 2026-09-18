@@ -1,10 +1,11 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Camera } from "lucide-react";
 import Anteprima, { FuoriSchermo } from "./Anteprima";
 import PostTour from "../template/rubriche/tour/PostTour";
 import StoryTour from "../template/rubriche/tour/StoryTour";
 import { AmbitoProblemi, FornitoreProblemi } from "../template/primitivi";
 import { cattura, scarica } from "../motori/export/cattura";
+import { preflightTour } from "../motori/preflight-tour";
 
 /**
  * Banco visivo della rubrica TOUR.
@@ -20,10 +21,20 @@ import { cattura, scarica } from "../motori/export/cattura";
  * `FuoriSchermo` lo tiene a misura reale perché html2canvas fotograferebbe
  * anche la trasformazione. Nessuna seconda versione della grafica da tenere
  * allineata.
+ *
+ * Da 6.3K il cancello è il **pre-flight TOUR** (`motori/preflight-tour.js`), e
+ * non più una guardia locale: errori che bloccano, avvisi che si superano solo
+ * dichiarandolo. Il pre-flight generale continua a rispondere
+ * `template-non-implementato` per la rubrica; qui si usa direttamente quello
+ * specifico, sui prototipi montati, senza nessun interruttore che aggiri il
+ * registro.
  */
 
 /** La fotografia è già nel repository: si usa, non si copia. */
 const FOTO_DI_PROVA = "/media/reali/4x4-guado-1800.webp";
+
+/** Ambito delle segnalazioni della copia che viene davvero fotografata. */
+const AMBITO_CATTURA = "cattura/";
 
 /**
  * Contenuto **sintetico**. Non è un tour reale e non deve sembrarlo: i numeri
@@ -68,12 +79,75 @@ const SENZA_STORY = Object.freeze({
   media: Object.freeze({ ...FIXTURE.media, sfondi: Object.freeze({}) }),
 });
 
+/** Le sole segnalazioni della copia che verrà fotografata. */
+function soloCattura(problemi) {
+  return Array.isArray(problemi)
+    ? problemi.filter((p) => String(p?.chiave ?? "").startsWith(AMBITO_CATTURA))
+    : null;
+}
+
+/**
+ * Che cosa è successo davvero caricando una sorgente.
+ *
+ * È l'evidenza che nessun dato della bozza può sostituire: un `idBlob` dimostra
+ * che qualcuno ha scelto una fotografia, non che il file esista o si carichi.
+ * Finché non si sa, lo stato è `in-corso` — mai `caricata` per omissione — e il
+ * pre-flight non autorizza.
+ *
+ * L'esito si porta dietro la **propria sorgente**, così una risposta tardiva di
+ * un indirizzo superato non può essere scambiata per la misura di quello
+ * corrente.
+ */
+function useEsitiSorgenti(sorgenti) {
+  const chiave = sorgenti.filter(Boolean).join("\u0000");
+  const [esiti, setEsiti] = useState({});
+
+  useEffect(() => {
+    if (!chiave) return undefined;
+    let vivo = true;
+    for (const sorgente of chiave.split("\u0000")) {
+      const img = new Image();
+      const prendi = () => {
+        if (!vivo || !img.naturalWidth || !img.naturalHeight) return;
+        setEsiti((p) => ({
+          ...p,
+          [sorgente]: { sorgente, stato: "caricata", larghezza: img.naturalWidth, altezza: img.naturalHeight },
+        }));
+      };
+      img.onload = prendi;
+      img.onerror = () => {
+        if (vivo) setEsiti((p) => ({ ...p, [sorgente]: { sorgente, stato: "fallita" } }));
+      };
+      img.src = sorgente;
+      // Una sorgente già in cache è `complete` subito e `onload` non scatta.
+      if (img.complete) prendi();
+    }
+    return () => {
+      vivo = false;
+    };
+  }, [chiave]);
+
+  return esiti;
+}
+
 export default function AnteprimaTour() {
   const [ripiegoStory, setRipiegoStory] = useState(false);
   const [problemi, setProblemi] = useState({ post: [], story: [] });
   const [stato, setStato] = useState(null);
+  const [daConfermare, setDaConfermare] = useState(null);
+  const [inCattura, setInCattura] = useState(null);
   const nodoPost = useRef(null);
   const nodoStory = useRef(null);
+
+  /*
+   * Il blocco della cattura, in un ref e non solo in uno stato.
+   *
+   * Lo stato arriva al render successivo; il ref vale subito, e serve perché la
+   * casella del ripiego non cambi la grafica **mentre** html2canvas la sta
+   * leggendo. Un PNG catturato a cavallo di un cambio non è né la grafica di
+   * prima né quella di dopo, e nessuno se ne accorge finché non apre il file.
+   */
+  const catturaInCorso = useRef(false);
 
   /*
    * Un registro per formato, non uno solo.
@@ -86,10 +160,10 @@ export default function AnteprimaTour() {
   const misurePost = useRef(null);
   const lettoreStory = useRef(null);
   const misureStory = useRef(null);
-  const registro = {
+  const registro = useRef({
     post: { lettore: lettorePost, misure: misurePost },
     story: { lettore: lettoreStory, misure: misureStory },
-  };
+  }).current;
 
   /*
    * Due callback **stabili**, una per formato.
@@ -106,69 +180,141 @@ export default function AnteprimaTour() {
   const raccogliStory = useCallback((elenco) => setProblemi((p) => ({ ...p, story: elenco })), []);
 
   const contenutoStory = ripiegoStory ? SENZA_STORY : FIXTURE;
+  const sorgenteStory = ripiegoStory ? null : FOTO_DI_PROVA;
+  const esitiSorgenti = useEsitiSorgenti([FOTO_DI_PROVA]);
 
   /** Le stesse prop per l'anteprima e per la cattura: costruite una volta. */
-  const propPost = useMemo(
-    () => ({ contenuto: FIXTURE, sorgenteCover: FOTO_DI_PROVA }),
-    [],
-  );
+  const propPost = useMemo(() => ({ contenuto: FIXTURE, sorgenteCover: FOTO_DI_PROVA }), []);
   const propStory = useMemo(
-    () => ({
-      contenuto: contenutoStory,
-      sorgenteStory: ripiegoStory ? null : FOTO_DI_PROVA,
-      sorgenteCover: FOTO_DI_PROVA,
+    () => ({ contenuto: contenutoStory, sorgenteStory, sorgenteCover: FOTO_DI_PROVA }),
+    [contenutoStory, sorgenteStory],
+  );
+
+  /** Contenuto, formato e sorgenti risolte di un formato: una definizione sola. */
+  const ingredienti = useCallback(
+    (quale) => ({
+      contenuto: quale === "post" ? FIXTURE : contenutoStory,
+      formato: quale,
+      sorgenti: { cover: FOTO_DI_PROVA, story: quale === "post" ? null : sorgenteStory },
     }),
-    [contenutoStory, ripiegoStory],
+    [contenutoStory, sorgenteStory],
+  );
+
+  /** L'evidenza sulla fotografia che quel formato disegna davvero. */
+  const esitoFoto = useCallback(
+    (quale) => {
+      // La scelta la fa `design/tour.js`, attraverso il pre-flight: qui non si
+      // riscrive quale fotografia va su quale formato.
+      const scelta = preflightTour(ingredienti(quale)).selezione;
+      const sorgente = scelta?.sorgente;
+      if (!sorgente) return null;
+      return esitiSorgenti[sorgente] || { sorgente, stato: "in-corso" };
+    },
+    [ingredienti, esitiSorgenti],
   );
 
   /**
-   * Perché **non** si può fotografare adesso, o `null` se si può.
+   * Il controllo, sulla lettura **sincrona** del registro.
    *
-   * Fail-closed: un registro che non risponde è motivo sufficiente per non
-   * scattare. La geometria della fotografia dipende dalle dimensioni del file,
-   * e un clic nella finestra sbagliata produceva un PNG senza fotografia,
-   * scaricato e annunciato come riuscito — il modo più costoso di sbagliare,
-   * perché nessuno se ne accorge finché non apre il file.
-   *
-   * Non è il pre-flight TOUR, che non esiste: è il cancello di uno strumento.
+   * `onProblemi` raggruppa a 80 ms e va benissimo per ridisegnare un pannello;
+   * per decidere adesso se si può fotografare serve il registro com'è adesso.
+   * Se il fornitore non ha depositato lettore e misure non si inventa uno zero:
+   * si passa `null`, e il pre-flight tratta l'evidenza come assente.
    */
-  const perchePronta = (quale) => {
-    const { lettore, misure } = registro[quale];
-    if (typeof misure.current !== "function" || typeof lettore.current !== "function") {
-      return "Il registro delle misure non risponde: non si fotografa alla cieca.";
-    }
-    const inSospeso = misure.current();
-    if (inSospeso > 0) {
-      return `La grafica non è ancora pronta: ${inSospeso} misura${inSospeso === 1 ? "" : "e"} in sospeso, di solito le fotografie che stanno caricando. Riprova fra un istante.`;
-    }
-    const errori = lettore.current().filter((p) => p.livello === "errore");
-    if (errori.length) {
-      return `La grafica ha ${errori.length} problema${errori.length === 1 ? "" : "i"} da chiudere prima: ${errori[0].messaggio}`;
-    }
-    return null;
+  const verifica = useCallback(
+    (quale, conferma = null) => {
+      const { lettore, misure } = registro[quale];
+      const rispondono =
+        typeof lettore.current === "function" && typeof misure.current === "function";
+      return preflightTour({
+        ...ingredienti(quale),
+        problemi: rispondono ? soloCattura(lettore.current()) : null,
+        evidenze: rispondono
+          ? { formato: quale, misureInSospeso: misure.current(), foto: esitoFoto(quale) }
+          : null,
+        conferma,
+      });
+    },
+    [registro, ingredienti, esitoFoto],
+  );
+
+  /**
+   * Il pannello, sul canale raggruppato.
+   *
+   * Stessa funzione pura del cancello, ingressi più lenti: qui l'aggiornamento
+   * a 80 ms è un pregio, perché il pannello si ridisegna quando il registro si
+   * è assestato invece che a ogni singola misura. Le misure in sospeso non
+   * entrano nel rapporto: sono una condizione istantanea della cattura, non un
+   * problema del contenuto da mostrare in elenco.
+   */
+  const rapporto = useMemo(
+    () =>
+      ["post", "story"].map((quale) => ({
+        quale,
+        esito: preflightTour({
+          ...ingredienti(quale),
+          problemi: soloCattura(problemi[quale]),
+          evidenze: { formato: quale, misureInSospeso: 0, foto: esitoFoto(quale) },
+        }),
+      })),
+    [ingredienti, esitoFoto, problemi],
+  );
+
+  const fotografa = useCallback(
+    async (quale, conferma = null) => {
+      // Una cattura alla volta: la seconda leggerebbe un DOM in movimento.
+      if (catturaInCorso.current) return;
+
+      const controllo = verifica(quale, conferma);
+      if (!controllo.puoiCatturare) {
+        if (controllo.richiedeConferma) {
+          setDaConfermare({ quale, avvisi: controllo.avvisi, impronta: controllo.impronta });
+          setStato(null);
+        } else {
+          setDaConfermare(null);
+          setStato({
+            tipo: "bloccata",
+            quale,
+            nota: `${controllo.errori.length} ${controllo.errori.length === 1 ? "controllo non passato" : "controlli non passati"}: ${controllo.errori[0].messaggio}`,
+          });
+        }
+        return;
+      }
+
+      setDaConfermare(null);
+      catturaInCorso.current = true;
+      setInCattura(quale);
+      setStato({ tipo: "in-corso", quale });
+      try {
+        const nodo = quale === "post" ? nodoPost.current : nodoStory.current;
+        const esito = await cattura(nodo, { formato: quale });
+        scarica(esito.blob, `tour-prova-${quale}.png`);
+        setStato({
+          tipo: "fatto",
+          quale,
+          nota: `${esito.larghezza}×${esito.altezza} · ${Math.round(esito.blob.size / 1024)} kB · ${esito.ms} ms`,
+        });
+      } catch (e) {
+        setStato({ tipo: "errore", quale, nota: `${e.name}: ${e.message}` });
+      } finally {
+        // Anche in errore: il blocco lo libera chi l'ha preso, sempre.
+        catturaInCorso.current = false;
+        setInCattura(null);
+      }
+    },
+    [verifica],
+  );
+
+  /** La configurazione non si tocca finché la cattura non è conclusa. */
+  const bloccato = inCattura !== null;
+  const cambiaRipiego = (valore) => {
+    if (catturaInCorso.current) return;
+    // Cambiare la configurazione annulla una conferma data su quella di prima.
+    setDaConfermare(null);
+    setRipiegoStory(valore);
   };
 
-  const fotografa = async (quale) => {
-    const nodo = quale === "post" ? nodoPost.current : nodoStory.current;
-    const ostacolo = perchePronta(quale);
-    if (ostacolo) {
-      // Nessuna cattura, nessun download, nessun falso esito riuscito.
-      setStato({ tipo: "non-pronta", quale, nota: ostacolo });
-      return;
-    }
-    setStato({ tipo: "in-corso", quale });
-    try {
-      const esito = await cattura(nodo, { formato: quale });
-      scarica(esito.blob, `tour-prova-${quale}.png`);
-      setStato({
-        tipo: "fatto",
-        quale,
-        nota: `${esito.larghezza}×${esito.altezza} · ${Math.round(esito.blob.size / 1024)} kB · ${esito.ms} ms`,
-      });
-    } catch (e) {
-      setStato({ tipo: "errore", quale, nota: `${e.name}: ${e.message}` });
-    }
-  };
+  const buono = stato?.tipo === "fatto" || stato?.tipo === "in-corso";
 
   return (
     <section className="border border-[var(--border-on-dark)] p-5">
@@ -188,47 +334,76 @@ export default function AnteprimaTour() {
       </p>
 
       <div className="mb-5 flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={() => fotografa("post")}
-          disabled={stato?.tipo === "in-corso"}
-          className="btn-mech inline-flex items-center gap-2 bg-[var(--cta)] px-4 py-2.5 text-sm text-[var(--cta-text)] transition-colors hover:bg-[var(--cta-hover)] disabled:opacity-50"
-        >
-          <Camera size={15} aria-hidden="true" />
-          tour-prova-post.png
-        </button>
-
-        <button
-          type="button"
-          onClick={() => fotografa("story")}
-          disabled={stato?.tipo === "in-corso"}
-          className="btn-mech inline-flex items-center gap-2 bg-[var(--cta)] px-4 py-2.5 text-sm text-[var(--cta-text)] transition-colors hover:bg-[var(--cta-hover)] disabled:opacity-50"
-        >
-          <Camera size={15} aria-hidden="true" />
-          tour-prova-story.png
-        </button>
+        {["post", "story"].map((quale) => (
+          <button
+            key={quale}
+            type="button"
+            onClick={() => fotografa(quale)}
+            disabled={bloccato}
+            className="btn-mech inline-flex items-center gap-2 bg-[var(--cta)] px-4 py-2.5 text-sm text-[var(--cta-text)] transition-colors hover:bg-[var(--cta-hover)] disabled:opacity-50"
+          >
+            <Camera size={15} aria-hidden="true" />
+            tour-prova-{quale}.png
+          </button>
+        ))}
 
         <label className="inline-flex cursor-pointer items-center gap-2 font-body text-xs text-granite-mist/70">
           <input
             type="checkbox"
             checked={ripiegoStory}
-            onChange={(e) => setRipiegoStory(e.target.checked)}
+            disabled={bloccato}
+            onChange={(e) => cambiaRipiego(e.target.checked)}
           />
           Story senza slot proprio (ripiego sulla cover)
         </label>
       </div>
 
+      {daConfermare && (
+        <div className="mb-4 border-l-2 border-[var(--accent)] pl-3">
+          <p className="font-body text-sm text-granite-mist/80">
+            {daConfermare.quale === "post" ? "Post" : "Story"}: nessun errore, ma{" "}
+            {daConfermare.avvisi.length === 1
+              ? "un avviso"
+              : `${daConfermare.avvisi.length} avvisi`}{" "}
+            da leggere prima di esportare.
+          </p>
+          <ul className="mt-1 space-y-0.5 font-body text-xs text-granite-mist/65">
+            {daConfermare.avvisi.map((a) => (
+              <li key={a.id}>· {a.messaggio}</li>
+            ))}
+          </ul>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => fotografa(daConfermare.quale, { impronta: daConfermare.impronta })}
+              className="btn-mech border border-[var(--border-on-dark)] px-3 py-1.5 font-button text-[11px] uppercase tracking-[0.15em] text-granite-mist/80"
+            >
+              Esporta comunque
+            </button>
+            {/* «Riprova» rifà i controlli **tutti**, senza portarsi dietro la
+                conferma: un avviso superato non vale per la volta dopo. */}
+            <button
+              type="button"
+              onClick={() => fotografa(daConfermare.quale)}
+              className="btn-mech border border-[var(--border-on-dark)] px-3 py-1.5 font-button text-[11px] uppercase tracking-[0.15em] text-granite-mist/80"
+            >
+              Riprova
+            </button>
+          </div>
+        </div>
+      )}
+
       {stato && (
         <p
           className="mb-4 border-l-2 pl-3 font-body text-sm"
           style={{
-            borderColor: stato.tipo === "fatto" || stato.tipo === "in-corso" ? "var(--accent)" : "#C0453B",
-            color: stato.tipo === "fatto" || stato.tipo === "in-corso" ? "rgba(245,235,217,0.8)" : "#E2857A",
+            borderColor: buono ? "var(--accent)" : "#C0453B",
+            color: buono ? "rgba(245,235,217,0.8)" : "#E2857A",
           }}
         >
           {stato.tipo === "in-corso" && `Cattura ${stato.quale} in corso…`}
           {stato.tipo === "fatto" && `tour-prova-${stato.quale}.png · ${stato.nota}`}
-          {(stato.tipo === "errore" || stato.tipo === "non-pronta") && stato.nota}
+          {(stato.tipo === "errore" || stato.tipo === "bloccata") && stato.nota}
         </p>
       )}
 
@@ -280,15 +455,48 @@ export default function AnteprimaTour() {
         </FornitoreProblemi>
       </div>
 
-      {[...problemi.post, ...problemi.story].length > 0 && (
-        <ul className="mt-5 space-y-1 font-body text-xs text-granite-mist/70">
-          {[...problemi.post, ...problemi.story].map((p) => (
-            <li key={p.chiave}>
-              <span className="text-[var(--accent)]">{p.livello}</span> · {p.chiave} · {p.messaggio}
+      <Pannello rapporto={rapporto} />
+    </section>
+  );
+}
+
+/**
+ * Il rapporto del pre-flight, per formato.
+ *
+ * **La riga porta il formato.** I due registri sono separati e le chiavi
+ * nascono uguali — la fotografia del Post è `foto` e quella della Story è
+ * `foto` — quindi concatenare i due elenchi e usare la chiave come key di React
+ * significava due righe diverse con la stessa identità: React protestava, e la
+ * lista poteva riusare la riga sbagliata quando l'elenco cambiava. Il registro
+ * condiviso resta com'è; l'identità del formato si aggiunge **qui**, dove la
+ * lista si costruisce.
+ */
+function Pannello({ rapporto }) {
+  const righe = rapporto.flatMap(({ quale, esito }) =>
+    esito.esiti
+      .filter((e) => e.livello !== "ok")
+      // Lo spread sta **prima**: la chiave composta deve vincere su `e.id`.
+      .map((e) => ({ ...e, quale, chiave: `${quale}/${e.id}` })),
+  );
+  const passati = rapporto.reduce(
+    (n, { esito }) => n + esito.esiti.filter((e) => e.livello === "ok").length,
+    0,
+  );
+
+  return (
+    <div className="mt-5 font-body text-xs text-granite-mist/70">
+      {righe.length === 0 ? (
+        <p>Pre-flight TOUR: {passati} controlli passati, nessun problema.</p>
+      ) : (
+        <ul className="space-y-1">
+          {righe.map((r) => (
+            <li key={r.chiave}>
+              <span className="text-[var(--accent)]">{r.livello}</span> ·{" "}
+              <span className="uppercase tracking-[0.12em]">{r.quale}</span> · {r.messaggio}
             </li>
           ))}
         </ul>
       )}
-    </section>
+    </div>
   );
 }

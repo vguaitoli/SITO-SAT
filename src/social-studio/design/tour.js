@@ -1,9 +1,5 @@
 import { FORMATI, areaUtile, dentroAreaSicura } from "./formati";
-import {
-  conRipiegoCoverDellaRubrica,
-  leggiSlotDellaRubrica,
-  slotDellaRubricaPieno,
-} from "../media/slot";
+import { leggiSlotDellaRubrica, slotDellaRubricaPieno } from "../media/slot";
 
 /**
  * I parametri della rubrica TOUR: geometria, dati, etichette.
@@ -294,34 +290,80 @@ export const RESPIRO_BLOCCO_MARCHIO = RESPIRO.blocoMarchio;
  * ================================================================== */
 
 /**
- * Quale fotografia disegna la Story, e se è la propria o un ripiego.
+ * Gli stati in cui può trovarsi la fotografia di un formato.
  *
- * Il ripiego sulla cover è **solo di rendering**: `slotDellaRubricaPieno`
- * continua a dire che lo slot Story è vuoto, perché lo è, e la Media Library
- * non racconta di avere una fotografia che nessuno ha scelto. Chi ripiega lo
- * dichiara, così il futuro pre-flight può trasformarlo in un avviso:
- * l'inquadratura della cover è pensata per il 4:5 e qui finisce su una tela 9:16.
+ * Servono a distinguere tre assenze che non sono la stessa cosa: non aver
+ * assegnato niente, aver assegnato qualcosa che non si riesce a risolvere, e
+ * aver scelto di ripiegare. La prima è una bozza incompleta, la seconda un
+ * guasto, la terza una scelta — e il pre-flight le tratta in tre modi diversi.
+ */
+export const STATI_FOTO = Object.freeze({
+  propria: "propria",
+  ripiego: "ripiego",
+  irrecuperabile: "irrecuperabile",
+  assente: "assente",
+});
+
+/**
+ * Quale fotografia disegna la Story, e a che titolo.
+ *
+ * **Sorgente e ritaglio appartengono sempre allo stesso file.** Non era così:
+ * con lo slot Story assegnato e la sua sorgente non risolta, la funzione
+ * arrivava a `conRipiegoCoverDellaRubrica`, che — vedendo lo slot pieno —
+ * restituiva il ritaglio *della Story*, e quel ritaglio veniva applicato
+ * all'URL *della cover*. Zoom e punto focale di una fotografia finivano
+ * addosso a un'altra: l'inquadratura era sbagliata e niente lo diceva, perché
+ * `ripiego: true` raccontava un ripiego che in realtà non era avvenuto.
+ *
+ * Il ripiego esiste solo dove è una scelta: **slot Story vuoto**. Uno slot
+ * assegnato che non si riesce a risolvere non ripiega su niente — restituisce
+ * `sorgente: null` con il proprio ritaglio e si dichiara `irrecuperabile`, e
+ * il pre-flight ne fa un errore bloccante. Coprire un guasto con la cover
+ * significherebbe pubblicare una fotografia che nessuno ha scelto per quel
+ * formato, senza che nessuno se ne accorga.
+ *
+ * Il ripiego resta **solo di rendering**: `slotDellaRubricaPieno` continua a
+ * dire che lo slot Story è vuoto, perché lo è, e la Media Library non racconta
+ * di avere una fotografia che nessuno ha scelto.
+ *
+ * @returns {{sorgente: string|null, ritaglio: object|null, ripiego: boolean,
+ *            stato: string, quale: "cover"|"story"|null}}
  */
 export function fotoDellaStory({ media, sorgenteStory, sorgenteCover }) {
-  if (slotDellaRubricaPieno(CATEGORIA, media, "story") && sorgenteStory) {
-    return {
-      sorgente: sorgenteStory,
-      ritaglio: leggiSlotDellaRubrica(CATEGORIA, media, "story"),
-      ripiego: false,
-    };
+  const propria = leggiSlotDellaRubrica(CATEGORIA, media, "story");
+  if (slotDellaRubricaPieno(CATEGORIA, media, "story")) {
+    // Assegnata: comanda lei, in un modo o nell'altro. Nessun ripiego.
+    return sorgenteStory
+      ? { sorgente: sorgenteStory, ritaglio: propria, ripiego: false, stato: STATI_FOTO.propria, quale: "story" }
+      : { sorgente: null, ritaglio: propria, ripiego: false, stato: STATI_FOTO.irrecuperabile, quale: "story" };
   }
-  const cover = conRipiegoCoverDellaRubrica(CATEGORIA, media, "story");
-  if (cover && sorgenteCover) {
-    return { sorgente: sorgenteCover, ritaglio: cover, ripiego: true };
+
+  const cover = leggiSlotDellaRubrica(CATEGORIA, media, "cover");
+  if (cover?.idBlob) {
+    // Il ritaglio è quello della cover, che è la fotografia che si disegna.
+    return sorgenteCover
+      ? { sorgente: sorgenteCover, ritaglio: cover, ripiego: true, stato: STATI_FOTO.ripiego, quale: "cover" }
+      : { sorgente: null, ritaglio: cover, ripiego: false, stato: STATI_FOTO.irrecuperabile, quale: "cover" };
   }
-  return { sorgente: null, ritaglio: null, ripiego: false };
+
+  return { sorgente: null, ritaglio: null, ripiego: false, stato: STATI_FOTO.assente, quale: null };
 }
 
-/** La fotografia del Post: la cover, e nient'altro. Nessun ripiego. */
+/**
+ * La fotografia del Post: la cover, e nient'altro. Nessun ripiego.
+ *
+ * Prendere la fotografia della Story quando manca la cover sarebbe il ripiego
+ * al contrario: la Story è 9:16 e il Post 4:5, e l'inquadratura non si
+ * trasporta. Una cover assegnata che non si risolve resta `irrecuperabile` —
+ * il suo ritaglio esce lo stesso, perché è il riferimento che manca, non il
+ * dato — e non diventa un'assenza qualunque.
+ */
 export function fotoDelPost({ media, sorgenteCover }) {
   const cover = leggiSlotDellaRubrica(CATEGORIA, media, "cover");
-  if (cover?.idBlob && sorgenteCover) {
-    return { sorgente: sorgenteCover, ritaglio: cover, ripiego: false };
+  if (!cover?.idBlob) {
+    return { sorgente: null, ritaglio: cover || null, ripiego: false, stato: STATI_FOTO.assente, quale: null };
   }
-  return { sorgente: null, ritaglio: cover || null, ripiego: false };
+  return sorgenteCover
+    ? { sorgente: sorgenteCover, ritaglio: cover, ripiego: false, stato: STATI_FOTO.propria, quale: "cover" }
+    : { sorgente: null, ritaglio: cover, ripiego: false, stato: STATI_FOTO.irrecuperabile, quale: "cover" };
 }

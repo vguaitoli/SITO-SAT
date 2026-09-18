@@ -345,3 +345,19 @@ export function preflight(contesto) {
   const avvisi = esiti.filter((e) => e.livello === "avviso");
   return { esiti, errori, avvisi, puoiEsportare: errori.length === 0 };
 }
+
+/**
+ * I due controlli comuni che anche il pre-flight TOUR riusa, e il costruttore
+ * di voce.
+ *
+ * Sono esportati, non copiati: `sfori` è il canale attraverso cui arrivano le
+ * misure vere dei template — un titolo che non entra, un claim omesso, una
+ * fotografia che non si è caricata — e `font` è la promessa di non sostituire
+ * un carattere in silenzio. Riscriverli per TOUR avrebbe prodotto due giudizi
+ * sullo stesso fatto, liberi di divergere.
+ *
+ * `preflight` non cambia: la lista `CONTROLLI` è la stessa, e `coerenzaTemplate`
+ * — quindi `template-non-implementato` per TOUR finché non sarà registrata —
+ * resta dov'è. Nessuna scorciatoia per aggirarlo.
+ */
+export { font as controlloFont, sfori as controlloSfori, voce };

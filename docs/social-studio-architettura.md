@@ -1628,17 +1628,24 @@ bozza da un tour già normalizzato, scriverla, salvarla, riaprirla. Vive in
 raggiungibile dallo Studio — una prova lo verifica sui registri veri. Il modulo
 TOUR non è completato. Il nucleo — creare, scrivere, salvare, riaprire — è di
 6.3C; 6.3D vi ha aggiunto il riallineamento esplicito alla fonte (§19.6), 6.3H
-gli slot fotografici (§19.10) e 6.3I il ciclo GPX (§19.11).
+gli slot fotografici (§19.10), 6.3I il ciclo GPX (§19.11), 6.3J i prototipi
+diagnostici Post e Story (§19.12) e 6.3K il pre-flight TOUR (§19.13).
 
-Conviene tenere separate due cose che è facile scambiare l'una per l'altra:
+Conviene tenere separate quattro cose che è facile scambiare l'una per l'altra:
 
-- **il ciclo dati della bozza** è quello che questi capitoli hanno costruito, e
-  comprende persistenza, fonte, media e GPX. È completo nel senso che i dati di
-  una bozza TOUR si creano, si scrivono, si salvano, si riaprono, si confrontano
-  con il sito, si cancellano e si ripristinano;
-- **il modulo TOUR** è un'altra cosa, e non è completo: mancano `EditorTour`, il
-  template, la preview e il rendering, la mappa e il profilo altimetrico, il
-  pre-flight TOUR e l'export.
+- **il ciclo dati della bozza** — *disponibile*. Persistenza, fonte, media e
+  GPX: i dati di una bozza TOUR si creano, si scrivono, si salvano, si
+  riaprono, si confrontano con il sito, si cancellano e si ripristinano;
+- **i prototipi Post e Story** — *presenti, e diagnostici*. §19.12. Esistono, si
+  guardano a misura reale e producono due PNG dal banco di prova. **Non sono
+  registrati**: il registro dei template non li contiene, quindi nessun flusso
+  normale li raggiunge;
+- **il pre-flight TOUR** — *introdotto*. §19.13. Controlli specifici della
+  rubrica, con lo stesso contratto del pre-flight generale, usati dal banco come
+  cancello prima della cattura;
+- **editor, registrazione ed export normale** — *ancora assenti*. Mancano
+  `EditorTour`, la registrazione dei template, la mappa e il profilo
+  altimetrico, e l'esportazione del pacchetto.
 
 L'export non è quindi l'unico lavoro residuo: è l'ultimo di un elenco che
 comincia dall'interfaccia. §19.5 tiene i limiti per esteso.
@@ -1871,8 +1878,11 @@ rimasta.
 
 ### 19.5 I limiti
 
-- **Non è un editor.** Nessuna interfaccia, nessun template, nessuna variante,
-  nessun pre-flight TOUR. TOUR resta `pianificata` e non selezionabile.
+- **Non è un editor.** Nessuna interfaccia e nessuna registrazione. I template
+  esistono come prototipi diagnostici (§19.12) e il pre-flight specifico esiste
+  (§19.13), ma il registro non li contiene: TOUR resta `pianificata` e non
+  selezionabile, e il pre-flight **generale** continua a rispondere
+  `template-non-implementato`.
 - **Una guardia sola.** Il fornitore ne tiene una (§18.6): questo hook ne
   registra una, quindi **non va montato insieme a `EditorEvento`** sotto lo
   stesso fornitore finché quel limite non è risolto. È il vincolo da chiudere
@@ -1882,8 +1892,9 @@ rimasta.
   eliminazione (§19.8), cronologia (§19.9), slot fotografici (§19.10) e ciclo
   GPX (§19.11) invece ci sono.
 - **Il GPX si carica, non si disegna.** §19.11 tiene riferimento, binario e
-  geometria; non esiste nessuna mappa, nessun profilo altimetrico e nessun
-  pre-flight TOUR che li guardi.
+  geometria; non esiste nessuna mappa e nessun profilo altimetrico. I prototipi
+  non li disegnano, quindi il pre-flight TOUR **non li richiede**: pretendere un
+  GPX bloccherebbe l'esportazione per qualcosa che nessuno sta disegnando.
 - **Nessuna fusione automatica.** Su risposta superata si segnala con un codice
   e si chiede di ripetere.
 - **Il riallineamento non è sorvegliato da Version History.** Accettare una
@@ -2352,3 +2363,154 @@ cancella davvero sarà il capitolo dell'export**, che non esiste ancora.
 di salvataggio: caricare non crea revisioni, salvare ne crea una sola, e
 ripristinare una revisione con un altro riferimento — o senza — ricostruisce la
 traccia che le corrisponde. `versioni.js` non è stato toccato.
+
+### 19.12 I prototipi Post e Story, e perché restano diagnostici
+
+6.3J ha costruito le due grafiche. La geometria sta in `design/tour.js`, in
+numeri e non in prosa: blocchi a posizione fissa ancorati in basso, area di
+sicurezza, zone che Instagram copre davvero nella Story, priorità e numero dei
+dati per formato. **TOUR non eredita nulla da EVENTI** — né palette, né
+struttura, né componenti — e una prova legge i file per verificarlo.
+
+Il telaio comune ha guadagnato `conIntestazione`, che solo TOUR spegne: il
+telaio mette la propria intestazione fuori dall'area di sicurezza, e per TOUR il
+marcatore è informazione leggibile che sta dentro l'area utile. Chi il telaio lo
+usa già non vede cambiare un pixel.
+
+**La fotografia non poteva restare a `object-fit`.** html2canvas 1.4.1 non lo
+legge, e nel solo PNG l'immagine usciva deformata: `template/geometria-foto.js`
+rifà la copertura in pixel espliciti — una scala sola per i due assi — e `Foto`
+la usa quando riceve le dimensioni del riquadro. Il percorso `object-fit` resta
+intatto per EVENTI.
+
+`app/AnteprimaTour.jsx` è il banco: monta **lo stesso componente con le stesse
+prop** per l'anteprima ridotta e per la copia catturata, con due ambiti di
+segnalazione distinti, e lavora su una fixture dichiaratamente sintetica.
+
+Resta diagnostico per una ragione precisa: `registro-template.js` non contiene
+nessuna voce `tour`, quindi `statoRubrica("tour")` risponde `pianificata` e il
+pre-flight generale risponde `template-non-implementato`. Registrare i template
+senza editor prometterebbe un flusso che si interrompe a metà.
+
+### 19.13 Il pre-flight TOUR
+
+`motori/preflight-tour.js`. Stesso contratto del pre-flight generale — voci con
+`livello`, `id` e `messaggio`, errori che bloccano e avvisi che si superano solo
+consapevolmente — e due controlli comuni **riusati invece che riscritti**:
+`controlloSfori`, da cui arrivano le misure vere dei template, e `controlloFont`.
+Riscriverli avrebbe prodotto due giudizi sullo stesso fatto, liberi di divergere.
+
+**Non registra TOUR e non la abilita.** Il pre-flight generale continua a
+rispondere `template-non-implementato`; questo modulo non lo aggira e non espone
+nessun interruttore per farlo. Il banco usa direttamente il controllo specifico,
+sui prototipi montati.
+
+**Due domande diverse, due gruppi di controlli.**
+
+*Sul contenuto* si risponde leggendo la bozza: titolo effettivamente disegnato
+non vuoto (§19.13.2); CTA editoriale non vuota, mai ricavata dall'URL, che è un
+dato operativo e resta fuori dalla grafica; almeno due dati visibili nel Post e
+uno nella Story, senza inventarne e senza aggiungere unità a valori che non ne
+hanno; la cover per il Post, che non ripiega sulla fotografia della Story; per la
+Story la propria fotografia oppure la cover di ripiego, che è un avviso; i
+rettangoli canonici dentro l'area di sicurezza e, nella Story, sopra le due fasce
+di Instagram — sticker 1580–1760, risposta 1760–1920. La selezione dei dati e
+delle fotografie è quella di `design/tour.js`: nessuna seconda implementazione
+delle priorità.
+
+*Sulle evidenze del renderer* si risponde solo guardando che cosa è successo
+mentre si disegnava, ed è la parte che non si può dedurre. **Un `idBlob` presente
+dimostra che qualcuno ha scelto una fotografia, non che il binario esista o che
+l'immagine si carichi; e un registro vuoto può voler dire «nessun problema»
+oppure «nessuno ha ancora misurato», che sono situazioni opposte.** Evidenze
+assenti, in sospeso, malformate o riferite a un'altra sorgente non producono mai
+un via libera. Fra le evidenze c'è anche la **risoluzione disegnata**
+(§19.13.3), che dipende da come la fotografia viene ritagliata e non dalla sua
+larghezza nominale.
+
+**Il claim.** Vuoto è un'assenza legittima e non produce niente; omesso perché
+non entra è un **avviso del template**, che quella misura la fa sui font
+caricati e alla larghezza reale. Qui non c'è nessuna soglia di caratteri che
+possa contraddirlo. Stessa logica per titolo, dati e CTA che non entrano: sono
+errori, e arrivano dalle misure vere attraverso `controlloSfori`.
+
+**Nessun requisito GPX, mappa o altimetria**: i prototipi non li disegnano.
+
+**Nessun errore non è autorizzazione.** `senzaErrori` dice che niente blocca;
+`puoiCatturare` richiede in più che gli avvisi siano stati confermati **per
+questa** configurazione. La conferma porta l'impronta di ciò che è stato
+verificato — formato, testi, dati, fotografia con il suo ritaglio, condizioni
+osservate nel renderer, avvisi superati — e qualunque cambiamento la rende
+inservibile. Nel banco: gli errori non offrono nessuna scorciatoia, gli avvisi
+mostrano «Esporta comunque», e «Riprova» rifà i controlli **tutti**, senza
+portarsi dietro la conferma.
+
+#### 19.13.1 Tre difetti del banco, corretti prima di collegarlo
+
+**Sorgente e ritaglio di due fotografie diverse.** Con lo slot Story assegnato e
+la sua sorgente non risolta, `fotoDellaStory` arrivava al ripiego, che — vedendo
+lo slot pieno — restituiva il ritaglio *della Story* applicato all'URL *della
+cover*: zoom e punto focale scelti su una fotografia, addosso a un'altra, con
+`ripiego: true` a raccontare un ripiego mai avvenuto. Ora il ripiego esiste solo
+dove è una scelta — slot Story vuoto — e uno slot assegnato che non si risolve
+si dichiara `irrecuperabile`, che il pre-flight rende errore bloccante. La
+selezione espone `stato` (`propria`, `ripiego`, `irrecuperabile`, `assente`) e
+`quale`, e **sorgente e ritaglio appartengono sempre allo stesso file**.
+
+**La configurazione cambiava mentre la si fotografava.** I bottoni erano
+disabilitati durante la cattura, la casella del ripiego no. html2canvas legge il
+DOM mentre il PNG si forma: spuntarla a metà strada sostituiva la fotografia
+sotto la macchina fotografica, e il file usciva con una grafica che non è né
+quella di prima né quella di dopo. Il blocco sta in un ref — vale subito, non al
+render successivo — e si libera nel `finally` di chi l'ha preso, anche in errore.
+
+**Due registri, una chiave sola.** Il pannello concatenava i problemi dei due
+formati e usava la chiave del registro come `key` di React, ma i due registri
+sono separati e le chiavi nascono uguali: la fotografia del Post è `foto` e
+quella della Story è `foto`. Due voci diverse con la stessa identità. Il registro
+condiviso resta com'è; l'identità del formato si aggiunge dove la lista si
+costruisce.
+
+#### 19.13.2 Il titolo giudicato è quello disegnato
+
+`PostTour` e `StoryTour` scelgono il titolo con `titoloBreve || nome || ""`, e in
+JavaScript **una stringa di spazi è truthy**: con `editoriale.titoloBreve` a
+`" "` il ripiego su `fattuali.nome` non scatta, e la grafica esce con il blocco
+più grande vuoto.
+
+Il pre-flight applicava `trim` *prima* del ripiego, quindi selezionava il nome e
+approvava «Nome Di Prova» mentre il PNG non conteneva nessun titolo: giudicava un
+titolo diverso da quello pubblicato. Adesso **seleziona esattamente come il
+renderer**, carattere per carattere, e solo dopo verifica che il risultato non
+sia vuoto una volta ripulito. In quel caso blocca, e non ripiega per conto
+proprio: dire «va bene, uso il nome» significherebbe promettere una grafica
+diversa da quella che uscirà. Il messaggio distingue i due casi, perché sono
+problemi diversi da risolvere: campo assente, oppure campo pieno di spazi da
+svuotare.
+
+#### 19.13.3 La risoluzione che conta è quella disegnata
+
+La larghezza del file non dice niente da sola. Una fotografia **1800×10** ha 1800
+px di larghezza e passa qualunque soglia; ma su una Story 1080×1920 deve coprire
+1920 px di altezza partendo da 10, quindi viene ingrandita **192 volte** e
+disegnata a 345600×1920: nella larghezza visibile ci finiscono **sei pixel** del
+file. Giudicare sull'asse lungo significa non guardare quello che rovina
+l'immagine.
+
+La scala la calcola `geometriaCover` — la stessa funzione pura che disegna, non
+una seconda copia del sistema di ritaglio — e comprende lo **zoom del ritaglio**,
+perché ingrandire peggiora la risoluzione. `larghezza della tela / scala` è la
+**larghezza equivalente**: quanti pixel originali si spalmano sui 1080 che si
+vedranno. Le soglie restano quelle della libreria — sotto il 75% errore, sotto il
+100% avviso — applicate a quel numero: cambia il valore confrontato, non il
+metro. Quando la Story ripiega si misura il ritaglio **della cover**, che è la
+fotografia effettivamente disegnata. Una geometria non calcolabile è un errore:
+una risoluzione che non si è potuta calcolare non è una risoluzione adeguata.
+
+**Conseguenza dichiarata sulla fotografia diagnostica.**
+`public/media/reali/4x4-guado-1800.webp` è 1800×832, cioè 2,16:1. Sul Post viene
+ingrandita 1,79× e sulla Story 3,12×: nella larghezza della tela restano 605 e
+347 px su 1080, sotto la soglia d'errore in entrambi i casi. Con il controllo
+corretto **il banco non la fotografa**. È un fatto sul file, non una soglia da
+abbassare; scegliere una fotografia adeguata è una decisione editoriale che
+questo capitolo non prende.
