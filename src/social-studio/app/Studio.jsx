@@ -7,6 +7,7 @@ import { brandLockAttivo } from "../fondamenta/brand-lock";
 import StressTest from "./StressTest";
 import { editorPerRubrica, statoRubrica } from "./registro-editor";
 import { ESITI, FornitoreTransizione, useRichiediTransizione } from "./transizione";
+import SentinellaNavigazione from "./SentinellaNavigazione";
 
 /**
  * STA Social Studio — guscio dell'applicazione.
@@ -33,6 +34,15 @@ export default function Studio() {
         nell'archivio — il prerequisito del §16.4.
       */}
       <FornitoreTransizione>
+        {/*
+          La protezione della **navigazione**, che il fornitore non copre: i
+          gesti dell'interfaccia passano da `richiedi`, un link o il tasto
+          Indietro no. Sta fuori da `Navigazione` perché non riguarda la rubrica
+          aperta ma l'uscita dalla pagina, e legge il registro globale delle
+          guardie: anche quelle registrate da un altro fornitore, come il banco
+          TOUR, che altrimenti sarebbero invisibili proprio quando conta.
+        */}
+        <SentinellaNavigazione />
         <Navigazione>
           <div className="min-h-screen bg-[var(--obsidian)] text-[var(--text-on-dark)]">
             <Intestazione />

@@ -697,3 +697,54 @@ describe("smontare il fornitore mentre si attende", () => {
     radice = createRoot(contenitore);
   });
 });
+
+/**
+ * Regressione del dialogo condiviso.
+ *
+ * `Dialogo` ha guadagnato due campi facoltativi — `messaggio` e `nota` — perché
+ * la sentinella della navigazione (§18.7) lo riusa e ha cose da dire che non
+ * sono «questa azione sostituisce il lavoro in corso». Il fornitore non li
+ * passa: qui si verifica che per lui non sia cambiato niente.
+ */
+describe("il dialogo del fornitore non è cambiato", () => {
+  it("dice la frase di sempre e non mostra nessuna nota", async () => {
+    const { guardia } = creaGuardia({ sporco: true });
+    const canale = monta({ guardia });
+    let promessa;
+    await act(async () => {
+      promessa = canale.richiedi(() => {}, { etichetta: "Aprire un'altra bozza" });
+    });
+
+    const d = dialogo();
+    expect(d).toBeTruthy();
+    expect(d.textContent).toContain(
+      "Aprire un'altra bozza sostituisce il lavoro in corso, che non è ancora nell'archivio.",
+    );
+    // Nessuna nota libera: quel paragrafo esiste solo se qualcuno lo passa.
+    expect(d.querySelectorAll('p[role="status"]')).toHaveLength(0);
+    expect(bottone("Annulla")).toBeTruthy();
+    expect(bottone("Salva e continua")).toBeTruthy();
+    expect(bottone("Scarta modifiche")).toBeTruthy();
+
+    await act(async () => {
+      bottone("Annulla").click();
+      await promessa;
+    });
+  });
+
+  it("senza etichetta della richiesta vale quella della guardia", async () => {
+    const { guardia } = creaGuardia({ sporco: true });
+    const canale = monta({ guardia });
+    let promessa;
+    await act(async () => {
+      promessa = canale.richiedi(() => {});
+    });
+    expect(dialogo().textContent).toContain(
+      "L'azione sostituisce il lavoro in corso, che non è ancora nell'archivio.",
+    );
+    await act(async () => {
+      bottone("Annulla").click();
+      await promessa;
+    });
+  });
+});

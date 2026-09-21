@@ -12,6 +12,7 @@ import { leggiMemoria } from "../motori/export/cattura";
 import { analizzaGpx } from "../motori/gpx";
 import { tracciaDiProva } from "./tracciaProva";
 import AnteprimaTour from "./AnteprimaTour";
+import { AccessoEditorTour } from "./BancoTour";
 
 /**
  * Banco di prova dell'esportazione.
@@ -217,6 +218,9 @@ export default function StressTest() {
 
     {/* Il banco visivo TOUR: stessa area diagnostica, strumento diverso. */}
     <AnteprimaTour />
+
+    {/* L'editor TOUR si apre solo da qui, e su un archivio tutto suo. */}
+    <AccessoEditorTour />
     </div>
   );
 }

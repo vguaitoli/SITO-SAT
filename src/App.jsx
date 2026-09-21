@@ -2,7 +2,7 @@ import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster"
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { RouterProvider, Route, Routes, createBrowserRouter } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
 import SeoHead from '@/components/SeoHead';
 import BackgroundMusic from '@/components/BackgroundMusic';
@@ -78,24 +78,47 @@ const SiteRoutes = () => {
   );
 };
 
-function App() {
+/**
+ * Tutto ciò che prima stava dentro `<BrowserRouter>`, invariato.
+ *
+ * È diventato un componente perché `RouterProvider` non accetta figli: quel che
+ * la pagina contiene deve stare dentro una rotta.
+ */
+function Guscio() {
   return (
-    <Router>
-      <I18nProvider>
-        <TinaContentProvider>
-          <ScrollToTop />
-          <SeoHead />
-          <BackgroundMusic />
-          <SiteRoutes />
-          <Toaster />
-          {/* Statistiche di visita e Core Web Vitals: entrambi senza cookie né
-              identificatori persistenti, quindi non richiedono un banner. */}
-          <Analytics />
-          <SpeedInsights />
-        </TinaContentProvider>
-      </I18nProvider>
-    </Router>
+    <I18nProvider>
+      <TinaContentProvider>
+        <ScrollToTop />
+        <SeoHead />
+        <BackgroundMusic />
+        <SiteRoutes />
+        <Toaster />
+        {/* Statistiche di visita e Core Web Vitals: entrambi senza cookie né
+            identificatori persistenti, quindi non richiedono un banner. */}
+        <Analytics />
+        <SpeedInsights />
+      </TinaContentProvider>
+    </I18nProvider>
   )
+}
+
+/**
+ * Router **di dati**, con una sola rotta che prende tutto.
+ *
+ * `BrowserRouter` non espone il contesto del router di dati, e senza quello
+ * `useBlocker` non esiste: Social Studio non può accorgersi che si sta
+ * lasciando la pagina con lavoro non salvato, e lo perde in silenzio. Questa è
+ * l'integrazione minima che glielo rende possibile.
+ *
+ * `path: '*'` tiene l'albero delle rotte esattamente dov'era: `SiteRoutes`
+ * continua a dichiararle come rotte discendenti, che React Router supporta, e
+ * nessuna pagina pubblica cambia. Nessun loader, nessuna action: la migrazione
+ * completa al router di dati è un altro lavoro, e non serve a questo.
+ */
+const router = createBrowserRouter([{ path: '*', element: <Guscio /> }]);
+
+function App() {
+  return <RouterProvider router={router} />
 }
 
 export default App

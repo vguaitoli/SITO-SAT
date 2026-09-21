@@ -45,6 +45,55 @@ export const ESITI = {
   fallito: "fallito",
 };
 
+/* ================================================================== *
+ * Tutte le guardie vive, di tutti i fornitori
+ * ================================================================== */
+
+/**
+ * Il registro **globale** delle guardie.
+ *
+ * Un `FornitoreTransizione` ne tiene una sola, ed è giusto così per il suo
+ * lavoro: mentre si decide su una transizione non ce ne sono altre in corso.
+ * Ma di fornitori adesso ce ne sono due — quello dello Studio e quello del
+ * banco TOUR, separato apposta perché la guardia di TOUR non cancelli quella
+ * di EVENTI — e la navigazione del router riguarda **tutti**: uscire dalla
+ * pagina smonta entrambi gli editor insieme.
+ *
+ * Perciò le guardie si iscrivono anche qui, in un insieme che non appartiene a
+ * nessun fornitore. Chi deve decidere se lasciar navigare le guarda tutte;
+ * nessuna può essere ignorata perché è registrata «dall'altra parte».
+ *
+ * Vive a livello di modulo perché deve attraversare alberi React distinti: un
+ * contesto, per definizione, si ferma al proprio fornitore.
+ */
+const guardieVive = new Set();
+
+/** Iscrive una guardia al registro globale. Restituisce come cancellarla. */
+function iscriviGuardia(guardia) {
+  guardieVive.add(guardia);
+  return () => guardieVive.delete(guardia);
+}
+
+/**
+ * Le guardie che in questo istante hanno lavoro non salvato.
+ *
+ * **Fail-closed**: una guardia che solleva mentre le si chiede se è sporca
+ * viene contata come sporca. Non si sa che cosa custodisce, e l'unico errore
+ * irreparabile è lasciar perdere lavoro; chiedere in più costa un dialogo.
+ */
+export function guardieSporche() {
+  return [...guardieVive].filter((g) => {
+    try {
+      return Boolean(g.sporco());
+    } catch {
+      return true;
+    }
+  });
+}
+
+/** Quante guardie sono iscritte adesso. Serve alle prove, non all'applicazione. */
+export const quanteGuardieVive = () => guardieVive.size;
+
 /**
  * Registra la guardia dell'editor.
  *
@@ -71,6 +120,18 @@ export function useRegistraGuardia(guardia) {
     }),
     [],
   );
+
+  /*
+   * Due iscrizioni, e servono entrambe. Quella al fornitore governa i dialoghi
+   * dei gesti dell'interfaccia — creare, aprire, chiudere — e resta una sola
+   * per fornitore. Quella globale governa la navigazione, che riguarda tutti
+   * gli editor vivi insieme, e avviene **anche senza fornitore**: un editor
+   * montato da solo in una prova ha comunque lavoro da non perdere.
+   *
+   * Entrambe si disfano allo smontaggio: una guardia sparisce dal registro
+   * quando il suo editor si chiude, e non un momento prima.
+   */
+  useEffect(() => iscriviGuardia(stabile), [stabile]);
 
   useEffect(() => {
     if (!contesto) return undefined;
@@ -353,7 +414,7 @@ export function FornitoreTransizione({ children }) {
  * succedendo e lascia una sola uscita. Chiuderlo darebbe l'impressione che la
  * transizione sia avvenuta quando non lo è ancora.
  */
-function Dialogo({ dialogo, onRispondi }) {
+export function Dialogo({ dialogo, onRispondi }) {
   const primo = useRef(null);
   const { salvataggio, annullata, erroreSalvataggio } = dialogo;
   // Mentre si annulla non c'è più niente da decidere: si aspetta soltanto che
@@ -394,9 +455,14 @@ function Dialogo({ dialogo, onRispondi }) {
           Modifiche non salvate
         </h2>
         <p className="mb-4 font-body text-xs leading-snug text-granite-mist/70">
-          {dialogo.etichetta
-            ? `${dialogo.etichetta} sostituisce il lavoro in corso, che non è ancora nell'archivio.`
-            : "Il lavoro in corso non è ancora nell'archivio e andrebbe perso."}
+          {/* Un messaggio proprio quando chi apre il dialogo sa dire meglio che
+              cosa sta per succedere: la navigazione non «sostituisce» niente,
+              porta via la pagina. */}
+          {dialogo.messaggio
+            ? dialogo.messaggio
+            : dialogo.etichetta
+              ? `${dialogo.etichetta} sostituisce il lavoro in corso, che non è ancora nell'archivio.`
+              : "Il lavoro in corso non è ancora nell'archivio e andrebbe perso."}
         </p>
         {annullata && (
           <p className="mb-4 font-body text-xs text-granite-mist/70" role="status">
@@ -406,6 +472,17 @@ function Dialogo({ dialogo, onRispondi }) {
         {!annullata && salvataggio && (
           <p className="mb-4 font-body text-xs text-granite-mist/70" role="status">
             Salvataggio in corso…
+          </p>
+        )}
+        {/*
+          Una nota libera di chi ha aperto il dialogo. Serve a dire cose che non
+          sono «il salvataggio è fallito» — per esempio che mentre si salvava
+          sono sopraggiunte modifiche — senza costringerle dentro quella frase,
+          che direbbe una cosa falsa. `erroreSalvataggio` resta com'era.
+        */}
+        {dialogo.nota && (
+          <p className="mb-4 font-body text-xs" style={{ color: "#E2857A" }} role="status">
+            {dialogo.nota}
           </p>
         )}
         {erroreSalvataggio && (

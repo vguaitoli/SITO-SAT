@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { RouterProvider, createMemoryRouter } from "react-router-dom";
 import { ELENCO_CATEGORIE } from "../design/categorie";
 
 /**
@@ -57,9 +58,18 @@ afterEach(() => {
   contenitore.remove();
 });
 
+/*
+ * Lo Studio monta la sentinella della navigazione, che usa `useBlocker`: quello
+ * chiede il contesto del **router di dati**, che in pagina arriva da
+ * `RouterProvider`. Qui si usa il router di memoria, che è lo stesso contesto
+ * senza toccare la cronologia del browser.
+ */
 async function monta() {
   const { default: Studio } = await import("./Studio");
-  act(() => radice.render(<Studio />));
+  const router = createMemoryRouter([{ path: "*", element: <Studio /> }], {
+    initialEntries: ["/admin/social"],
+  });
+  act(() => radice.render(<RouterProvider router={router} />));
   return contenitore;
 }
 
@@ -184,9 +194,13 @@ describe("cambio rubrica protetto", () => {
       return { stato, Componente };
     };
 
+    // Anche qui il router di dati: lo Studio monta la sentinella.
     const monta = (mappa) => {
       Object.assign(editor, mappa);
-      act(() => radice.render(<Studio />));
+      const router = createMemoryRouter([{ path: "*", element: <Studio /> }], {
+        initialEntries: ["/admin/social"],
+      });
+      act(() => radice.render(<RouterProvider router={router} />));
       return contenitore;
     };
 

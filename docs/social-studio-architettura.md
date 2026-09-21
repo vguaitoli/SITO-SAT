@@ -1585,10 +1585,14 @@ messaggio, 1. Nessuna mutazione è rimasta nel codice.
 
 ### 18.6 I limiti, dichiarati
 
-- **Una guardia alla volta.** Il fornitore ne tiene una. Oggi è corretto perché
-  è montato un editor solo (`<Editor key={rubricaAperta} />`); con due editor
-  montati insieme varrebbe l'ultimo registrato. Va risolto *prima* di montarne
-  due, non dopo.
+- **Una guardia alla volta, per fornitore.** Il `FornitoreTransizione` ne tiene
+  una: per i suoi dialoghi va bene, perché mentre si decide su una transizione
+  non ce ne sono altre. Con due editor sotto lo **stesso** fornitore varrebbe
+  ancora l'ultimo registrato, e il limite resta: è per questo che il banco TOUR
+  ha un fornitore suo (§19.14.1). Da 6.3L.2 le guardie si iscrivono **anche** a
+  un registro globale, che non appartiene a nessun fornitore e serve alla
+  navigazione (§18.7): lì nessuna guardia può essere ignorata perché registrata
+  dall'altra parte.
 - **Una richiesta alla volta, senza coda.** Un secondo gesto mentre una
   transizione è in corso riceve `occupato`: chi chiama deve ripeterlo. Nessun
   chiamante oggi mostra quel rifiuto, perché il gesto semplicemente non ha
@@ -1610,12 +1614,95 @@ messaggio, 1. Nessuna mutazione è rimasta nel codice.
   `Escape` annulla, ma `Tab` può uscire dal dialogo. Basta per un pannello
   interno; non basterebbe per un componente pubblico.
 - **`beforeunload` è del browser.** Il testo dell'avviso lo decide il browser,
-  non noi, e non si accende su ogni forma di chiusura. Protegge la scheda, non
-  la navigazione interna: quella è il dialogo.
+  non noi, e non si accende su ogni forma di chiusura. Protegge il ricarico e la
+  chiusura della scheda; la navigazione dentro l'applicazione la protegge la
+  sentinella (§18.7), e i gesti dell'interfaccia il dialogo del fornitore.
 - **Fuori dallo Studio non c'è protezione.** `useRichiediTransizione` senza
   fornitore esegue senza chiedere. È deliberato — un componente montato altrove
   non deve rompersi — ma significa che la protezione vale dentro lo Studio.
 
+
+### 18.7 La navigazione, che il fornitore non vedeva
+
+Il fornitore intercetta i **gesti**: creare una bozza, aprirne un'altra,
+chiudere un editor passano tutti da `richiedi`. La navigazione no. Un link
+interno, un `navigate()` o il tasto Indietro smontano l'albero senza chiedere
+niente a nessuno, e il lavoro non ancora nell'archivio se ne andava in silenzio.
+Il difetto è stato osservato sul renderer vero in 6.3L.1, con EVENTI pulito e
+TOUR sporco: nessun dialogo, nessun avviso, niente da recuperare.
+
+`app/SentinellaNavigazione.jsx` chiude quel percorso, e lo chiude **dal
+router**. Un ascoltatore dei clic coprirebbe i link e nient'altro — `navigate()`
+non è un clic, e Indietro nemmeno — e toccare `history` a mano romperebbe il
+router, che su quella API costruisce il proprio stato. `useBlocker` li copre
+tutti e tre, e interviene **prima** dello smontaggio.
+
+**Serve un router di dati.** `useBlocker` chiede il contesto che solo
+`RouterProvider` fornisce; `BrowserRouter` non ce l'ha, e la chiamata solleva.
+`src/App.jsx` è passato a `createBrowserRouter` con **una sola rotta che prende
+tutto** (`path: '*'`), il cui elemento è esattamente l'albero che prima stava
+dentro `<BrowserRouter>`: `SiteRoutes` continua a dichiarare le proprie rotte
+come discendenti, e nessuna pagina pubblica cambia. È il passaggio minimo al
+runtime del data router, non una migrazione alle sue API dati: non introduce
+loader né action e serve esclusivamente a rendere possibile questa protezione.
+
+**Guarda tutte le guardie vive**, non quella del proprio fornitore: uscire dalla
+pagina smonta insieme lo Studio e il banco TOUR, che hanno fornitori distinti.
+Con due editor sporchi li salva entrambi, uno alla volta — due scritture in
+parallelo sullo stesso archivio sono la corsa che il resto del sistema evita con
+cura — e una guardia che solleva mentre le si chiede se è sporca viene contata
+come sporca: nel dubbio si chiede.
+
+Le tre uscite sono quelle di sempre. **Annulla** ripristina, URL compreso: su un
+Indietro il browser ha già cambiato indirizzo, e senza `reset()` resterebbe un
+URL che non corrisponde a ciò che si vede. **Scarta** procede senza scrivere, ed
+è l'unica autorizzazione esplicita a uscire con lavoro non salvato. **Salva e
+continua** scrive e poi procede — e se una scrittura fallisce **non si naviga**:
+il lavoro resta dov'è, il dialogo torna a poter decidere, e chi legge sa perché.
+
+Quando non c'è lavoro non salvato la navigazione è libera, e un cambio di sola
+query sulla stessa rotta non blocca niente: non smonta nessun editor.
+
+#### 18.7.1 Quel che succede mentre si salva
+
+Fra il clic su «Salva e continua» e la fine delle scritture passa tempo reale, e
+6.3L.2 quella finestra la lasciava scoperta in due punti.
+
+**Annullare non annullava.** `rispondi` usciva subito appena il salvataggio era
+in corso — prima ancora di guardare quale risposta fosse arrivata — mentre il
+dialogo lasciava «Annulla» premibile. Chi annullava non annullava niente: la
+scrittura finiva e si navigava lo stesso. Ora vale la stessa disciplina del
+fornitore (§18.4): l'annullamento si **registra subito**, la scrittura già
+partita **non si dichiara interrotta** e la si lascia finire, i salvataggi
+successivi non partono, e alla fine non si naviga. Il blocco resta preso fino
+allora — lasciarlo prima farebbe entrare un'altra navigazione mentre l'archivio
+si sta ancora muovendo — e mentre si aspetta il dialogo lo dice. `Escape` fa
+esattamente quello che fa «Annulla».
+
+**L'elenco delle guardie era una fotografia.** Si salvava ciò che era sporco al
+primo istante e poi si navigava, senza riguardare: un editor già salvato poteva
+essere tornato sporco, o un editor pulito essersi sporcato, proprio nella
+finestra che il dialogo esiste per coprire. Ora, prima di autorizzare, le
+guardie si **rileggono**. Se ne resta o ne compare una sporca non si naviga: si
+dice che sono sopraggiunte modifiche e si lascia scegliere di nuovo. **Non si
+risalva da soli** — sarebbe un ciclo che può non finire, e nessuno l'ha chiesto —
+e «Scarta modifiche» resta l'unica uscita esplicita.
+
+**La richiesta vive in un riferimento**, non in uno stato di React, e la sua fase
+cambia **prima** di qualunque `await`: due clic ravvicinati arrivano entrambi
+prima di qualsiasi ridisegno, e il secondo trova già una fase diversa da
+`chiede`. Ogni continuazione, al ritorno dalla propria attesa, verifica di
+appartenere ancora alla richiesta viva prima di toccare il dialogo o di chiamare
+`proceed`/`reset`: una risposta tardiva non interferisce con la richiesta
+successiva, e dopo lo smontaggio non tocca un router che non la aspetta più.
+`proceed()` parte una volta sola, perché azzerare il riferimento viene **prima**
+della chiamata al router.
+
+Il `Dialogo` condiviso ha guadagnato due campi facoltativi, `messaggio` e `nota`,
+che il fornitore non passa: gli servono per dire cose — «stai lasciando questa
+pagina», «sono sopraggiunte modifiche» — che dentro la frase del fornitore
+sarebbero false. Una prova di regressione tiene fermo che per il fornitore non
+sia cambiato niente.
 
 ## 19. Il ciclo delle bozze TOUR, senza interfaccia
 
@@ -1629,7 +1716,8 @@ raggiungibile dallo Studio — una prova lo verifica sui registri veri. Il modul
 TOUR non è completato. Il nucleo — creare, scrivere, salvare, riaprire — è di
 6.3C; 6.3D vi ha aggiunto il riallineamento esplicito alla fonte (§19.6), 6.3H
 gli slot fotografici (§19.10), 6.3I il ciclo GPX (§19.11), 6.3J i prototipi
-diagnostici Post e Story (§19.12) e 6.3K il pre-flight TOUR (§19.13).
+diagnostici Post e Story (§19.12), 6.3K il pre-flight TOUR (§19.13) e 6.3L il
+primo nucleo dell'editor, anch'esso diagnostico (§19.14).
 
 Conviene tenere separate quattro cose che è facile scambiare l'una per l'altra:
 
@@ -1643,9 +1731,14 @@ Conviene tenere separate quattro cose che è facile scambiare l'una per l'altra:
 - **il pre-flight TOUR** — *introdotto*. §19.13. Controlli specifici della
   rubrica, con lo stesso contratto del pre-flight generale, usati dal banco come
   cancello prima della cattura;
-- **editor, registrazione ed export normale** — *ancora assenti*. Mancano
-  `EditorTour`, la registrazione dei template, la mappa e il profilo
-  altimetrico, e l'esportazione del pacchetto.
+- **l'editor TOUR** — *un primo nucleo, diagnostico*. §19.14. Fonte, creazione,
+  apertura, campi editoriali e salvataggio, su un archivio isolato e dietro
+  un'apertura esplicita nel banco. Media, GPX, cronologia, eliminazione,
+  confronto con la fonte, anteprima ed export non ci sono;
+- **registrazione ed export normale** — *ancora assenti*. Mancano la
+  registrazione dell'editor e dei template, la mappa e il profilo altimetrico, e
+  l'esportazione del pacchetto. Finché manca la registrazione, allo Studio TOUR
+  resta `pianificata`.
 
 L'export non è quindi l'unico lavoro residuo: è l'ultimo di un elenco che
 comincia dall'interfaccia. §19.5 tiene i limiti per esteso.
@@ -1878,11 +1971,12 @@ rimasta.
 
 ### 19.5 I limiti
 
-- **Non è un editor.** Nessuna interfaccia e nessuna registrazione. I template
-  esistono come prototipi diagnostici (§19.12) e il pre-flight specifico esiste
-  (§19.13), ma il registro non li contiene: TOUR resta `pianificata` e non
-  selezionabile, e il pre-flight **generale** continua a rispondere
-  `template-non-implementato`.
+- **L'editor c'è, ma non è registrato.** Da 6.3L esiste un primo nucleo di
+  `EditorTour` (§19.14), raggiungibile solo dal banco diagnostico e su un
+  archivio isolato. `registro-editor.js` non lo contiene e
+  `registro-template.js` non contiene i prototipi (§19.12): TOUR resta
+  `pianificata` e non selezionabile, e il pre-flight **generale** continua a
+  rispondere `template-non-implementato`.
 - **Una guardia sola.** Il fornitore ne tiene una (§18.6): questo hook ne
   registra una, quindi **non va montato insieme a `EditorEvento`** sotto lo
   stesso fornitore finché quel limite non è risolto. È il vincolo da chiudere
@@ -2514,3 +2608,74 @@ ingrandita 1,79× e sulla Story 3,12×: nella larghezza della tela restano 605 e
 corretto **il banco non la fotografa**. È un fatto sul file, non una soglia da
 abbassare; scegliere una fotografia adeguata è una decisione editoriale che
 questo capitolo non prende.
+
+### 19.14 Il primo nucleo dell'editor TOUR
+
+`app/EditorTour.jsx`, montato da `app/BancoTour.jsx`. Fa cinque cose: sceglie un
+tour vero dalla fonte del sito, ne crea la bozza con `creaDaTour`, elenca e apre
+le sole bozze TOUR, scrive i campi editoriali già previsti dall'adapter, salva.
+Nient'altro.
+
+**Non duplica niente dell'hook.** Persistenza, importazione, interblocchi e
+transizioni restano in `useBozzaTour`: il componente traduce i suoi **codici** in
+frasi — che è la parte che l'hook lascia deliberatamente all'interfaccia — e
+aggiunge solo lo stato delle *operazioni*, cioè quale gesto è in volo. Non tiene
+nessuna copia dei testi: gli input leggono da `contenuto.editoriale` e scrivono
+con `scriviEditoriale`, quindi non esiste una seconda verità che possa divergere
+da quella che finisce nell'archivio — ed è ciò che tiene veritiero «non
+salvato».
+
+**I fatti sono in sola lettura, e staccati.** Non è una scelta estetica:
+scrivere a mano un campo fattuale ne cambia l'`origine` in `manuale` e il
+confronto con la fonte smette di riguardarlo, e non deve poter capitare per aver
+cliccato nel riquadro sbagliato. Ogni fatto mostra la propria provenienza — dal
+sito, a mano, dal GPX, oppure non importato — e i campi che l'adapter lascia
+vuoti per principio (§17.2, §17.3) si vedono vuoti: `mezzo` non si copia da
+`type`, `area` non si deduce dai luoghi.
+
+**Tre codici non sono successi**, e l'interfaccia non li racconta come tali:
+`superata-da-modifiche`, `superata-da-altro-contenuto` e `rilettura-fallita`
+dicono che la scrittura è andata ma ciò che si ha davanti non è ciò che sta sul
+disco. Un `errore-scrittura` lascia il lavoro dov'è, `sporco` acceso e il
+pulsante attivo: mai una bozza dichiarata salvata quando la scrittura è fallita.
+
+**Uscire è una transizione.** Creare e aprire sono già protette dentro l'hook;
+la chiusura nasce nel componente e passa da `useRichiediTransizione`. Il pulsante
+di chiusura sta **dentro** l'editor e non nel guscio: se lo smontaggio lo
+comandasse chi sta fuori, il lavoro non salvato se ne andrebbe senza che nessuno
+lo chieda. Restano l'avviso `beforeunload` per il ricarico e la chiusura della
+scheda, come in EVENTI, e la sentinella (§18.7) per la navigazione — che in
+6.3L.1 era il percorso ancora scoperto.
+
+#### 19.14.1 Perché il banco ha fornitori propri
+
+`BancoTour` monta un `FornitoreArchivio` con un **archivio in memoria** e un
+`FornitoreTransizione` suo. Sono due decisioni, e nessuna delle due è comodità.
+
+L'archivio dello Studio è quello vero, su IndexedDB: una bozza di prova finirebbe
+in mezzo al lavoro, e cancellarla sarebbe un gesto che nessuno dovrebbe dover
+fare. Qui l'archivio è in memoria e **dura quanto la scheda**.
+
+La durata è cambiata in 6.3L.2, e per una ragione precisa. Quando si lascia la
+pagina con lavoro non salvato la sentinella (§18.7) offre «Salva e continua»; se
+l'archivio morisse insieme al componente, quel salvataggio scriverebbe in un
+registro che sta per essere distrutto — cioè prometterebbe di aver messo al
+sicuro qualcosa che un istante dopo non esiste più. Tenendolo a livello di
+modulo, chiudere e riaprire il banco, o uscire e tornare su `/admin/social`,
+ritrova le bozze di prova dov'erano. **Ricaricare la pagina o chiudere la scheda
+le cancella**, ed è scritto nell'interfaccia invece che lasciato intendere.
+
+Il fornitore delle transizioni tiene **una guardia sola** (§18.6). `EditorEvento`
+ne registra una e `useBozzaTour` un'altra: sotto lo stesso fornitore la seconda
+registrazione cancellerebbe la prima, e il lavoro non salvato di EVENTI
+smetterebbe di essere protetto per il solo fatto di aver aperto questo banco. Una
+prova monta una guardia esterna sporca, il banco con l'editor pulito e una
+transizione di fuori, e pretende che il dialogo compaia: è ciò che tiene ferma la
+decisione finché quel limite non sarà risolto.
+
+#### 19.14.2 Che cosa resta fuori
+
+Media e GPX — che l'hook sa già gestire — cronologia e ripristino, eliminazione,
+confronto e riallineamento alla fonte, anteprima collegata alla bozza ed export.
+Ognuno porta difese proprie, e vanno aggiunte con le loro prove. L'editor non è
+nel registro, i template non sono registrati, e dallo Studio non ci si arriva.
