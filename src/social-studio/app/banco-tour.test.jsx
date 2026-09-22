@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import BancoTour, { AccessoEditorTour, dimenticaArchivioDiagnostico } from "./BancoTour";
 import { statoRubrica, editorPerRubrica } from "./registro-editor";
 import { FornitoreTransizione, useRegistraGuardia, useRichiediTransizione } from "./transizione";
+import { accendiAmbienteGrafico, spegniAmbienteGrafico } from "./ambiente-di-prova";
 
 /**
  * Il guscio diagnostico dell'editor TOUR.
@@ -32,6 +33,9 @@ let contenitore;
 let radice;
 
 beforeEach(() => {
+  // L'editor monta l'anteprima vera: jsdom non ha `ResizeObserver` né
+  // `document.fonts`, e senza questo il montaggio solleva.
+  accendiAmbienteGrafico();
   // Ogni prova parte da un archivio diagnostico vuoto: adesso vive quanto la
   // scheda, quindi senza questo si porterebbe dietro le bozze della prova prima.
   dimenticaArchivioDiagnostico();
@@ -43,6 +47,7 @@ beforeEach(() => {
 afterEach(() => {
   act(() => radice.unmount());
   contenitore.remove();
+  spegniAmbienteGrafico();
 });
 
 const respiro = async () => {

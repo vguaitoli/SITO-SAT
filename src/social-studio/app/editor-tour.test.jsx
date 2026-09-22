@@ -9,6 +9,7 @@ import { creaArchivioMemoria } from "../fondamenta/archivio";
 import { contenutoVuoto } from "../fondamenta/schema";
 import { editorPerRubrica, statoRubrica } from "./registro-editor";
 import { templateDisponibile } from "../design/registro-template";
+import { accendiAmbienteGrafico, spegniAmbienteGrafico } from "./ambiente-di-prova";
 
 /**
  * Il primo nucleo dell'editor TOUR.
@@ -48,8 +49,13 @@ const TOURS = Object.freeze([TOUR, ALTRO_TOUR]);
 
 let contenitore;
 let radice;
+let immagini;
 
 beforeEach(() => {
+  // L'editor monta l'anteprima vera: senza `ResizeObserver`, `document.fonts`
+  // e un `Image` pilotato, jsdom non regge il montaggio e nessuna prova
+  // parlerebbe di quel che dice di misurare.
+  immagini = accendiAmbienteGrafico();
   contenitore = document.createElement("div");
   document.body.appendChild(contenitore);
   radice = createRoot(contenitore);
@@ -58,6 +64,7 @@ beforeEach(() => {
 afterEach(() => {
   act(() => radice.unmount());
   contenitore.remove();
+  spegniAmbienteGrafico();
 });
 
 const respiro = async () => {
@@ -229,14 +236,27 @@ describe("i fatti non si modificano da qui", () => {
     expect(fatti.textContent).toMatch(/sola lettura/i);
   });
 
-  it("i due riquadri sono distinti, e gli editabili stanno solo in quello editoriale", async () => {
+  /**
+   * I campi di testo del contenuto stanno **tutti e soli** nel riquadro
+   * editoriale. Da 6.3M l'editor ha altri controlli — lo zoom del ritaglio, il
+   * file GPX, «conserva GPX» — ma nessuno di quelli scrive un campo della
+   * scheda, e nessuno sta fra i fatti.
+   */
+  it("i campi di testo del contenuto stanno tutti e soli nel riquadro editoriale", async () => {
     await monta();
     await creaDa(TOUR.slug);
 
     const editoriale = q('[data-parte="editoriale"]');
-    const scrivibili = qa("input[aria-label], textarea[aria-label]");
-    expect(scrivibili.length).toBe(CAMPI_EDITORIALI.length);
-    for (const el of scrivibili) expect(editoriale.contains(el)).toBe(true);
+    const fattuali = q('[data-parte="fattuali"]');
+
+    for (const { etichetta } of CAMPI_EDITORIALI) {
+      const trovati = qa(`input[aria-label="${etichetta}"], textarea[aria-label="${etichetta}"]`);
+      expect(trovati, etichetta).toHaveLength(1);
+      expect(editoriale.contains(trovati[0]), etichetta).toBe(true);
+    }
+
+    // Nessun controllo, di nessun tipo, dentro i fatti.
+    expect(fattuali.querySelectorAll("input, textarea, select, button")).toHaveLength(0);
   });
 
   it("i fatti mostrati sono quelli dichiarati", async () => {
@@ -502,13 +522,34 @@ describe("l'editor diagnostico non abilita TOUR", () => {
     expect(editorPerRubrica("eventi")).toBeTruthy();
   });
 
-  it("non c'è niente di media, GPX, cronologia o export in questo nucleo", async () => {
+  /**
+   * 6.3M collega media, GPX, anteprima, fonte, cronologia ed eliminazione.
+   * Quello che resta fuori resta fuori **davvero**: nessun pulsante di export,
+   * nessun PNG, nessun pacchetto. Il banco visivo sintetico ha i propri, e sta
+   * altrove.
+   */
+  it("l'editor collega il lavoro sulla bozza ma non esporta niente", async () => {
     await monta();
     await creaDa(TOUR.slug);
-    const schermo = testo();
-    for (const parola of ["Cronologia", "Ripristina", "Elimina", "Esporta", "Carica GPX"]) {
-      expect(schermo, parola).not.toContain(parola);
+
+    for (const parte of ["media", "gpx", "fonte", "cronologia", "anteprima-bozza"]) {
+      expect(q(`[data-parte="${parte}"]`), parte).toBeTruthy();
     }
-    expect(q('input[type="file"]')).toBeFalsy();
+
+    const etichette = qa("button").map((b) => (b.textContent || "").toLowerCase());
+    for (const parola of ["esporta", "png", "pacchetto", "scarica"]) {
+      expect(etichette.some((e) => e.includes(parola)), parola).toBe(false);
+    }
+  });
+
+  /** Le fotografie si disegnano da URL dell'archivio, mai da una chiave opaca. */
+  it("non usa mai un idBlob come sorgente di un'immagine", async () => {
+    await monta();
+    await creaDa(TOUR.slug);
+    for (const img of qa("img")) {
+      const src = img.getAttribute("src") || "";
+      expect(src === "" || src.includes(":") || src.startsWith("/")).toBe(true);
+    }
+    expect(immagini.sorgenti().every((s) => typeof s === "string")).toBe(true);
   });
 });

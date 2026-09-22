@@ -1716,8 +1716,10 @@ raggiungibile dallo Studio — una prova lo verifica sui registri veri. Il modul
 TOUR non è completato. Il nucleo — creare, scrivere, salvare, riaprire — è di
 6.3C; 6.3D vi ha aggiunto il riallineamento esplicito alla fonte (§19.6), 6.3H
 gli slot fotografici (§19.10), 6.3I il ciclo GPX (§19.11), 6.3J i prototipi
-diagnostici Post e Story (§19.12), 6.3K il pre-flight TOUR (§19.13) e 6.3L il
-primo nucleo dell'editor, anch'esso diagnostico (§19.14).
+diagnostici Post e Story (§19.12), 6.3K il pre-flight TOUR (§19.13), 6.3L il
+primo nucleo dell'editor, anch'esso diagnostico (§19.14), e 6.3M il resto di
+quell'editor — media, GPX, anteprima della bozza, fonte, cronologia ed
+eliminazione (§19.15).
 
 Conviene tenere separate quattro cose che è facile scambiare l'una per l'altra:
 
@@ -1731,10 +1733,12 @@ Conviene tenere separate quattro cose che è facile scambiare l'una per l'altra:
 - **il pre-flight TOUR** — *introdotto*. §19.13. Controlli specifici della
   rubrica, con lo stesso contratto del pre-flight generale, usati dal banco come
   cancello prima della cattura;
-- **l'editor TOUR** — *un primo nucleo, diagnostico*. §19.14. Fonte, creazione,
-  apertura, campi editoriali e salvataggio, su un archivio isolato e dietro
-  un'apertura esplicita nel banco. Media, GPX, cronologia, eliminazione,
-  confronto con la fonte, anteprima ed export non ci sono;
+- **l'editor TOUR** — *completo sul lavoro della bozza, e diagnostico*. §19.14 e
+  §19.15. Fonte, creazione, apertura, campi editoriali, salvataggio, fotografie
+  con i due ritagli, GPX locale, anteprima reale di Post e Story, confronto e
+  riallineamento con il sito, cronologia con ripristino ed eliminazione — su un
+  archivio isolato e dietro un'apertura esplicita nel banco. **L'export non
+  c'è**, e la rubrica resta pianificata;
 - **registrazione ed export normale** — *ancora assenti*. Mancano la
   registrazione dell'editor e dei template, la mappa e il profilo altimetrico, e
   l'esportazione del pacchetto. Finché manca la registrazione, allo Studio TOUR
@@ -2673,9 +2677,287 @@ prova monta una guardia esterna sporca, il banco con l'editor pulito e una
 transizione di fuori, e pretende che il dialogo compaia: è ciò che tiene ferma la
 decisione finché quel limite non sarà risolto.
 
-#### 19.14.2 Che cosa resta fuori
+#### 19.14.2 Che cosa restava fuori dal primo nucleo
 
-Media e GPX — che l'hook sa già gestire — cronologia e ripristino, eliminazione,
-confronto e riallineamento alla fonte, anteprima collegata alla bozza ed export.
-Ognuno porta difese proprie, e vanno aggiunte con le loro prove. L'editor non è
-nel registro, i template non sono registrati, e dallo Studio non ci si arriva.
+Media e GPX — che l'hook sapeva già gestire — cronologia e ripristino,
+eliminazione, confronto e riallineamento alla fonte e anteprima collegata alla
+bozza. Ognuno porta difese proprie, e andavano aggiunte con le loro prove: è
+quello che fa 6.3M (§19.15). Resta fuori l'**export**, che è un capitolo suo.
+L'editor non è nel registro, i template non sono registrati, e dallo Studio non
+ci si arriva.
+
+### 19.15 L'editor TOUR completo, e quel che ancora non fa
+
+6.3M collega le sei aree che l'hook esponeva e l'interfaccia non usava:
+fotografie e ritagli, GPX locale, anteprima reale di Post e Story, confronto e
+riallineamento con la fonte, cronologia con ripristino, eliminazione. Restano
+fuori l'export e la registrazione della rubrica: nessun pulsante produce un PNG
+o un pacchetto, `EDITOR` contiene ancora la sola `eventi`, e `statoRubrica`
+risponde `pianificata`.
+
+Il principio che tiene insieme tutte e sei è lo stesso, ed è quello di §19.14:
+**l'hook è l'autorità**. L'interfaccia traduce codici e mostra stati. Non tiene
+un secondo contenuto, non rianalizza GPX, non riscrive revisioni, non confronta
+la fonte per conto proprio, non tocca l'archivio, non replica la scelta degli
+slot e non inventa ripieghi diversi da quelli del motore. Soprattutto: **non
+dichiara riuscita un'operazione perché la promessa è terminata** — si guarda il
+codice, e `superata-da-*`, `rilettura-fallita`, `base-non-recuperata` ed
+`eliminata-elenco-non-aggiornato` dicono cose diverse fra loro.
+
+#### 19.15.1 Gli slot fotografici, per rubrica
+
+`media/SelettoreSlot.jsx` prende la rubrica come parametro, con `eventi` per
+difetto: nessuna chiamata esistente cambia comportamento, e i nove slot di
+EVENTI restano quelli. TOUR ne dichiara due — `cover` per il Post, `story` per
+la Story — e sono **due ritagli distinti** (§19.10): il Post è 4:5, la Story
+9:16, e la stessa fotografia vuole due inquadrature.
+
+Il rischio da evitare era quello che `media/slot.js` esiste per eliminare: un
+**ripiego per esclusione**. Un selettore che, non trovando gli slot della
+rubrica, disegnasse quelli di EVENTI mostrerebbe «Vivrai 1…4» dentro una bozza
+TOUR, e ogni clic scriverebbe in un ramo che quella bozza non ha — la fotografia
+sparirebbe senza un errore. Una rubrica che il registro non dichiara non ha slot
+e **non ne eredita**: qui si traduce in nessun pulsante.
+
+Il ritaglio si inquadra sulle **tele vere** dei due formati, lette da
+`design/tour.js`: gli stessi numeri con cui i template disegnano. Riscriverli
+nell'editor sarebbe la premessa della divergenza — si inquadrerebbe su un
+rettangolo e si esporterebbe su un altro.
+
+Ogni gesto passa da `scriviMedia`, che convalida il riferimento e marca la bozza
+non salvata senza scrivere niente: un ritaglio rifiutato non cambia contenuto,
+«non salvato» né archivio, e il codice (`ritaglio-media-non-valido`,
+`slot-media-non-valido`) si legge invece di vedere la fotografia sparire. Il
+**ripiego Story → cover** resta di solo rendering: lo slot continua a risultare
+vuoto, perché lo è, e l'anteprima dichiara di star ripiegando.
+
+Nel contenuto va l'`idBlob`, che è una chiave opaca. Le immagini si disegnano
+dalle **URL temporanee dell'archivio**, che è l'unico a saperle creare e a
+liberarle: mai un data URL, mai un percorso, mai byte dentro la bozza.
+
+#### 19.15.2 Il GPX, tre cose distinte
+
+Il pannello non analizza niente: l'analisi, la scrittura del binario e le difese
+contro le risposte tardive stanno in `useBozzaTour` (§19.11). Quello che
+l'interfaccia fa è **tenere separate tre cose** che confonderle significa
+raccontarne una per un'altra:
+
+1. il **riferimento persistibile** `{ nome, byte }`, l'unica parte che entra nel
+   record, nelle revisioni e nei backup;
+2. la **geometria in memoria** — segmenti, punti, distanza, dislivelli, quote —
+   che non è mai stata nel contenuto e non ci va: una traccia di poche migliaia
+   di punti pesa più di tutta la bozza, e verrebbe duplicata a ogni revisione;
+3. lo **stato della ricostruzione**, che è un fatto sul file e non sulla bozza:
+   il riferimento può esserci e il binario no.
+
+`gpx-blob-assente` **lascia il riferimento dov'è** — è l'unica traccia di che
+cosa ricaricare — e offre «Riprova la lettura», che rilegge senza costringere a
+riaprire la bozza. I waypoint non diventano fatti, tappe o località: in EVENTI
+la prima versione del caricamento ne copiava dieci in `mappa.localita`, e nomi
+presi da un file diventavano dati della scheda senza che nessuno li avesse
+scritti. «Conserva GPX» scrive un'intenzione su cui deciderà il capitolo
+dell'export: togliere la spunta non cancella niente adesso.
+
+Una sola scelta di interfaccia merita di essere detta: **«Togli il GPX» non si
+disabilita mentre una lettura è in volo**. Il contratto di 6.3I.1 dice che chi
+toglie vince — il caricamento partito prima viene invalidato e il suo risultato
+diventa innocuo — e disabilitare il pulsante lascerebbe invece arrivare quel
+risultato su una bozza da cui si stava cercando di togliere il file. Quel che si
+blocca è **partire di nuovo**, non ritirarsi.
+
+Il file resta locale e privato: non entra nel repository, in `public/`, nel
+bundle né in nessun output. I prototipi Post e Story non disegnano mappa né
+profilo altimetrico, e questo capitolo collega i dati senza inventare grafica.
+
+#### 19.15.3 L'anteprima è la bozza, non una fixture
+
+`app/AnteprimaBozzaTour.jsx` monta `PostTour` e `StoryTour` — quelli approvati,
+con le stesse prop — sul contenuto **davvero aperto** e sulle sorgenti risolte
+dall'archivio. È la differenza che conta rispetto al banco visivo di 6.3J: lì si
+guarda un contenuto sintetico per giudicare la grafica, qui si guarda il proprio
+lavoro. Un'anteprima che disegnasse la fixture mentre si scrive il titolo
+sarebbe peggio di nessuna anteprima: mostrerebbe con precisione qualcosa che non
+è il proprio contenuto, e nessuno se ne accorgerebbe finché il PNG non uscisse
+diverso da quel che si era visto.
+
+Il banco sintetico **resta**, con i suoi due pulsanti diagnostici: serve a
+guardare la composizione a misura reale, ed è un altro mestiere. Quel che non
+diventa due è il **modo di osservare il renderer**, estratto in
+`app/anteprima-tour-nucleo.jsx` e usato da entrambi: l'esito del caricamento di
+una sorgente, il filtro per ambito del registro, i riferimenti stabili per
+formato e la forma del pannello. Due implementazioni dello stesso giudizio
+finirebbero per dire cose diverse sulla stessa grafica.
+
+Quale fotografia disegni ciascun formato — e se la Story stia ripiegando — lo
+decide `design/tour.js` e lo si **chiede** al pre-flight (`selezione`) invece di
+ricalcolarlo. L'evidenza del caricamento si cerca **per sorgente**: cambiando
+immagine, la misura precedente resta un fatto vero su un altro file, e il
+pre-flight rifiuta comunque un'evidenza che parli di un'altra sorgente
+(`evidenze-obsolete`). Finché il file non è stato osservato lo stato è «in
+corso» — mai «pronta» per omissione.
+
+Le **misure tipografiche in sospeso non entrano nel rapporto**, ed è la stessa
+scelta che il banco sintetico fa già per il proprio pannello: sono una
+condizione istantanea della cattura, non un problema del contenuto da elencare.
+Il cancello che le legge in modo sincrono resta dove serve, cioè davanti a uno
+scatto — e qui non si scatta.
+
+#### 19.15.4 La fonte: una domanda e una decisione
+
+Sono due gesti, e restano distinti apposta. **Confrontare è una domanda**: non
+tocca contenuto, «non salvato», esito, archivio né revisioni. Deve essere
+gratuito, altrimenti non lo si fa — ed è il motivo per cui l'esito del confronto
+vive nell'interfaccia e non nell'hook: metterlo lì lo farebbe passare per
+qualcosa che è successo alla bozza.
+
+**Riallineare è una decisione**, e la prende chi scrive. Aggiorna solo il ramo
+`fonte` (§19.6), marca non salvato e non salva: testi, fatti, provenienze,
+fotografie, mappa e revisioni restano dove sono. Prendere atto che il sito è
+cambiato non è reimportare.
+
+I cinque stati non si appiattiscono su «non allineata»: «fonte assente» è un
+tour che non c'è più nel catalogo, «non corrispondente» è una bozza che viene da
+un altro percorso, «non confrontabile» è l'identità che torna con l'istantanea
+che manca — ed è l'unico caso in cui il riallineamento **ripara** invece di
+aggiornare. Il tour lo si cerca per slug, quindi dall'interfaccia o è il proprio
+o non c'è: `fonte-non-corrispondente` non è raggiungibile da un clic, e il
+confine lo rifiuta lo stesso.
+
+I fatti restano in sola lettura: questo capitolo non li rende modificabili.
+
+#### 19.15.5 Cronologia e ripristino
+
+L'elenco arriva da `revisioni()` già dalla più recente: non si riordina e non si
+ricalcola. Ogni voce dice se è **ripristinabile**, e non è decorazione — il
+punto di creazione esiste nella storia ma non porta uno stato, quindi non c'è
+dove tornare, e offrire il pulsante lo farebbe scoprire dopo il clic.
+
+Il ripristino passa dalle transizioni (§19.9): sostituisce il lavoro in corso
+come aprire un'altra bozza, e la stessa protezione vale. Un gesto produce
+**una** revisione — la voce «stato prima del ripristino» la registra il motore,
+e il salvataggio che segue sa di non doverne aggiungere un'altra — e gli esiti
+specifici non diventano un generico successo. Il GPX in memoria si riallinea al
+riferimento ripristinato: la revisione può portarne un altro, o nessuno, e la
+geometria di prima apparterrebbe a uno stato che non c'è più.
+
+#### 19.15.6 L'eliminazione, e perché non passa dal dialogo
+
+Conferma in due tempi, **dentro la pagina**: il primo gesto apre un pannello che
+nomina la bozza e dice la conseguenza, il secondo cancella. Niente
+`window.confirm` — non si legge, non si prova e non nomina nulla — e nessun
+timer: non c'è gesto che diventi distruttivo per il solo passare del tempo.
+
+L'eliminazione **non passa dal dialogo delle transizioni**, e non è una
+dimenticanza: quel dialogo offre «Salva e continua», che qui significherebbe
+scrivere proprio il record che si sta cancellando. Con lavoro non salvato *su
+quella* bozza il gesto si rifiuta con `modifiche-non-salvate`; una bozza diversa
+resta eliminabile anche mentre la corrente è sporca.
+`eliminata-elenco-non-aggiornato` significa **eliminata**: dire il contrario
+manderebbe a ripetere un gesto su un record che non c'è più. Le fotografie e il
+GPX restano nell'archivio: eliminare una bozza non li tocca.
+
+#### 19.15.7 Le operazioni hanno un'identità
+
+Un solo `inCorso` globale era una verità fragile: due operazioni concorrenti se
+lo sovrascrivevano, e la seconda a finire spegneva lo stato della prima — o
+peggio, una risposta tardiva mostrava il proprio esito al posto di quello
+corrente. Ogni operazione riceve adesso un numero, entra e esce dall'elenco
+**per numero**, e può scrivere un messaggio solo se è ancora la più recente. Il
+blocco si libera in un `finally`, sempre: un'interfaccia che resta bloccata su
+un fallimento è un fallimento in più.
+
+I gesti si disabilitano **per incompatibilità**, non in blocco: confrontare con
+la fonte non tocca niente e resta possibile anche mentre si salva; togliere il
+GPX resta possibile mentre una lettura è in volo, per la ragione di §19.15.2.
+
+#### 19.15.8 Uno stato locale vale finché vale il suo contesto
+
+6.3M.1 corregge tre difetti della stessa famiglia, e la famiglia conviene
+nominarla: **uno stato dell'interfaccia che sopravvive al contesto che lo
+rendeva vero**. Non è un ritardo di un fotogramma — è un messaggio che resta lì
+e che chi legge attribuisce a quello che ha davanti.
+
+`FonteTour` teneva la risposta del confronto in un `useState`. Cambiando bozza
+il pannello mostrava già lo slug della nuova e accanto il verdetto calcolato
+sulla precedente; cambiando i dati del sito sotto un componente che non veniva
+smontato, la risposta continuava a descrivere un'istantanea che nessuno stava
+più guardando.
+
+`MediaTour` teneva l'esito dell'ultimo gesto sulle fotografie. Aprendo un'altra
+bozza restava a schermo «Fotografia aggiornata. Non è ancora sul disco: salva.»
+sotto un contenuto su cui non era stato fatto niente, con un invito a salvare
+che non aveva oggetto; e dopo un salvataggio conviveva con «Salvata.», dicendo
+il contrario nella stessa schermata.
+
+La correzione è la stessa in tutti e due i casi, e ha due metà.
+
+**La prima: non tenere una copia di ciò che l'hook pubblica.** `media-assegnato`
+e `ritaglio-media-non-valido` viaggiano già su `esito`, che l'hook azzera alla
+modifica successiva e sostituisce aprendo, creando, salvando o ripristinando.
+Quella durata è già quella giusta, e una seconda copia poteva solo essere più
+lunga. Vale anche per il riallineamento **riuscito**, che è un fatto della
+bozza: al pannello restano i soli **rifiuti**, che per definizione non cambiano
+niente.
+
+**La seconda: legare esplicitamente ciò che resta locale agli ingressi che
+l'hanno prodotto.** Il confronto è una funzione di tre cose — quale bozza, quale
+istantanea, quale tour del sito — e la sua risposta è vera di quella terna e di
+nessun'altra. Il legame è per **identità degli ingressi**, non dell'oggetto
+contenuto: scrivere un claim non tocca `fonte`, quindi non invalida una risposta
+ancora vera, ed è un requisito quanto l'altro. Il confronto si fa **durante il
+render**: un effetto che azzera arriverebbe dopo, e per un fotogramma il
+verdetto di prima starebbe sotto il contenuto nuovo.
+
+E quando il contesto cambia **non si riesegue niente**: si torna a «non ancora
+confrontato». Rifare da soli una domanda che nessuno ha ripetuto è il modo di
+far comparire risposte che nessuno ha chiesto.
+
+Rileggendo gli altri stati locali di 6.3M, l'audit ha trovato un terzo caso e ha
+assolto il resto. Il caso: l'esito dell'eliminazione restava sotto l'elenco
+mentre si creava o si apriva altro — è il resoconto di un gesto, e cede il posto
+al gesto successivo. Assolti: slot attivo e selezione nella libreria, che sono
+**preferenze di chi lavora** e non attribuiscono nessun fatto a nessuna bozza;
+`GpxTour` e `CronologiaTour`, che non tengono stato proprio; il pannello di
+conferma, che vive dentro la riga della bozza a cui si riferisce.
+
+#### 19.15.9 Il ritaglio si ferma davvero
+
+La catena del blocco durante una scrittura si fermava a metà: `EditorTour`
+passava `disabilitato` a `MediaTour`, che disabilitava assegnazione, rimozione e
+specchiatura — e lasciava `Ritaglio` com'era. Trascinare il punto focale,
+muovere lo slider o premere «Ripristina inquadratura» continuavano a chiamare
+`scriviMedia` mentre la scrittura era in volo: sul disco finiva un'inquadratura
+diversa da quella che si era chiesto di salvare, e il tentativo tornava
+`superata-da-modifiche` per un gesto che l'interfaccia dichiarava impossibile.
+
+`Ritaglio` prende adesso `bloccato`, e il blocco sta in **tre punti**. Gli
+attributi `disabled` su slider e reset sono la parte visibile. Il controllo
+dentro `aggiorna` — l'unico punto da cui si scrive — è quello che conta: una
+trascinata già cominciata tiene il proprio gestore e non passa da nessun
+attributo. E lo stato del trascinamento si azzera quando il blocco si accende,
+così il dito rimasto giù non riprende da dove aveva lasciato appena il blocco si
+spegne. `MediaTour` rifiuta comunque al proprio confine, perché una callback già
+consegnata può ancora essere invocata.
+
+`bloccato` è `false` per difetto: EVENTI e ogni altro chiamante non cambiano di
+un pixel, e una prova isolata lo verifica gesto per gesto — compreso il reset,
+che adesso passa da `aggiorna` e deve produrre lo stesso identico valore di
+prima, campi estranei compresi.
+
+#### 19.15.10 I limiti, dichiarati
+
+- **Nessun export.** Niente PNG, niente pacchetto, nessun pulsante che li
+  produca. Il cancello sincrono sulle misure in sospeso arriverà con lo scatto.
+- **La rubrica resta pianificata.** `EDITOR = { eventi: EditorEvento }`, nessun
+  template TOUR registrato, `statoRubrica("tour") === "pianificata"`.
+- **`/admin/social` non ha nessun collegamento interno all'applicazione.** Se ne
+  esce con Indietro, con la barra degli indirizzi o chiudendo la scheda: tutti
+  cambi di **documento**, cioè territorio di `beforeunload`, non di
+  `useBlocker`. La sentinella (§18.7) resta la difesa per la navigazione SPA,
+  verificata dalla sua suite su un data router vero; in browser, oggi, da quella
+  pagina non esiste il gesto che la fa scattare. Lo farà appena lo Studio avrà
+  un collegamento interno.
+- **La fotografia diagnostica del repository non basta.** `4x4-guado-1800.webp`
+  è 1800×832: con il controllo di risoluzione corretto (§19.13) non regge né il
+  Post né la Story, ed è quello che il pannello dice. È una constatazione, non
+  una soglia da abbassare.

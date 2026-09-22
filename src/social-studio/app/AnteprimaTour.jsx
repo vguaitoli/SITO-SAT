@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { Camera } from "lucide-react";
 import Anteprima, { FuoriSchermo } from "./Anteprima";
 import PostTour from "../template/rubriche/tour/PostTour";
@@ -6,6 +6,14 @@ import StoryTour from "../template/rubriche/tour/StoryTour";
 import { AmbitoProblemi, FornitoreProblemi } from "../template/primitivi";
 import { cattura, scarica } from "../motori/export/cattura";
 import { preflightTour } from "../motori/preflight-tour";
+import {
+  PannelloPreflight,
+  letturaSincrona,
+  soloAmbito,
+  useEsitiSorgenti,
+  useRaccoglitori,
+  useRegistroFormati,
+} from "./anteprima-tour-nucleo";
 
 /**
  * Banco visivo della rubrica TOUR.
@@ -30,11 +38,14 @@ import { preflightTour } from "../motori/preflight-tour";
  * registro.
  */
 
+/** I due formati del prototipo. Nessun carosello. */
+const FORMATI = Object.freeze(["post", "story"]);
+
 /** La fotografia è già nel repository: si usa, non si copia. */
 const FOTO_DI_PROVA = "/media/reali/4x4-guado-1800.webp";
 
 /** Ambito delle segnalazioni della copia che viene davvero fotografata. */
-const AMBITO_CATTURA = "cattura/";
+const AMBITO_CATTURA = "cattura";
 
 /**
  * Contenuto **sintetico**. Non è un tour reale e non deve sembrarlo: i numeri
@@ -80,59 +91,11 @@ const SENZA_STORY = Object.freeze({
 });
 
 /** Le sole segnalazioni della copia che verrà fotografata. */
-function soloCattura(problemi) {
-  return Array.isArray(problemi)
-    ? problemi.filter((p) => String(p?.chiave ?? "").startsWith(AMBITO_CATTURA))
-    : null;
-}
-
-/**
- * Che cosa è successo davvero caricando una sorgente.
- *
- * È l'evidenza che nessun dato della bozza può sostituire: un `idBlob` dimostra
- * che qualcuno ha scelto una fotografia, non che il file esista o si carichi.
- * Finché non si sa, lo stato è `in-corso` — mai `caricata` per omissione — e il
- * pre-flight non autorizza.
- *
- * L'esito si porta dietro la **propria sorgente**, così una risposta tardiva di
- * un indirizzo superato non può essere scambiata per la misura di quello
- * corrente.
- */
-function useEsitiSorgenti(sorgenti) {
-  const chiave = sorgenti.filter(Boolean).join("\u0000");
-  const [esiti, setEsiti] = useState({});
-
-  useEffect(() => {
-    if (!chiave) return undefined;
-    let vivo = true;
-    for (const sorgente of chiave.split("\u0000")) {
-      const img = new Image();
-      const prendi = () => {
-        if (!vivo || !img.naturalWidth || !img.naturalHeight) return;
-        setEsiti((p) => ({
-          ...p,
-          [sorgente]: { sorgente, stato: "caricata", larghezza: img.naturalWidth, altezza: img.naturalHeight },
-        }));
-      };
-      img.onload = prendi;
-      img.onerror = () => {
-        if (vivo) setEsiti((p) => ({ ...p, [sorgente]: { sorgente, stato: "fallita" } }));
-      };
-      img.src = sorgente;
-      // Una sorgente già in cache è `complete` subito e `onload` non scatta.
-      if (img.complete) prendi();
-    }
-    return () => {
-      vivo = false;
-    };
-  }, [chiave]);
-
-  return esiti;
-}
+const soloCattura = (problemi) => soloAmbito(problemi, AMBITO_CATTURA);
 
 export default function AnteprimaTour() {
   const [ripiegoStory, setRipiegoStory] = useState(false);
-  const [problemi, setProblemi] = useState({ post: [], story: [] });
+  const { problemi, raccoglitori } = useRaccoglitori(FORMATI);
   const [stato, setStato] = useState(null);
   const [daConfermare, setDaConfermare] = useState(null);
   const [inCattura, setInCattura] = useState(null);
@@ -149,35 +112,8 @@ export default function AnteprimaTour() {
    */
   const catturaInCorso = useRef(false);
 
-  /*
-   * Un registro per formato, non uno solo.
-   *
-   * Il conteggio delle misure in sospeso è per fornitore: con un registro
-   * condiviso, una Story ancora in caricamento bloccherebbe il Post e
-   * viceversa, e non si saprebbe nemmeno quale dei due sta aspettando.
-   */
-  const lettorePost = useRef(null);
-  const misurePost = useRef(null);
-  const lettoreStory = useRef(null);
-  const misureStory = useRef(null);
-  const registro = useRef({
-    post: { lettore: lettorePost, misure: misurePost },
-    story: { lettore: lettoreStory, misure: misureStory },
-  }).current;
-
-  /*
-   * Due callback **stabili**, una per formato.
-   *
-   * Una fabbrica memoizzata non basta: `raccogli("post")` restituiva una
-   * funzione nuova a ogni render, e con essa cambiava `segnala` dentro il
-   * fornitore. Ogni effetto di segnalazione si ritirava e si riscriveva, il
-   * raggruppamento notificava, il genitore aggiornava lo stato e si
-   * ricominciava — con un errore persistente il banco si ridisegnava una volta
-   * al secondo, per sempre. Quel che dev'essere stabile è la funzione che il
-   * fornitore riceve, non quella che la costruisce.
-   */
-  const raccogliPost = useCallback((elenco) => setProblemi((p) => ({ ...p, post: elenco })), []);
-  const raccogliStory = useCallback((elenco) => setProblemi((p) => ({ ...p, story: elenco })), []);
+  /* Un registro per formato, non uno solo: vedi `anteprima-tour-nucleo`. */
+  const registro = useRegistroFormati(FORMATI);
 
   const contenutoStory = ripiegoStory ? SENZA_STORY : FIXTURE;
   const sorgenteStory = ripiegoStory ? null : FOTO_DI_PROVA;
@@ -223,15 +159,18 @@ export default function AnteprimaTour() {
    */
   const verifica = useCallback(
     (quale, conferma = null) => {
-      const { lettore, misure } = registro[quale];
-      const rispondono =
-        typeof lettore.current === "function" && typeof misure.current === "function";
+      const lettura = letturaSincrona(registro, quale, AMBITO_CATTURA);
       return preflightTour({
         ...ingredienti(quale),
-        problemi: rispondono ? soloCattura(lettore.current()) : null,
-        evidenze: rispondono
-          ? { formato: quale, misureInSospeso: misure.current(), foto: esitoFoto(quale) }
-          : null,
+        problemi: lettura.problemi,
+        evidenze:
+          lettura.misureInSospeso === null
+            ? null
+            : {
+                formato: quale,
+                misureInSospeso: lettura.misureInSospeso,
+                foto: esitoFoto(quale),
+              },
         conferma,
       });
     },
@@ -249,7 +188,7 @@ export default function AnteprimaTour() {
    */
   const rapporto = useMemo(
     () =>
-      ["post", "story"].map((quale) => ({
+      FORMATI.map((quale) => ({
         quale,
         esito: preflightTour({
           ...ingredienti(quale),
@@ -334,7 +273,7 @@ export default function AnteprimaTour() {
       </p>
 
       <div className="mb-5 flex flex-wrap items-center gap-3">
-        {["post", "story"].map((quale) => (
+        {FORMATI.map((quale) => (
           <button
             key={quale}
             type="button"
@@ -409,7 +348,7 @@ export default function AnteprimaTour() {
 
       <div className="grid gap-6 md:grid-cols-2">
         <FornitoreProblemi
-          onProblemi={raccogliPost}
+          onProblemi={raccoglitori.post}
           lettore={registro.post.lettore}
           misure={registro.post.misure}
         >
@@ -433,7 +372,7 @@ export default function AnteprimaTour() {
         </FornitoreProblemi>
 
         <FornitoreProblemi
-          onProblemi={raccogliStory}
+          onProblemi={raccoglitori.story}
           lettore={registro.story.lettore}
           misure={registro.story.misure}
         >
@@ -455,48 +394,7 @@ export default function AnteprimaTour() {
         </FornitoreProblemi>
       </div>
 
-      <Pannello rapporto={rapporto} />
+      <PannelloPreflight rapporto={rapporto} />
     </section>
-  );
-}
-
-/**
- * Il rapporto del pre-flight, per formato.
- *
- * **La riga porta il formato.** I due registri sono separati e le chiavi
- * nascono uguali — la fotografia del Post è `foto` e quella della Story è
- * `foto` — quindi concatenare i due elenchi e usare la chiave come key di React
- * significava due righe diverse con la stessa identità: React protestava, e la
- * lista poteva riusare la riga sbagliata quando l'elenco cambiava. Il registro
- * condiviso resta com'è; l'identità del formato si aggiunge **qui**, dove la
- * lista si costruisce.
- */
-function Pannello({ rapporto }) {
-  const righe = rapporto.flatMap(({ quale, esito }) =>
-    esito.esiti
-      .filter((e) => e.livello !== "ok")
-      // Lo spread sta **prima**: la chiave composta deve vincere su `e.id`.
-      .map((e) => ({ ...e, quale, chiave: `${quale}/${e.id}` })),
-  );
-  const passati = rapporto.reduce(
-    (n, { esito }) => n + esito.esiti.filter((e) => e.livello === "ok").length,
-    0,
-  );
-
-  return (
-    <div className="mt-5 font-body text-xs text-granite-mist/70">
-      {righe.length === 0 ? (
-        <p>Pre-flight TOUR: {passati} controlli passati, nessun problema.</p>
-      ) : (
-        <ul className="space-y-1">
-          {righe.map((r) => (
-            <li key={r.chiave}>
-              <span className="text-[var(--accent)]">{r.livello}</span> ·{" "}
-              <span className="uppercase tracking-[0.12em]">{r.quale}</span> · {r.messaggio}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
   );
 }

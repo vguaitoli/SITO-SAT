@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Maximize2, RotateCcw } from "lucide-react";
 import { FOTO } from "../design/tokens";
 
@@ -17,8 +17,26 @@ import { FOTO } from "../design/tokens";
  * nella Story e 1080×560 nella slide CTA, e lo stesso punto focale dà tre
  * inquadrature diverse. Qui si vedono tutte, con le misure che i template
  * dichiarano in `template/rubriche/eventi/zone.js`.
+ *
+ * ## `bloccato`, e perché non basta un attributo
+ *
+ * Da 6.3M.1 il ritaglio si può **fermare**, e serve mentre una scrittura è in
+ * volo: spostare il punto focale durante un salvataggio manda sul disco
+ * un'inquadratura diversa da quella che si era chiesto di salvare, e il
+ * tentativo torna `superata-da-modifiche` per un gesto che l'interfaccia
+ * dichiarava impossibile.
+ *
+ * Il blocco è in **tre punti**, non in uno. `disabled` sui due controlli è la
+ * parte visibile; il controllo dentro `aggiorna` è quello che conta, perché una
+ * trascinata già cominciata tiene il proprio gestore e continuerebbe a scrivere
+ * senza passare da nessun attributo. E lo stato del trascinamento si azzera
+ * quando il blocco si accende, così il dito che è rimasto giù non riprende da
+ * dove aveva lasciato appena il blocco si spegne.
+ *
+ * Il valore predefinito è `false`: EVENTI e ogni altro chiamante esistente non
+ * cambiano di un pixel.
  */
-export default function Ritaglio({ sorgente, valore, onCambia, zone = [] }) {
+export default function Ritaglio({ sorgente, valore, onCambia, zone = [], bloccato = false }) {
   const [trascina, setTrascina] = useState(false);
   const riquadro = useRef(null);
   const zoom = valore?.zoom ?? 1;
@@ -29,10 +47,27 @@ export default function Ritaglio({ sorgente, valore, onCambia, zone = [] }) {
   const principale = zone[0] || { nome: "Ritaglio", larghezza: 1080, altezza: 1350 };
   const secondarie = zone.slice(1);
 
+  /*
+   * L'unico punto da cui si scrive, e quindi l'unico che deve saper dire di no.
+   * Gli attributi `disabled` non coprono un gestore già catturato da una
+   * trascinata in corso: la difesa deve stare qui, dove la scrittura passa.
+   */
   const aggiorna = useCallback(
-    (patch) => onCambia({ ...valore, zoom, x, y, ...patch }),
-    [onCambia, valore, zoom, x, y],
+    (patch) => {
+      if (bloccato) return;
+      onCambia({ ...valore, zoom, x, y, ...patch });
+    },
+    [bloccato, onCambia, valore, zoom, x, y],
   );
+
+  /*
+   * Bloccando si lascia andare anche la trascinata in corso: senza, il
+   * puntatore resterebbe «preso» e, tolto il blocco, il primo movimento
+   * scriverebbe una posizione scelta mentre non si poteva scegliere.
+   */
+  useEffect(() => {
+    if (bloccato) setTrascina(false);
+  }, [bloccato]);
 
   const daEvento = (e) => {
     const r = riquadro.current?.getBoundingClientRect();
@@ -44,7 +79,7 @@ export default function Ritaglio({ sorgente, valore, onCambia, zone = [] }) {
   };
 
   const muovi = (e) => {
-    if (!trascina) return;
+    if (bloccato || !trascina) return;
     const p = daEvento(e);
     if (p) aggiorna(p);
   };
@@ -62,6 +97,7 @@ export default function Ritaglio({ sorgente, valore, onCambia, zone = [] }) {
       <div
         ref={riquadro}
         onPointerDown={(e) => {
+          if (bloccato) return;
           setTrascina(true);
           const p = daEvento(e);
           if (p) aggiorna(p);
@@ -72,8 +108,10 @@ export default function Ritaglio({ sorgente, valore, onCambia, zone = [] }) {
         onPointerCancel={() => setTrascina(false)}
         style={{
           aspectRatio: `${principale.larghezza} / ${principale.altezza}`,
-          cursor: trascina ? "grabbing" : "grab",
+          cursor: bloccato ? "default" : trascina ? "grabbing" : "grab",
         }}
+        data-riquadro-ritaglio=""
+        data-bloccato={bloccato ? "si" : "no"}
         className="relative w-full select-none overflow-hidden border border-[var(--border-on-dark)]"
       >
         <ImmagineInquadrata sorgente={sorgente} zoom={zoom} x={x} y={y} />
@@ -99,16 +137,20 @@ export default function Ritaglio({ sorgente, valore, onCambia, zone = [] }) {
           max={2.5}
           step={0.05}
           value={zoom}
+          disabled={bloccato}
           onChange={(e) => aggiorna({ zoom: Number(e.target.value) })}
-          className="flex-1 accent-[var(--accent)]"
+          className="flex-1 accent-[var(--accent)] disabled:opacity-40"
           aria-label="Zoom"
         />
         <span className="w-12 font-body text-xs text-granite-mist/55">{zoom.toFixed(2)}×</span>
         <button
           type="button"
-          onClick={() => onCambia({ ...valore, zoom: 1, x: 0.5, y: 0.5 })}
+          disabled={bloccato}
+          // Passa da `aggiorna`, che è il punto che sa dire di no: un `onCambia`
+          // diretto sarebbe una seconda via di scrittura da tenere allineata.
+          onClick={() => aggiorna({ zoom: 1, x: 0.5, y: 0.5 })}
           title="Ripristina inquadratura"
-          className="p-1.5 text-granite-mist/50 transition-colors hover:text-[var(--accent)]"
+          className="p-1.5 text-granite-mist/50 transition-colors hover:text-[var(--accent)] disabled:opacity-40"
         >
           <RotateCcw size={14} aria-hidden="true" />
         </button>

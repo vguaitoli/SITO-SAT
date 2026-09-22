@@ -189,6 +189,58 @@ describe("indicatore degli slot nell'editor", () => {
     expect(pulsante("cover").dataset.piena).toBe("si");
     for (const s of STORY) expect(pulsante(s).dataset.piena).toBe("no");
   });
+
+  /* ---------------------------------------------------------------- *
+   * La rubrica è un parametro, e il ripiego non esiste
+   * ---------------------------------------------------------------- */
+
+  /**
+   * Da 6.3M il selettore serve anche TOUR. Il rischio è quello di sempre in
+   * questo file: un ripiego per esclusione. Se una rubrica senza registro
+   * ereditasse gli slot di EVENTI, un clic scriverebbe in un ramo che quella
+   * rubrica non ha, e la fotografia sparirebbe senza un errore.
+   */
+  it("senza rubrica resta EVENTI, con i suoi nove slot nell'ordine", () => {
+    monta(vuoto());
+    expect(contenitore.querySelector("[data-rubrica-slot]").dataset.rubricaSlot).toBe("eventi");
+    expect([...contenitore.querySelectorAll("[data-slot]")].map((b) => b.dataset.slot)).toEqual(
+      SLOT_MEDIA.map((s) => s.id),
+    );
+  });
+
+  it("con rubrica TOUR mostra due soli slot, e nessuno di EVENTI", () => {
+    act(() =>
+      radice.render(
+        <SelettoreSlot rubrica="tour" media={vuoto()} attivo="cover" onSceglie={() => {}} />,
+      ),
+    );
+    expect([...contenitore.querySelectorAll("[data-slot]")].map((b) => b.dataset.slot)).toEqual([
+      "cover",
+      "story",
+    ]);
+    expect(contenitore.textContent).not.toContain("Vivrai");
+  });
+
+  /** L'indicatore legge lo slot **della rubrica giusta**, non quello omonimo. */
+  it("il pallino di TOUR guarda `sfondi.tourStory`, non gli slot di EVENTI", () => {
+    const media = scriviSlotDellaRubrica("tour", vuoto(), "story", rif("story-1"));
+    act(() =>
+      radice.render(
+        <SelettoreSlot rubrica="tour" media={media} attivo="story" onSceglie={() => {}} />,
+      ),
+    );
+    expect(contenitore.querySelector('[data-slot="story"]').dataset.piena).toBe("si");
+    expect(contenitore.querySelector('[data-slot="cover"]').dataset.piena).toBe("no");
+  });
+
+  it("una rubrica sconosciuta non ha slot, e non ne eredita", () => {
+    act(() =>
+      radice.render(
+        <SelettoreSlot rubrica="inesistente" media={vuoto()} attivo="cover" onSceglie={() => {}} />,
+      ),
+    );
+    expect(contenitore.querySelectorAll("[data-slot]")).toHaveLength(0);
+  });
 });
 
 /* ================================================================== *
