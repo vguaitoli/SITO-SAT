@@ -311,6 +311,13 @@ function compactDescription(value, maxLength = 158) {
 }
 
 function catalogSeoText(locale, item, isEvent) {
+  if (isEvent && locale === "it" && item.slug === "tour-dei-santi-2026") {
+    return {
+      title: "Tour dei Santi 2026: Maxi Enduro in Sardegna",
+      description: "Tour dei Santi 2026: 4 giorni in maxi enduro in Sardegna con partenza da Olbia, pernottamenti in agriturismo, cene, trasporto bagagli e assistenza. Quota 550 €.",
+    };
+  }
+
   const title = isEvent
     ? locale === "en"
       ? `${item.name}: off-road event in Sardinia`

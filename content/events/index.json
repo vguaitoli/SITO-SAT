@@ -219,6 +219,42 @@
       ]
     },
     {
+      "name": "Tour dei Santi 2026",
+      "slug": "tour-dei-santi-2026",
+      "updatedAt": "2026-10-01T00:00:00.000Z",
+      "type": "Maxienduro",
+      "duration": "4 Giorni",
+      "distance": "",
+      "level": "",
+      "offroad": "",
+      "interest": "Sardegna",
+      "startLocation": "Olbia",
+      "lunchIncluded": false,
+      "accommodation": "3 notti in agriturismo",
+      "period": "30 ottobre – 2 novembre 2026",
+      "startDate": "2026-10-30T00:00:00.000Z",
+      "endDate": "2026-11-02T00:00:00.000Z",
+      "price": "550 €",
+      "description": "Parti da Olbia. Torna a Olbia. Nel mezzo, la Sardegna.\nQuattro giorni di viaggio in maxi enduro attraverso la Sardegna, tra sterrati, strade secondarie e percorsi panoramici.\nUn vero tour itinerante: ogni giornata porta verso una nuova destinazione e ogni sera si dorme in un agriturismo diverso.\nI bagagli vengono trasferiti da una struttura alla successiva e durante il tour è presente un veicolo di assistenza.\nTu pensa a guidare. Al resto pensiamo noi.",
+      "programNote": "Tour itinerante con partenza e arrivo a Olbia.",
+      "included": [
+        "3 pernottamenti",
+        "3 cene",
+        "Trasporto bagagli",
+        "Veicolo di assistenza",
+        "Gadget Sardegna Trail Avventura"
+      ],
+      "exclusions": [
+        "Pranzi",
+        "Carburante",
+        "Trasporto marittimo",
+        "Spese personali",
+        "Tutto ciò che non è espressamente incluso"
+      ],
+      "equipment": [],
+      "stages": []
+    },
+    {
       "name": "Tour dei Santi 4x4 – Sardegna senza confini",
       "slug": "tour-dei-santi-4x4-2026",
       "updatedAt": "2026-07-31T00:00:00.000Z",
