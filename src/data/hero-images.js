@@ -44,7 +44,7 @@ export const HERO_IMAGES = {
     src: "/media/reali/carousel-enduro-12-1200.webp",
     alt: "Rider enduro su un sentiero sterrato in Sardegna",
   },
-  "tour-immacolata-4x4-2026": {
+  "winter-trail-sardegna-2026": {
     src: "/media/reali/4x4-sosta-costiera-1400.webp",
     alt: "Gruppo di fuoristrada 4x4 in sosta su un pianoro roccioso vicino alla costa sarda, sotto un cielo limpido",
   },
