@@ -98,6 +98,19 @@ Tutto il resto della locandina — logo, colori, font, disposizione — arriva d
 template in `docs/locandina-template.html`, che non va modificato: è quello che
 garantisce che le locandine siano tutte uguali.
 
+## Prima di caricare: i testi social
+
+Prima di toccare il sito ti propongo **4 opzioni cliccabili per ogni testo**
+del Social Studio, in due giri:
+
+1. Titolo breve (che diventa anche il nome dell'evento), kicker, claim, frase dei numeri
+2. Descrizione, CTA, highlight, caption
+
+Le opzioni usano solo i dati del blocco: niente luoghi o servizi inventati.
+Puoi sempre scrivere un testo tuo al posto delle quattro proposte. Le
+scelte finiscono sia nella scheda del sito (nome, sottotitolo, descrizione)
+sia nella bozza dello Studio, così non serve rinominare nulla dopo.
+
 ## Cosa ti restituisco
 
 1. La scheda aggiunta a `content/events/index.json` e visibile su `/eventi`
