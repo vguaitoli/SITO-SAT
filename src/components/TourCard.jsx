@@ -12,6 +12,7 @@ export default function TourCard({ tour, color, detailPath }) {
   const { t } = useI18n();
   const [flipped, setFlipped] = useState(false);
   const routeMap = ROUTE_MAPS[tour.slug];
+  const keyStats = [tour.km, tour.sterrato].filter(Boolean).length;
 
   return (
     <motion.div
@@ -51,8 +52,12 @@ export default function TourCard({ tour, color, detailPath }) {
             </div>
           </div>
 
-          {/* Key stats — km & sterrato front and center */}
-          <div className="grid grid-cols-2 divide-x divide-[#F5EBD9]/10 border-b border-[#F5EBD9]/10">
+          {/* Key stats — km & sterrato front and center. Un evento può non
+              averli: la casella vuota sparisce e, senza nessuno dei due, l'intera
+              fascia, invece di mostrare riquadri bianchi. */}
+          {keyStats > 0 && (
+          <div className={`grid ${keyStats === 2 ? "grid-cols-2" : "grid-cols-1"} divide-x divide-[#F5EBD9]/10 border-b border-[#F5EBD9]/10`}>
+            {tour.km && (
             <div className="p-5 text-center">
               <span className="font-button text-[10px] tracking-[0.15em] uppercase text-[#E4D4B0]/60 flex items-center justify-center gap-1.5 mb-1.5">
                 <Gauge size={12} />
@@ -60,6 +65,8 @@ export default function TourCard({ tour, color, detailPath }) {
               </span>
               <span className="font-heading text-3xl leading-none sm:flex sm:min-h-[2em] sm:items-center sm:justify-center" style={{ color }}>{tour.km}</span>
             </div>
+            )}
+            {tour.sterrato && (
             <div className="p-5 text-center">
               <span className="font-button text-[10px] tracking-[0.15em] uppercase text-[#E4D4B0]/60 flex items-center justify-center gap-1.5 mb-1.5">
                 <Percent size={12} />
@@ -67,7 +74,9 @@ export default function TourCard({ tour, color, detailPath }) {
               </span>
               <span className="font-heading text-3xl leading-none sm:flex sm:min-h-[2em] sm:items-center sm:justify-center" style={{ color }}>{tour.sterrato}</span>
             </div>
+            )}
           </div>
+          )}
 
           {/* Secondary specs */}
           <div className="grid grid-cols-2 gap-4 p-6 pb-4">
@@ -206,7 +215,11 @@ export default function TourCard({ tour, color, detailPath }) {
 
           <div className="px-6 pb-6 text-center">
             <h4 className="font-heading text-2xl text-[#F5EBD9] tracking-wide leading-none mb-1">{tour.name}</h4>
-            <p className="font-body text-xs text-[#F5EBD9]/50">{tour.km} · {tour.sterrato} {t("sterrato")}</p>
+            {keyStats > 0 && (
+              <p className="font-body text-xs text-[#F5EBD9]/50">
+                {[tour.km, tour.sterrato && `${tour.sterrato} ${t("sterrato")}`].filter(Boolean).join(" · ")}
+              </p>
+            )}
           </div>
         </div>
       </div>
