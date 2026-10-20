@@ -25,6 +25,7 @@ import PageNotFound from "@/lib/PageNotFound";
 import { typeColors } from "@/components/TourDetails";
 import { HERO_IMAGES } from "@/data/hero-images";
 import { groupFor } from "@/data/group-overrides";
+import { EVENT_PARTNERS } from "@/data/event-partners";
 import { useSiteContent } from "@/content/TinaContentProvider";
 import { useI18n } from "@/i18n/I18nProvider";
 
@@ -113,6 +114,7 @@ export default function CatalogDetailPage({ kind }) {
   const stages = item.tappe || [];
 
   const group = isEvent ? groupFor(item.slug, TOUR_GROUP) : TOUR_GROUP;
+  const partner = isEvent ? EVENT_PARTNERS[item.slug] : null;
 
   const stats = [
     ...(isEvent ? [{ icon: MapPin, label: t("Partenza"), value: item.partenza }] : []),
@@ -186,6 +188,26 @@ export default function CatalogDetailPage({ kind }) {
                 >
                   {item.subtitle}
                 </p>
+              )}
+              {partner && (
+                <a
+                  href={partner.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group mt-7 inline-flex items-center gap-4 border-l-2 border-[var(--accent-soft)] py-1 pl-4"
+                >
+                  <span className="font-button text-[11px] uppercase tracking-[0.2em] text-granite-mist/70 transition-colors group-hover:text-granite-mist">
+                    {t("In collaborazione con")}
+                  </span>
+                  <img
+                    src={partner.logo}
+                    alt={partner.name}
+                    width={174}
+                    height={51}
+                    loading="eager"
+                    className="h-10 w-auto sm:h-12"
+                  />
+                </a>
               )}
               <p
                 className="mt-7 max-w-3xl whitespace-pre-line font-body text-base leading-relaxed text-granite-mist/85 sm:text-lg lg:text-xl"
