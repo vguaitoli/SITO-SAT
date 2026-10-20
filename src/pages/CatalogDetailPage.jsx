@@ -24,6 +24,7 @@ import MobileCta from "@/components/MobileCta";
 import PageNotFound from "@/lib/PageNotFound";
 import { typeColors } from "@/components/TourDetails";
 import { HERO_IMAGES } from "@/data/hero-images";
+import { groupFor } from "@/data/group-overrides";
 import { useSiteContent } from "@/content/TinaContentProvider";
 import { useI18n } from "@/i18n/I18nProvider";
 
@@ -111,6 +112,8 @@ export default function CatalogDetailPage({ kind }) {
   const equipment = item.equipaggiamento || [];
   const stages = item.tappe || [];
 
+  const group = isEvent ? groupFor(item.slug, TOUR_GROUP) : TOUR_GROUP;
+
   const stats = [
     ...(isEvent ? [{ icon: MapPin, label: t("Partenza"), value: item.partenza }] : []),
     { icon: Clock3, label: t("Durata"), value: item.durata },
@@ -125,7 +128,7 @@ export default function CatalogDetailPage({ kind }) {
       value: item.sterrato,
     },
     { icon: CalendarDays, label: t("Periodo"), value: item.periodo },
-    { icon: Users, label: t("Partecipanti"), value: TOUR_GROUP.label },
+    { icon: Users, label: t("Partecipanti"), value: t(group.label) },
   ];
 
   return (
@@ -341,7 +344,7 @@ export default function CatalogDetailPage({ kind }) {
                     {t("Preparazione e sicurezza")}
                   </h2>
                   <p className="mt-4 font-body text-sm leading-relaxed text-[var(--text-on-light-muted)]">
-                    {t("Ogni tour è personalizzabile per il tuo gruppo.")} {TOUR_GROUP.sentence}
+                    {t("Ogni tour è personalizzabile per il tuo gruppo.")} {t(group.sentence)}
                   </p>
                 </div>
               </aside>

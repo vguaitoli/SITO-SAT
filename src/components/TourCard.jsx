@@ -6,12 +6,14 @@ import { tinaField } from "tinacms/dist/react";
 import { useSiteContent } from "@/content/TinaContentProvider";
 import { useI18n } from "@/i18n/I18nProvider";
 import { ROUTE_MAPS } from "@/data/route-maps";
+import { groupFor } from "@/data/group-overrides";
 
 export default function TourCard({ tour, color, detailPath }) {
   const { TOUR_GROUP } = useSiteContent();
   const { t } = useI18n();
   const [flipped, setFlipped] = useState(false);
   const routeMap = ROUTE_MAPS[tour.slug];
+  const group = groupFor(tour.slug, TOUR_GROUP);
   const keyStats = [tour.km, tour.sterrato].filter(Boolean).length;
 
   return (
@@ -87,6 +89,7 @@ export default function TourCard({ tour, color, detailPath }) {
               </span>
               <span className="font-body text-sm font-semibold text-[#F5EBD9]">{tour.durata}</span>
             </div>
+            {tour.livello && (
             <div className="flex flex-col gap-1">
               <span className="font-button text-[10px] tracking-[0.15em] uppercase text-[#F5EBD9]/40 flex items-center gap-1.5">
                 <TrendingUp size={12} />
@@ -94,12 +97,13 @@ export default function TourCard({ tour, color, detailPath }) {
               </span>
               <span className="font-body text-sm font-semibold text-[#F5EBD9]">{tour.livello}</span>
             </div>
+            )}
             <div className="col-span-2 flex flex-col gap-1">
               <span className="font-button text-[10px] tracking-[0.15em] uppercase text-[#F5EBD9]/40 flex items-center gap-1.5">
                 <Users size={12} aria-hidden="true" />
                 {t("Partecipanti")}
               </span>
-              <span className="font-body text-sm font-semibold text-[#F5EBD9]">{TOUR_GROUP.label}</span>
+              <span className="font-body text-sm font-semibold text-[#F5EBD9]">{t(group.label)}</span>
             </div>
             <div className="col-span-2 flex flex-col gap-1">
               <span className="font-button text-[10px] tracking-[0.15em] uppercase text-[#F5EBD9]/40 flex items-center gap-1.5">
