@@ -52,6 +52,10 @@ export const HERO_IMAGES = {
     src: "/media/reali/4x4-sosta-costiera-1400.webp",
     alt: "Gruppo di fuoristrada 4x4 in sosta su un pianoro roccioso vicino alla costa sarda, sotto un cielo limpido",
   },
+  "tour-immacolata-ineos-grenadier-2026": {
+    src: "/media/reali/4x4-grenadier-polvere-1400.webp",
+    alt: "INEOS Grenadier azzurro con i fari accesi su uno sterrato polveroso, tra gli alberi controluce al tramonto",
+  },
   "capodanno-2026-sardegna": {
     src: "/media/reali/4x4-discesa-sassosa-1400.webp",
     alt: "Fuoristrada 4x4 in discesa su una pista sassosa, con un secondo mezzo alle spalle e la vallata sullo sfondo",

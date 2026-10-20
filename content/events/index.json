@@ -390,6 +390,68 @@
       "sourceUrl": ""
     },
     {
+      "name": "Tour dell'Immacolata 4x4 – Dedicato a INEOS Grenadier",
+      "slug": "tour-immacolata-ineos-grenadier-2026",
+      "updatedAt": "2026-10-20T00:00:00.000Z",
+      "type": "4x4",
+      "duration": "5 Giorni",
+      "distance": "",
+      "level": "Facile-Medio",
+      "offroad": "",
+      "interest": "Oristanese, Barbagia, Gavoi, Seulo e Orgosolo",
+      "startLocation": "Abbasanta",
+      "lunchIncluded": true,
+      "accommodation": "Hotel e agriturismi selezionati con cena e prima colazione",
+      "period": "4–8 dicembre 2026",
+      "startDate": "2026-12-04T00:00:00.000Z",
+      "endDate": "2026-12-08T00:00:00.000Z",
+      "price": "690 € a persona",
+      "description": "Cinque giorni in fuoristrada riservati agli equipaggi INEOS Grenadier, organizzati in collaborazione con Ineos Club Italia.\nDall'Oristanese al cuore della Barbagia, tra Gavoi, Seulo e Orgosolo, lungo strade sterrate e paesaggi montani dell'entroterra sardo, fino al pranzo tipico dal pastore che chiude il viaggio.\nUn gruppo ristretto, accompagnato da una guida sarda, con pernottamenti in hotel e agriturismi selezionati.",
+      "programNote": "Il percorso e l'ordine delle tappe saranno gestiti dalla guida in base alla logistica, al meteo, alle condizioni del terreno e alle autorizzazioni disponibili.",
+      "included": [
+        "Guida sarda e accompagnamento durante il tour",
+        "Permessi e autorizzazioni al transito previsti dall'itinerario",
+        "Pernottamenti in hotel e agriturismi selezionati con cena e prima colazione",
+        "Pranzo tipico dal pastore a Orgosolo",
+        "Tre gadget: t-shirt personalizzata, tabella adesiva laterale per il veicolo e adesivo Sardegna Trail Avventura"
+      ],
+      "exclusions": [
+        "Traghetto di andata e ritorno per la Sardegna",
+        "Carburante",
+        "Pranzi (ad eccezione del pranzo tipico dal pastore)",
+        "Supplemento camera singola (30 € al giorno)"
+      ],
+      "equipment": [
+        "INEOS Grenadier preparato per la guida in fuoristrada",
+        "Pneumatici All-Terrain o equivalenti adatti allo sterrato",
+        "CB obbligatoria",
+        "Precedente esperienza di guida off-road"
+      ],
+      "stages": [
+        {
+          "title": "Tappa 1: Olbia > Abbasanta",
+          "description": "Arrivo a Olbia e trasferimento su strada asfaltata fino ad Abbasanta, punto di partenza del tour."
+        },
+        {
+          "title": "Tappa 2: Oristanese",
+          "description": "Giornata dedicata alla scoperta dell'area dell'Oristanese e ai percorsi previsti dal programma."
+        },
+        {
+          "title": "Tappa 3: Oristano > Gavoi",
+          "description": "Tappa attraverso l'entroterra sardo, con arrivo a Gavoi, nel cuore della Barbagia."
+        },
+        {
+          "title": "Tappa 4: Gavoi > Seulo",
+          "description": "Percorso verso Seulo, tra paesaggi montani e strade sterrate selezionate in base alle condizioni e alle autorizzazioni disponibili."
+        },
+        {
+          "title": "Tappa 5: Orgosolo",
+          "description": "Giornata conclusiva con pranzo tipico dal pastore a Orgosolo."
+        }
+      ],
+      "sourceUrl": "https://ineosclubitalia.it/eventi/9d98da12-785d-4dbf-b4aa-99bc3a4f235f"
+    },
+    {
       "name": "Capodanno 2026 in Sardegna – Sette giorni fuori strada per cambiare anno",
       "slug": "capodanno-2026-sardegna",
       "updatedAt": "2026-09-16T00:00:00.000Z",
