@@ -1,3 +1,4 @@
+import { tourFormConfigPlugin } from './scripts/tour-form-config.mjs';
 
 import react from '@vitejs/plugin-react'
 import { fileURLToPath, URL } from 'node:url'
@@ -22,6 +23,7 @@ function redirectTinaAdmin(server) {
 export default defineConfig({
   plugins: [
     react(),
+    tourFormConfigPlugin(),
     {
       name: 'tina-admin-redirect',
       configureServer: redirectTinaAdmin,
