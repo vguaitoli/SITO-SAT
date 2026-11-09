@@ -53,11 +53,14 @@ export default function Booking() {
     cognome: "",
     email: "",
     telefono: "",
-    partecipanti: 1,
+    partecipanti: "1",
+    partecipantiDettagli: [],
     tipologiaMezzo: "",
     marcaMezzo: "",
     modelloMezzo: "",
-    cameraPrivata: false,
+    cameraSingola: false,
+    trasportoBagagli: false,
+    assicurazione: false,
     richieste: "",
     privacy: false,
     botcheck: "",
@@ -94,9 +97,30 @@ export default function Booking() {
       selectEvent(value);
       return;
     }
+    if (name === "partecipanti") {
+      const additionalCount = Math.max(0, Number(value) - 1);
+      setForm((current) => ({
+        ...current,
+        partecipanti: value,
+        partecipantiDettagli: Array.from(
+          { length: additionalCount },
+          (_, index) => current.partecipantiDettagli[index] || { nome: "", mezzo: "" },
+        ),
+      }));
+      return;
+    }
     setForm((current) => ({
       ...current,
       [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleParticipantChange = (index, field, value) => {
+    setForm((current) => ({
+      ...current,
+      partecipantiDettagli: current.partecipantiDettagli.map((participant, participantIndex) =>
+        participantIndex === index ? { ...participant, [field]: value } : participant,
+      ),
     }));
   };
 
@@ -125,11 +149,18 @@ export default function Booking() {
           email: form.email,
           telefono: form.telefono,
           numero_partecipanti: form.partecipanti,
+          altri_partecipanti:
+            form.partecipantiDettagli
+              .map((participant, index) => `${index + 2}. ${participant.nome} · ${participant.mezzo}`)
+              .join("\n") || "Nessuno",
           tipologia_mezzo: form.tipologiaMezzo || "Non indicata",
           marca_mezzo: form.marcaMezzo || "Non indicata",
           modello_mezzo: form.modelloMezzo || "Non indicato",
-          camera_privata: form.cameraPrivata ? "Sì — supplemento 30 €" : "No",
+          camera_singola: form.cameraSingola ? "Sì · supplemento da confermare" : "No",
+          trasporto_bagagli: form.trasportoBagagli ? "Sì · disponibilità e prezzo da confermare" : "No",
+          assicurazione_personale: form.assicurazione ? "Sì · disponibilità e prezzo da confermare" : "No",
           richieste_particolari: form.richieste || "Nessuna",
+          stato: "Richiesta da verificare. Nessuna conferma automatica di posto o pagamento.",
         }),
       });
       const result = await response.json();
@@ -319,10 +350,14 @@ export default function Booking() {
                     </div>
 
                     <label className="block font-button text-xs uppercase tracking-wider text-[#1C1814]/70">
-                      {t("Numero di partecipanti *")}
+                      {t("Numero partecipanti *")}
                       <span className="relative block">
                         <Users className="pointer-events-none absolute left-4 top-1/2 mt-1 -translate-y-1/2 text-[#1C1814]/45" size={18} aria-hidden="true" />
-                        <input type="number" min="1" name="partecipanti" value={form.partecipanti} onChange={handleChange} required className={`${INPUT_CLASS} pl-12`} />
+                        <select name="partecipanti" value={form.partecipanti} onChange={handleChange} required className={`${INPUT_CLASS} pl-12`}>
+                          {[1, 2, 3, 4, 5].map((count) => (
+                            <option key={count} value={count}>{count}</option>
+                          ))}
+                        </select>
                       </span>
                     </label>
 
@@ -370,17 +405,61 @@ export default function Booking() {
                       </div>
                     </fieldset>
 
-                    <label className={`flex cursor-pointer items-start gap-4 border p-4 transition-colors ${form.cameraPrivata ? "border-[var(--accent)] bg-white" : "border-[#1C1814]/15 bg-white/55 hover:border-[var(--accent)]/55"}`}>
-                      <input type="checkbox" name="cameraPrivata" checked={form.cameraPrivata} onChange={handleChange} className="mt-1 h-5 w-5 accent-[var(--accent)]" />
-                      <span>
-                        <span className="block font-button text-sm uppercase tracking-wider text-[#1C1814]">{t("Camera privata")}</span>
-                        <span className="mt-1 block font-body text-sm text-[#1C1814]/65">{t("Supplemento 30 €")}</span>
-                      </span>
-                    </label>
+                    {form.partecipantiDettagli.map((participant, index) => (
+                      <fieldset key={index} className="border border-[#1C1814]/15 bg-white/45 p-4 sm:p-5">
+                        <legend className="px-2 font-button text-xs uppercase tracking-[0.18em] text-[#1C1814]/70">
+                          {t("Partecipante")} {index + 2}
+                        </legend>
+                        <div className="grid gap-5 sm:grid-cols-2">
+                          <label className="block font-button text-xs uppercase tracking-wider text-[#1C1814]/70">
+                            {t("Nome e cognome *")}
+                            <input
+                              value={participant.nome}
+                              onChange={(event) => handleParticipantChange(index, "nome", event.target.value)}
+                              required
+                              className={INPUT_CLASS}
+                            />
+                          </label>
+                          <label className="block font-button text-xs uppercase tracking-wider text-[#1C1814]/70">
+                            {t("Marca e modello del mezzo *")}
+                            <input
+                              value={participant.mezzo}
+                              onChange={(event) => handleParticipantChange(index, "mezzo", event.target.value)}
+                              required
+                              className={INPUT_CLASS}
+                            />
+                          </label>
+                        </div>
+                      </fieldset>
+                    ))}
+
+                    <fieldset className="border border-[#1C1814]/15 bg-white/45 p-4 sm:p-5">
+                      <legend className="px-2 font-button text-xs uppercase tracking-[0.18em] text-[#1C1814]/70">
+                        {t("Servizi e preferenze facoltativi")}
+                      </legend>
+                      <div className="space-y-3">
+                        {[
+                          ["cameraSingola", t("Camera singola"), t("Supplemento e disponibilità da confermare")],
+                          ["trasportoBagagli", t("Trasporto bagagli"), t("Prezzo da concordare in base alle adesioni")],
+                          ["assicurazione", t("Assicurazione personale"), t("Disponibilità e prezzo da confermare")],
+                        ].map(([name, label, description]) => (
+                          <label
+                            key={name}
+                            className={`flex cursor-pointer items-start gap-4 border p-4 transition-colors ${form[name] ? "border-[var(--accent)] bg-white" : "border-[#1C1814]/15 bg-white/55 hover:border-[var(--accent)]/55"}`}
+                          >
+                            <input type="checkbox" name={name} checked={form[name]} onChange={handleChange} className="mt-1 h-5 w-5 accent-[var(--accent)]" />
+                            <span>
+                              <span className="block font-button text-sm uppercase tracking-wider text-[#1C1814]">{label}</span>
+                              <span className="mt-1 block font-body text-sm text-[#1C1814]/65">{description}</span>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </fieldset>
 
                     <label className="block font-button text-xs uppercase tracking-wider text-[#1C1814]/70">
-                      {t("Richieste particolari")}
-                      <textarea name="richieste" value={form.richieste} onChange={handleChange} rows={5} placeholder={t("Allergie, esigenze alimentari, necessità logistiche o altre informazioni utili...")} className={INPUT_CLASS} />
+                      {t("Note per STA")}
+                      <textarea name="richieste" value={form.richieste} onChange={handleChange} rows={5} placeholder={t("Esigenze, domande o servizi richiesti anche per gli altri partecipanti")} className={INPUT_CLASS} />
                     </label>
 
                     <label className="flex items-start gap-3 font-body text-sm leading-relaxed text-[#1C1814]/70">
@@ -400,6 +479,9 @@ export default function Booking() {
                       {sending ? <LoaderCircle size={18} className="animate-spin" aria-hidden="true" /> : <Send size={17} aria-hidden="true" />}
                       {sending ? t("Invio in corso...") : t("Invia richiesta di prenotazione")}
                     </button>
+                    <p className="font-body text-xs leading-relaxed text-[#1C1814]/60">
+                      {t("Nessun acconto o pagamento online. La partecipazione sarà confermata direttamente da Sardegna Trail Avventura.")}
+                    </p>
                   </form>
                 </>
               )}

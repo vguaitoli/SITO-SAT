@@ -1145,6 +1145,45 @@
             ],
             "stages": [],
             "sourceUrl": null
+          },
+          {
+            "__typename": "EventCatalogEvents",
+            "name": "La Via del Granito – Quattro giorni di guida in Gallura per maxienduro e dual",
+            "slug": "la-via-del-granito-2026",
+            "updatedAt": "2026-11-09T00:00:00.000Z",
+            "type": "Maxienduro",
+            "duration": "4 Giorni",
+            "distance": "Circa 600 km",
+            "level": "Medio-Avanzato",
+            "offroad": "85%",
+            "interest": "Padru, Olbia e gli sterrati granitici della Gallura",
+            "startLocation": "Olbia",
+            "lunchIncluded": false,
+            "accommodation": "Agriturismo o hotel con mezza pensione",
+            "period": "19–22 novembre 2026",
+            "startDate": "2026-11-19T00:00:00.000Z",
+            "endDate": "2026-11-22T00:00:00.000Z",
+            "price": "500 € a persona · Last minute (prima 580 €)",
+            "description": "Quattro giorni di guida in Gallura dedicati a maxienduro e dual, con base a Padru e ritrovo e rientro a Olbia. Circa 150 km al giorno, 85% sterrato e livello medio-avanzato.",
+            "programNote": "L'itinerario potrà subire variazioni in base alle condizioni meteorologiche e del terreno. Eventuali modifiche saranno valutate dalla guida per garantire la sicurezza e il regolare svolgimento del tour.",
+            "included": [
+              "Mezza pensione in agriturismo o hotel",
+              "Guida esperta",
+              "Assistenza durante il tour"
+            ],
+            "exclusions": [
+              "Carburante",
+              "Pranzi",
+              "Supplemento camera singola: 30 € a notte",
+              "Trasporto bagagli su richiesta, con prezzo da concordare",
+              "Assicurazione personale facoltativa: 70 € a persona"
+            ],
+            "equipment": [
+              "Maxienduro o dual in condizioni idonee alla guida off-road",
+              "La compatibilità del mezzo sarà confermata da Sardegna Trail Avventura"
+            ],
+            "stages": [],
+            "sourceUrl": "/richiesta-tour.html"
           }
         ]
       }

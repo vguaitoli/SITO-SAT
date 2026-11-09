@@ -40,6 +40,10 @@ export const HERO_IMAGES = {
     src: "/media/reali/maxienduro-tour-dei-santi-1200.webp",
     alt: "Maxienduro in marcia su uno sterrato polveroso tra sugheri e macchia mediterranea, con un altro motociclista che segue con il faro acceso",
   },
+  "la-via-del-granito-2026": {
+    src: "/media/reali/maxienduro-gallura-1200.webp",
+    alt: "Gruppo di maxienduro sugli sterrati granitici della Gallura",
+  },
   "tour-dei-santi-4x4-2026": {
     src: "/media/reali/4x4exp-crinale-1200.webp",
     alt: "Convoglio di fuoristrada 4x4 in fila su un crinale panoramico tra le montagne sarde",

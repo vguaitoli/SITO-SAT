@@ -104,11 +104,18 @@ export default function Contact() {
   );
   const [form, setForm] = useState({
     nome: "",
+    cognome: "",
     email: "",
     telefono: "",
     mezzo: initialOption?.vehicle || "",
+    marcaModello: "",
     tour: initialOption?.id || "",
     data: initialOption?.date || "",
+    partecipanti: "1",
+    partecipantiDettagli: [],
+    cameraSingola: false,
+    trasportoBagagli: false,
+    assicurazione: false,
     messaggio: "",
     // Dichiarazione di presa visione dell'informativa privacy (obbligatoria).
     privacy: false,
@@ -131,7 +138,22 @@ export default function Contact() {
       setForm({ ...form, tour: value, data: selected?.kind === "event" ? selected.date : "" });
       return;
     }
+    if (name === "partecipanti") {
+      const additionalCount = Math.max(0, Number(value) - 1);
+      const partecipantiDettagli = Array.from({ length: additionalCount }, (_, index) =>
+        form.partecipantiDettagli[index] || { nome: "", mezzo: "" },
+      );
+      setForm({ ...form, partecipanti: value, partecipantiDettagli });
+      return;
+    }
     setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+  };
+
+  const handleParticipantChange = (index, field, value) => {
+    const partecipantiDettagli = form.partecipantiDettagli.map((participant, participantIndex) =>
+      participantIndex === index ? { ...participant, [field]: value } : participant,
+    );
+    setForm({ ...form, partecipantiDettagli });
   };
 
   const handleSubmit = async (e) => {
@@ -156,12 +178,25 @@ export default function Contact() {
           subject: `Nuova richiesta: ${interestLabel} - ${form.nome}`,
           from_name: "Sito Sardegna Trail Avventura",
           nome: form.nome,
+          cognome: form.cognome,
           email: form.email,
           telefono: form.telefono,
           mezzo: selectedVehicle?.label || form.mezzo,
+          marca_modello: form.marcaModello,
           tour_o_evento: interestLabel,
           data_desiderata: form.data,
-          messaggio: form.messaggio,
+          partecipanti_totali: form.partecipanti,
+          altri_partecipanti:
+            form.partecipantiDettagli
+              .map((participant, index) =>
+                `${index + 2}. ${participant.nome} · ${participant.mezzo}`,
+              )
+              .join("\n") || "Nessuno",
+          camera_singola: form.cameraSingola ? "Sì · supplemento da confermare" : "No",
+          trasporto_bagagli: form.trasportoBagagli ? "Sì · disponibilità e prezzo da confermare" : "No",
+          assicurazione_personale: form.assicurazione ? "Sì · disponibilità e prezzo da confermare" : "No",
+          note: form.messaggio || "Nessuna",
+          stato: "Richiesta da verificare. Nessuna conferma automatica di posto o pagamento.",
         }),
       });
       const result = await res.json();
@@ -169,7 +204,24 @@ export default function Contact() {
         throw new Error(result.message || "Invio non riuscito");
       }
       setSent(true);
-      setForm({ nome: "", email: "", telefono: "", mezzo: "", tour: "", data: "", messaggio: "", privacy: false, botcheck: "" });
+      setForm({
+        nome: "",
+        cognome: "",
+        email: "",
+        telefono: "",
+        mezzo: "",
+        marcaModello: "",
+        tour: "",
+        data: "",
+        partecipanti: "1",
+        partecipantiDettagli: [],
+        cameraSingola: false,
+        trasportoBagagli: false,
+        assicurazione: false,
+        messaggio: "",
+        privacy: false,
+        botcheck: "",
+      });
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
       setError(
@@ -189,6 +241,10 @@ export default function Contact() {
   const filteredTours = filteredOptions.filter((option) => option.kind !== "event");
   const vehicleOptions = vehicleFilters.filter((vehicle) => !vehicle.service);
   const serviceOptions = vehicleFilters.filter((vehicle) => vehicle.service);
+  const selectedOption = catalogOptions.find((option) => option.id === form.tour);
+  const selectedEvent = selectedOption?.kind === "event"
+    ? events.find((event) => event.slug === selectedOption.slug)
+    : null;
 
   return (
     <section id="contatti" className="bg-[#1C1814] topo-dark py-24 lg:py-32">
@@ -314,6 +370,31 @@ export default function Contact() {
                   aria-hidden="true"
                   className="absolute -left-[9999px] h-0 w-0 overflow-hidden"
                 />
+                {selectedEvent && (
+                  <div className="border border-[#6B7A3E]/55 bg-[#6B7A3E]/10 p-5">
+                    <p className="font-button text-[10px] uppercase tracking-[0.2em] text-[#E4D4B0]">
+                      {t("Evento selezionato")}
+                    </p>
+                    <h3 className="mt-2 font-heading text-2xl leading-tight text-[#F5EBD9]">
+                      {selectedEvent.name}
+                    </h3>
+                    <div className="mt-4 grid gap-x-5 gap-y-2 font-body text-sm text-[#F5EBD9]/75 sm:grid-cols-2">
+                      <p><strong className="text-[#F5EBD9]">{t("Date")}:</strong> {selectedEvent.periodo}</p>
+                      <p><strong className="text-[#F5EBD9]">{t("Partenza")}:</strong> {selectedEvent.partenza}</p>
+                      <p><strong className="text-[#F5EBD9]">{t("Percorso")}:</strong> {selectedEvent.km} · {selectedEvent.sterrato}</p>
+                      <p><strong className="text-[#F5EBD9]">{t("Livello")}:</strong> {selectedEvent.livello}</p>
+                      {selectedEvent.soggiorno && (
+                        <p><strong className="text-[#F5EBD9]">{t("Soggiorno")}:</strong> {selectedEvent.soggiorno}</p>
+                      )}
+                      {selectedEvent.prezzo && (
+                        <p><strong className="text-[#F5EBD9]">{t("Quota")}:</strong> {selectedEvent.prezzo}</p>
+                      )}
+                    </div>
+                    <p className="mt-4 font-body text-xs leading-relaxed text-[#F5EBD9]/60">
+                      {t("La richiesta non conferma automaticamente il posto. Ti contatteremo per verificare disponibilità, servizi e dettagli.")}
+                    </p>
+                  </div>
+                )}
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="contact-nome" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Nome *")}</label>
@@ -328,29 +409,45 @@ export default function Contact() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="contact-telefono" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Telefono")}</label>
+                    <label htmlFor="contact-cognome" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Cognome *")}</label>
+                    <input
+                      id="contact-cognome"
+                      name="cognome"
+                      value={form.cognome}
+                      onChange={handleChange}
+                      required
+                      className={inputClass}
+                      placeholder={t("Il tuo cognome")}
+                    />
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="contact-email" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Email *")}</label>
+                    <input
+                      id="contact-email"
+                      name="email"
+                      type="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      required
+                      className={inputClass}
+                      placeholder={t("La tua email")}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="contact-telefono" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Telefono *")}</label>
                     <input
                       id="contact-telefono"
                       name="telefono"
+                      type="tel"
                       value={form.telefono}
                       onChange={handleChange}
+                      required
                       className={inputClass}
                       placeholder={t("Numero")}
                     />
                   </div>
-                </div>
-                <div>
-                  <label htmlFor="contact-email" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Email *")}</label>
-                  <input
-                    id="contact-email"
-                    name="email"
-                    type="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    required
-                    className={inputClass}
-                    placeholder={t("La tua email")}
-                  />
                 </div>
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
@@ -378,6 +475,20 @@ export default function Contact() {
                       )}
                     </select>
                   </div>
+                  <div>
+                    <label htmlFor="contact-marca-modello" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Marca e modello *")}</label>
+                    <input
+                      id="contact-marca-modello"
+                      name="marcaModello"
+                      value={form.marcaModello}
+                      onChange={handleChange}
+                      required
+                      className={inputClass}
+                      placeholder={t("Es. Yamaha Ténéré 700")}
+                    />
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="contact-tour" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Tour o evento *")}</label>
                     <select
@@ -408,6 +519,21 @@ export default function Contact() {
                       )}
                     </select>
                   </div>
+                  <div>
+                    <label htmlFor="contact-partecipanti" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Numero partecipanti *")}</label>
+                    <select
+                      id="contact-partecipanti"
+                      name="partecipanti"
+                      value={form.partecipanti}
+                      onChange={handleChange}
+                      required
+                      className={inputClass + " text-[#F5EBD9]"}
+                    >
+                      {[1, 2, 3, 4, 5].map((count) => (
+                        <option key={count} value={count} className="bg-[#1C1814]">{count}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div>
                     <label htmlFor="contact-data" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Data desiderata")}</label>
@@ -417,11 +543,72 @@ export default function Contact() {
                       type="date"
                       value={form.data}
                       onChange={handleChange}
+                      readOnly={selectedOption?.kind === "event"}
                       className={inputClass + " text-[#F5EBD9]"}
                     />
                 </div>
+                {form.partecipantiDettagli.map((participant, index) => (
+                  <fieldset key={index} className="border-t border-[#F5EBD9]/15 pt-5">
+                    <legend className="font-button pr-3 text-[10px] uppercase tracking-[0.2em] text-[#E4D4B0]">
+                      {t("Partecipante")} {index + 2}
+                    </legend>
+                    <div className="grid gap-6 sm:grid-cols-2">
+                      <div>
+                        <label htmlFor={`contact-partecipante-${index}-nome`} className="font-button text-[10px] uppercase tracking-[0.2em] text-[#F5EBD9]/50">
+                          {t("Nome e cognome *")}
+                        </label>
+                        <input
+                          id={`contact-partecipante-${index}-nome`}
+                          value={participant.nome}
+                          onChange={(event) => handleParticipantChange(index, "nome", event.target.value)}
+                          required
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor={`contact-partecipante-${index}-mezzo`} className="font-button text-[10px] uppercase tracking-[0.2em] text-[#F5EBD9]/50">
+                          {t("Marca e modello del mezzo *")}
+                        </label>
+                        <input
+                          id={`contact-partecipante-${index}-mezzo`}
+                          value={participant.mezzo}
+                          onChange={(event) => handleParticipantChange(index, "mezzo", event.target.value)}
+                          required
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
+                ))}
+                <fieldset className="border border-[#F5EBD9]/15 p-5">
+                  <legend className="font-button px-2 text-[10px] uppercase tracking-[0.2em] text-[#E4D4B0]">
+                    {t("Servizi e preferenze facoltativi")}
+                  </legend>
+                  <div className="space-y-4">
+                    {[
+                      ["cameraSingola", t("Camera singola"), t("Supplemento e disponibilità da confermare")],
+                      ["trasportoBagagli", t("Trasporto bagagli"), t("Prezzo da concordare in base alle adesioni")],
+                      ["assicurazione", t("Assicurazione personale"), t("Disponibilità e prezzo da confermare")],
+                    ].map(([name, label, description]) => (
+                      <label key={name} htmlFor={`contact-${name}`} className="flex cursor-pointer items-start gap-3">
+                        <input
+                          id={`contact-${name}`}
+                          name={name}
+                          type="checkbox"
+                          checked={form[name]}
+                          onChange={handleChange}
+                          className="mt-0.5 h-4 w-4 flex-none accent-[#A0612A]"
+                        />
+                        <span>
+                          <span className="block font-body text-sm text-[#F5EBD9]">{label}</span>
+                          <span className="mt-0.5 block font-body text-xs text-[#F5EBD9]/50">{description}</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
                 <div>
-                  <label htmlFor="contact-messaggio" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Messaggio")}</label>
+                  <label htmlFor="contact-messaggio" className="font-button text-[10px] tracking-[0.2em] uppercase text-[#F5EBD9]/50 block mb-1">{t("Note per STA")}</label>
                   <textarea
                     id="contact-messaggio"
                     name="messaggio"
@@ -429,7 +616,7 @@ export default function Contact() {
                     onChange={handleChange}
                     rows={4}
                     className={inputClass + " resize-none"}
-                    placeholder={t("Raccontaci la tua avventura ideale...")}
+                    placeholder={t("Esigenze, domande o servizi richiesti anche per gli altri partecipanti")}
                   />
                 </div>
                 <label htmlFor="contact-privacy" className="flex items-start gap-3 cursor-pointer">
@@ -459,6 +646,9 @@ export default function Contact() {
                   {sending ? t("Invio in corso...") : CTA_LABELS.primary}
                   {!sending && <Send size={16} />}
                 </button>
+                <p className="font-body text-xs leading-relaxed text-[#F5EBD9]/50">
+                  {t("Nessun acconto o pagamento online. La partecipazione sarà confermata direttamente da Sardegna Trail Avventura.")}
+                </p>
                 {SITE.contattiVerificati && (
                   <a
                     href={SITE.whatsapp.href}
