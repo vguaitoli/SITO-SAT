@@ -508,7 +508,7 @@ export function getSeoForPath(pathname) {
     });
   }
 
-  // Programmi senza date confermate: pagine pubbliche, ma fuori dall'indice.
+  // Tutte le versioni linguistiche dei programmi Africa sono indicizzabili.
   if (name === "africa" || name === "africaDetail") {
     const sourceTrip = AFRICA_TRIPS.find((trip) => trip.slug === params.slug);
     if (name === "africa" || sourceTrip) {
@@ -523,7 +523,6 @@ export function getSeoForPath(pathname) {
           ),
         image: trip?.cover || "/media/africa/tunisia-quad-ssv-cover.webp",
         imageAlt: trip?.coverAlt || localizeValue("Viaggi in Africa", locale),
-        robots: NOINDEX_ROBOTS,
       });
     }
   }
