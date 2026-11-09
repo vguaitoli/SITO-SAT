@@ -3,7 +3,12 @@ import { useLocation } from "react-router-dom";
 import { useTina } from "tinacms/dist/react";
 import snapshot from "@/content/tina-snapshot.json";
 import rentalPageFallback from "../../content/rental/index.json";
-import { normalizeEvents, normalizeSettings, normalizeTours } from "@/content/normalize";
+import {
+  normalizeEvents,
+  normalizeMediaPath,
+  normalizeSettings,
+  normalizeTours,
+} from "@/content/normalize";
 import { useI18n } from "@/i18n/I18nProvider";
 import { resolveRoute } from "@/i18n/routes";
 
@@ -33,7 +38,7 @@ function tinaUrlToLocalPath(url) {
 }
 
 function toLocalMedia(value) {
-  if (typeof value === "string") return tinaUrlToLocalPath(value);
+  if (typeof value === "string") return normalizeMediaPath(tinaUrlToLocalPath(value));
   if (Array.isArray(value)) return value.map(toLocalMedia);
   if (value && typeof value === "object") {
     return Object.fromEntries(

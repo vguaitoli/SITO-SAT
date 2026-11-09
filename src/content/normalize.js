@@ -1,3 +1,21 @@
+const DUPLICATED_TINA_MEDIA_ROOT = "/media/cms/media/";
+
+/**
+ * Tina usa `media/cms` come cartella degli upload. Alcuni contenuti migrati
+ * contengono però già il prefisso pubblico `media/...` e finiscono serializzati
+ * come `/media/cms/media/...`, un percorso che non esiste nel repository.
+ *
+ * Manteniamo intatti gli upload reali (`/media/cms/file.webp`) e correggiamo
+ * soltanto il prefisso duplicato.
+ */
+export function normalizeMediaPath(value) {
+  if (typeof value !== "string" || !value.startsWith(DUPLICATED_TINA_MEDIA_ROOT)) {
+    return value;
+  }
+
+  return `/media/${value.slice(DUPLICATED_TINA_MEDIA_ROOT.length)}`;
+}
+
 export function normalizeSettings(content) {
   const phone = String(content.phoneE164 || "").replace(/\D/g, "");
   const whatsappMessage = content.whatsappMessage || "";
@@ -64,7 +82,7 @@ export function normalizeTours(content) {
       ...stage,
       title: stage.title,
       desc: stage.description,
-      foto: stage.image,
+      foto: normalizeMediaPath(stage.image),
       fotoAlt: stage.imageAlt,
     })),
   }));
@@ -115,7 +133,7 @@ export function normalizeEvents(content) {
       ...stage,
       title: stage.title,
       desc: stage.description,
-      foto: stage.image,
+      foto: normalizeMediaPath(stage.image),
       fotoAlt: stage.imageAlt,
     })),
   }));
