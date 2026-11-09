@@ -1,6 +1,42 @@
 {
   "trailingSlash": false,
   "rewrites": [
+    {
+      "source": "/collaborazioni",
+      "destination": "/_seo/collaborazioni.html"
+    },
+    {
+      "source": "/en/collaborations",
+      "destination": "/_seo/en/collaborations.html"
+    },
+    {
+      "source": "/fr/collaborations",
+      "destination": "/_seo/fr/collaborations.html"
+    },
+    {
+      "source": "/viaggi-africa",
+      "destination": "/_seo/viaggi-africa.html"
+    },
+    {
+      "source": "/viaggi-africa/:slug",
+      "destination": "/_seo/viaggi-africa/:slug.html"
+    },
+    {
+      "source": "/en/africa-trips",
+      "destination": "/_seo/en/africa-trips.html"
+    },
+    {
+      "source": "/en/africa-trips/:slug",
+      "destination": "/_seo/en/africa-trips/:slug.html"
+    },
+    {
+      "source": "/fr/voyages-afrique",
+      "destination": "/_seo/fr/voyages-afrique.html"
+    },
+    {
+      "source": "/fr/voyages-afrique/:slug",
+      "destination": "/_seo/fr/voyages-afrique/:slug.html"
+    },
     { "source": "/admin", "destination": "/admin/index.html" },
     { "source": "/privacy", "destination": "/_seo/privacy.html" },
     { "source": "/cookie-policy", "destination": "/_seo/cookie-policy.html" },
@@ -70,6 +106,33 @@
       "source": "/(privacy|cookie-policy|en/privacy|en/cookie-policy|fr/confidentialite|fr/politique-cookies)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/viaggi-africa/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/en/africa-trips/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/fr/voyages-afrique/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     }
   ]

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { CalendarDays, MessageCircle } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
+import AfricaSection from "@/components/AfricaSection";
 import TourCard from "@/components/TourCard.jsx";
 import { typeColors } from "@/components/TourDetails.jsx";
 import { useSiteContent } from "@/content/TinaContentProvider";
@@ -185,6 +186,7 @@ export default function Events() {
         </div>
       </section>
 
+      <AfricaSection />
       <Footer />
     </div>
   );

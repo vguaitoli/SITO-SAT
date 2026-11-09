@@ -1,9 +1,14 @@
+import { MOROCCO_EN, MOROCCO_FR } from "./morocco-messages.js";
 import { CONTENT_MESSAGES_EN, CONTENT_MESSAGES_FR } from "./content-messages.js";
 import { CATALOG_MESSAGES_EN, CATALOG_MESSAGES_FR } from "./catalog-messages.js";
 import { UI_EXTRA_EN, UI_EXTRA_FR } from "./ui-extra-messages.js";
 import { PHOTO_ALT_EN, PHOTO_ALT_FR } from "./photo-alt-messages.js";
+import { AFRICA_EN, AFRICA_FR } from "./africa-messages.js";
 
 const en = {
+  ...MOROCCO_EN,
+  "Collaborazioni": "Collaborations",
+  ...AFRICA_EN,
   ...CONTENT_MESSAGES_EN,
   ...CATALOG_MESSAGES_EN,
   ...UI_EXTRA_EN,
@@ -149,6 +154,9 @@ const en = {
 };
 
 const fr = {
+  ...MOROCCO_FR,
+  "Collaborazioni": "Collaborations",
+  ...AFRICA_FR,
   ...CONTENT_MESSAGES_FR,
   ...CATALOG_MESSAGES_FR,
   ...UI_EXTRA_FR,

@@ -10,6 +10,9 @@ export const LOCALE_META = {
 const ROUTES = {
   it: {
     home: "/",
+    collaborations: "/collaborazioni",
+    africa: "/viaggi-africa",
+    africaDetail: "/viaggi-africa/:slug",
     experiences: "/esperienze/:cat",
     tours: "/itinerari",
     tourDetail: "/tour/:slug",
@@ -23,6 +26,9 @@ const ROUTES = {
   },
   en: {
     home: "/en",
+    collaborations: "/en/collaborations",
+    africa: "/en/africa-trips",
+    africaDetail: "/en/africa-trips/:slug",
     experiences: "/en/experiences/:cat",
     tours: "/en/tours",
     tourDetail: "/en/tours/:slug",
@@ -36,6 +42,9 @@ const ROUTES = {
   },
   fr: {
     home: "/fr",
+    collaborations: "/fr/collaborations",
+    africa: "/fr/voyages-afrique",
+    africaDetail: "/fr/voyages-afrique/:slug",
     experiences: "/fr/experiences/:cat",
     tours: "/fr/circuits",
     tourDetail: "/fr/circuits/:slug",

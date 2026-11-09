@@ -10,6 +10,8 @@ import { TinaContentProvider } from '@/content/TinaContentProvider';
 import { I18nProvider, useI18n } from '@/i18n/I18nProvider';
 
 const PageNotFound = lazy(() => import('./lib/PageNotFound'));
+const Collaborations = lazy(() => import('./pages/Collaborations'));
+const Africa = lazy(() => import('./pages/Africa'));
 const Home = lazy(() => import('./pages/Home'));
 const TourItinerari = lazy(() => import('./pages/TourItinerari'));
 const CatalogDetailPage = lazy(() => import('./pages/CatalogDetailPage'));
@@ -43,6 +45,9 @@ const SiteRoutes = () => {
         <Route path="/esperienze/:cat" element={<CategoriaPage />} />
         <Route path="/itinerari" element={<TourItinerari />} />
         <Route path="/tour/:slug" element={<CatalogDetailPage kind="tour" />} />
+        <Route path="/collaborazioni" element={<Collaborations />} />
+        <Route path="/viaggi-africa" element={<Africa />} />
+        <Route path="/viaggi-africa/:slug" element={<Africa />} />
         <Route path="/eventi" element={<Events />} />
         <Route path="/eventi/:slug" element={<CatalogDetailPage kind="event" />} />
         <Route path="/blog" element={<BlogList />} />
@@ -55,6 +60,9 @@ const SiteRoutes = () => {
         <Route path="/en/experiences/:cat" element={<CategoriaPage />} />
         <Route path="/en/tours" element={<TourItinerari />} />
         <Route path="/en/tours/:slug" element={<CatalogDetailPage kind="tour" />} />
+        <Route path="/en/collaborations" element={<Collaborations />} />
+        <Route path="/en/africa-trips" element={<Africa />} />
+        <Route path="/en/africa-trips/:slug" element={<Africa />} />
         <Route path="/en/events" element={<Events />} />
         <Route path="/en/events/:slug" element={<CatalogDetailPage kind="event" />} />
         <Route path="/en/blog" element={<BlogList />} />
@@ -66,6 +74,9 @@ const SiteRoutes = () => {
         <Route path="/fr/experiences/:cat" element={<CategoriaPage />} />
         <Route path="/fr/circuits" element={<TourItinerari />} />
         <Route path="/fr/circuits/:slug" element={<CatalogDetailPage kind="tour" />} />
+        <Route path="/fr/collaborations" element={<Collaborations />} />
+        <Route path="/fr/voyages-afrique" element={<Africa />} />
+        <Route path="/fr/voyages-afrique/:slug" element={<Africa />} />
         <Route path="/fr/evenements" element={<Events />} />
         <Route path="/fr/evenements/:slug" element={<CatalogDetailPage kind="event" />} />
         <Route path="/fr/blog" element={<BlogList />} />

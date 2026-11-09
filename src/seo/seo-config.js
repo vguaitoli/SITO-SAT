@@ -1,3 +1,5 @@
+import { COLLABORATIONS_COPY } from "../data/collaborations.js";
+import { AFRICA_TRIPS } from "../data/africa.js";
 import { CATEGORIE } from "../data/categorie.js";
 import { HERO_IMAGES } from "../data/hero-images.js";
 import { blogPosts, getBlogPost } from "../data/blogPosts.js";
@@ -478,6 +480,34 @@ export function getSeoForPath(pathname) {
   const path = name === "notFound" ? pathname : routePath(locale, name, params);
   const copy = seoCopy[locale];
 
+  if (name === "collaborations") {
+    const content = COLLABORATIONS_COPY[locale];
+    return finalize(path, locale, {
+      title: content.seoTitle,
+      description: content.meta,
+    });
+  }
+
+  // Programmi senza date confermate: pagine pubbliche, ma fuori dall'indice.
+  if (name === "africa" || name === "africaDetail") {
+    const sourceTrip = AFRICA_TRIPS.find((trip) => trip.slug === params.slug);
+    if (name === "africa" || sourceTrip) {
+      const trip = sourceTrip ? localizeValue(sourceTrip, locale) : null;
+      return finalize(path, locale, {
+        title: trip?.title || localizeValue("Viaggi in Africa", locale),
+        description:
+          trip?.description ||
+          localizeValue(
+            "L’avventura continua oltre la Sardegna. Scopri i viaggi e le proposte in Tunisia, Libia e Marocco.",
+            locale,
+          ),
+        image: trip?.cover || "/media/africa/tunisia-quad-ssv-cover.webp",
+        imageAlt: trip?.coverAlt || localizeValue("Viaggi in Africa", locale),
+        robots: NOINDEX_ROBOTS,
+      });
+    }
+  }
+
   if (["home", "tours", "events", "blog", "privacy", "cookies"].includes(name)) {
     const [title, description] = copy[name];
     const structuredData =
@@ -570,6 +600,11 @@ export function getSeoEntries() {
     getSeoForPath(routePath(locale, "home")),
     getSeoForPath(routePath(locale, "tours")),
     getSeoForPath(routePath(locale, "events")),
+    getSeoForPath(routePath(locale, "collaborations")),
+    getSeoForPath(routePath(locale, "africa")),
+    ...AFRICA_TRIPS.map((trip) =>
+      getSeoForPath(routePath(locale, "africaDetail", { slug: trip.slug })),
+    ),
     getSeoForPath(routePath(locale, "blog")),
     getSeoForPath(routePath(locale, "privacy")),
     getSeoForPath(routePath(locale, "cookies")),

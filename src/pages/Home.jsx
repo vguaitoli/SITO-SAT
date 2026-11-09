@@ -10,6 +10,7 @@ import Hero from "@/components/Hero";
  * Il catalogo completo dei tour e i racconti del blog vivono su pagine dedicate.
  */
 const TrustBar = lazy(() => import("@/components/TrustBar"));
+const AfricaSection = lazy(() => import("@/components/AfricaSection"));
 const Categorie = lazy(() => import("@/components/Categorie"));
 const TourInEvidenza = lazy(() => import("@/components/TourInEvidenza"));
 const Experience = lazy(() => import("@/components/Experience"));
@@ -42,6 +43,7 @@ export default function Home() {
         <Categorie />
         {/* Assaggio di itinerari reali → catalogo completo su /itinerari */}
         <TourInEvidenza />
+        <AfricaSection compact />
         {/* Racconto del territorio: cosa vivrai in Sardegna */}
         <Experience />
         {/* Prima le guide che ti accompagnano, poi il racconto di chi siamo */}

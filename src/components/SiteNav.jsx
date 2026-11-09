@@ -10,10 +10,12 @@ import { availabilityTargetForPath } from "@/lib/availability-target";
 const navLinks = [
   { label: "Esperienze", href: "#esperienze" },
   { label: "Eventi", href: "/eventi" },
+  { label: "Viaggi in Africa", href: "/viaggi-africa" },
   { label: "Itinerari", href: "/itinerari" },
   { label: "Corsi Off-road", href: "/esperienze/corsi-off-road" },
   { label: "Noleggio", href: "/esperienze/noleggio" },
   { label: "Chi Siamo", href: "#guide" },
+  { label: "Collaborazioni", href: "/collaborazioni" },
   { label: "Blog", href: "/blog" },
   { label: "Gallery", href: "#gallery" },
   { label: "FAQ", href: "#faq" },
@@ -80,7 +82,7 @@ export default function SiteNav() {
           </span>
         </Link>
 
-        <nav aria-label={t("Navigazione principale")} className="hidden items-center gap-5 xl:flex 2xl:gap-8">
+        <nav aria-label={t("Navigazione principale")} className="hidden items-center gap-3 xl:flex 2xl:gap-5">
           {navLinks.map((l) => (
             <Link
               key={l.href}

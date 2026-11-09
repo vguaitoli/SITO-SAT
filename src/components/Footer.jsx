@@ -24,6 +24,7 @@ const navItems = [
   { label: "Gallery", href: "#gallery" },
   { label: "Blog", href: "/blog" },
   { label: "Eventi", href: "/eventi" },
+  { label: "Collaborazioni", href: "/collaborazioni" },
   { label: "FAQ", href: "#faq" },
   { label: "Contatti", href: "#contatti" },
 ];
