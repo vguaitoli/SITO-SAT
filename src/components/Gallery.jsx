@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import GalleryLightbox from "@/components/GalleryLightbox";
 import SectionHeading from "@/components/SectionHeading";
 import { tinaField } from "tinacms/dist/react";
@@ -20,6 +20,7 @@ export default function Gallery() {
     span: layoutClasses[item.layout] || "",
   }));
   const [selectedIndex, setSelectedIndex] = useState(null);
+  const lightboxTriggerRef = useRef(null);
 
   return (
     <section id="gallery" className="bg-[var(--obsidian)] topo-dark py-24 lg:py-32">
@@ -46,7 +47,10 @@ export default function Gallery() {
             <li key={`${img.image}-${i}`} className={img.span} data-tina-field={tinaField(content.images[i])}>
               <button
                 type="button"
-                onClick={() => setSelectedIndex(i)}
+                onClick={(event) => {
+                  lightboxTriggerRef.current = event.currentTarget;
+                  setSelectedIndex(i);
+                }}
                 className="group relative block h-full w-full overflow-hidden"
                 aria-label={`Apri la foto: ${img.alt}`}
               >
@@ -70,6 +74,7 @@ export default function Gallery() {
         onClose={() => setSelectedIndex(null)}
         onNext={() => setSelectedIndex((i) => (i + 1) % images.length)}
         onPrev={() => setSelectedIndex((i) => (i - 1 + images.length) % images.length)}
+        returnFocusRef={lightboxTriggerRef}
       />
     </section>
   );
