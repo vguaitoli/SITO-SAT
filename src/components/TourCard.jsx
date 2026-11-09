@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, BadgeEuro, BedDouble, Clock, Gauge, TrendingUp, Percent, MapPin, UtensilsCrossed, Calendar, Navigation, Users } from "lucide-react";
@@ -14,7 +14,23 @@ export default function TourCard({ tour, color, detailPath }) {
   const [flipped, setFlipped] = useState(false);
   const routeMap = ROUTE_MAPS[tour.slug];
   const group = groupFor(tour.slug, TOUR_GROUP);
+  const frontId = useId();
+  const previewId = useId();
+  const frontButtonRef = useRef(null);
+  const backButtonRef = useRef(null);
+  const userToggledRef = useRef(false);
   const keyStats = [tour.km, tour.sterrato].filter(Boolean).length;
+
+  const setPreviewVisible = (visible) => {
+    userToggledRef.current = true;
+    setFlipped(visible);
+  };
+
+  useEffect(() => {
+    if (!userToggledRef.current) return;
+    const target = flipped ? backButtonRef.current : frontButtonRef.current;
+    target?.focus();
+  }, [flipped]);
 
   return (
     <motion.div
@@ -22,12 +38,16 @@ export default function TourCard({ tour, color, detailPath }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className={`flip-card-container h-full cursor-pointer ${flipped ? "is-flipped" : ""}`}
-      onClick={() => setFlipped((f) => !f)}
+      className={`flip-card-container h-full ${flipped ? "is-flipped" : ""}`}
     >
       <div className="flip-card-inner">
         {/* FRONT */}
-        <div className="flip-card-face flip-card-front bg-[#1C1814] flex flex-col h-full">
+        <div
+          id={frontId}
+          className="flip-card-face flip-card-front bg-[#1C1814] flex flex-col h-full"
+          aria-hidden={flipped}
+          {...{ inert: flipped ? "" : undefined }}
+        >
           {/* Header */}
           <div className="p-6 pb-5 border-b border-[#F5EBD9]/10">
             <span
@@ -156,22 +176,34 @@ export default function TourCard({ tour, color, detailPath }) {
             >
               {tour.descrizione}
             </p>
-            <div className="mt-auto flex items-center pt-2">
+            <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-2">
               <Link
                 to={detailPath}
-                onClick={(event) => event.stopPropagation()}
                 className="btn-mech inline-flex items-center gap-2 text-[#A0612A] hover:text-[#E4D4B0] border-b border-[#A0612A] hover:border-[#E4D4B0] pb-1 w-fit text-sm transition-colors font-heading tracking-wide"
               >
                 {t("Vedi il programma")}
                 <ArrowRight size={16} aria-hidden="true" />
               </Link>
+              <button
+                ref={frontButtonRef}
+                type="button"
+                onClick={() => setPreviewVisible(true)}
+                aria-expanded={flipped}
+                aria-controls={previewId}
+                className="font-button text-xs uppercase tracking-[0.14em] text-[#E4D4B0] underline decoration-[#A0612A] underline-offset-4 transition-colors hover:text-white"
+              >
+                {t("Anteprima del tour")}
+              </button>
             </div>
           </div>
         </div>
 
         {/* BACK — anteprima grafica illustrativa dell'itinerario */}
         <div
+          id={previewId}
           className="flip-card-face flip-card-back flex flex-col h-full"
+          aria-hidden={!flipped}
+          {...{ inert: flipped ? undefined : "" }}
           style={{
             backgroundColor: "#1C1814",
             backgroundImage:
@@ -224,6 +256,15 @@ export default function TourCard({ tour, color, detailPath }) {
                 {[tour.km, tour.sterrato && `${tour.sterrato} ${t("sterrato")}`].filter(Boolean).join(" · ")}
               </p>
             )}
+            <button
+              ref={backButtonRef}
+              type="button"
+              onClick={() => setPreviewVisible(false)}
+              aria-controls={frontId}
+              className="mt-5 font-button text-xs uppercase tracking-[0.14em] text-[#E4D4B0] underline decoration-[#A0612A] underline-offset-4 transition-colors hover:text-white"
+            >
+              {t("Torna alla scheda")}
+            </button>
           </div>
         </div>
       </div>
