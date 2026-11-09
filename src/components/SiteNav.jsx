@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, MessageCircle, ArrowRight } from "lucide-react";
 import { CATEGORIE } from "@/data/categorie";
@@ -49,23 +50,16 @@ export default function SiteNav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Blocca lo scroll del body quando il menu mobile è aperto.
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
-
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "border-b border-oxblood/30 bg-[var(--obsidian)] py-3 shadow-lg"
-          : // Gradiente robusto: garantisce il contrasto del menu anche sopra foto molto chiare.
-            "bg-gradient-to-b from-obsidian via-obsidian/75 to-transparent pb-10 pt-5"
-      }`}
-    >
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <header
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? "border-b border-oxblood/30 bg-[var(--obsidian)] py-3 shadow-lg"
+            : // Gradiente robusto: garantisce il contrasto del menu anche sopra foto molto chiare.
+              "bg-gradient-to-b from-obsidian via-obsidian/75 to-transparent pb-10 pt-5"
+        }`}
+      >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 lg:px-8">
         <Link to={href("/#hero")} className="flex shrink-0 items-center gap-2 sm:gap-3" aria-label={`${SITE.nome} — home`}>
           <img
@@ -128,21 +122,37 @@ export default function SiteNav() {
           >
             {CTA_LABELS.primary}
           </Link>
-          <button
-            onClick={() => setOpen((o) => !o)}
-            className="p-2 text-[var(--granite-mist)] xl:hidden"
-            aria-label={open ? t("Chiudi menu") : t("Apri menu")}
-            aria-expanded={open}
-          >
-            {open ? <X size={26} /> : <Menu size={26} />}
-          </button>
+          <Dialog.Trigger asChild>
+            <button
+              type="button"
+              className="p-2 text-[var(--granite-mist)] xl:hidden"
+              aria-label={t("Apri menu")}
+            >
+              <Menu size={26} aria-hidden="true" />
+            </button>
+          </Dialog.Trigger>
         </div>
       </div>
 
       {/* Menu mobile */}
-      {open && (
-        <div className="max-h-[calc(100svh-4rem)] overflow-y-auto border-t border-oxblood/30 bg-[var(--obsidian)] xl:hidden">
-          <nav aria-label={t("Navigazione mobile")} className="flex flex-col px-5 py-4">
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/70 xl:hidden" />
+        <Dialog.Content className="fixed inset-x-0 top-0 z-[70] max-h-[100svh] overflow-y-auto border-b border-oxblood/30 bg-[var(--obsidian)] text-[var(--granite-mist)] outline-none xl:hidden">
+          <Dialog.Title className="sr-only">{t("Navigazione mobile")}</Dialog.Title>
+          <Dialog.Description className="sr-only">
+            {t("Scegli una sezione del sito")}
+          </Dialog.Description>
+          <Dialog.Close asChild>
+            <button
+              type="button"
+              className="absolute right-5 top-5 z-20 p-2 text-[var(--granite-mist)] transition-colors hover:text-[var(--accent-soft)]"
+              aria-label={t("Chiudi menu")}
+            >
+              <X size={28} aria-hidden="true" />
+            </button>
+          </Dialog.Close>
+          <div className="mx-auto max-w-7xl px-5 pb-5 pt-20 lg:px-8">
+            <nav aria-label={t("Navigazione mobile")} className="flex flex-col">
             {navLinks.map((l) => (
               <Link
                 key={l.href}
@@ -193,9 +203,11 @@ export default function SiteNav() {
                 </a>
               )}
             </div>
-          </nav>
-        </div>
-      )}
-    </header>
+            </nav>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+      </header>
+    </Dialog.Root>
   );
 }
