@@ -384,6 +384,7 @@ function tourStructuredData(locale, item, path, title, description) {
 function eventStructuredData(locale, item, path, description) {
   const image = catalogImage(item);
   const numericPrice = String(item.price || "").match(/[\d.,]+/)?.[0]?.replace(",", ".");
+  const completed = isEventCompleted(item);
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -400,7 +401,9 @@ function eventStructuredData(locale, item, path, description) {
         startDate: item.startDate,
         endDate: item.endDate || item.startDate,
         eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-        eventStatus: "https://schema.org/EventScheduled",
+        eventStatus: completed
+          ? "https://schema.org/EventCompleted"
+          : "https://schema.org/EventScheduled",
         url: absoluteUrl(path),
         image: [absoluteUrl(image)],
         location: {
@@ -414,7 +417,7 @@ function eventStructuredData(locale, item, path, description) {
           },
         },
         organizer: { "@id": `${SITE_ORIGIN}/#business` },
-        ...(numericPrice
+        ...(numericPrice && !completed
           ? {
               offers: {
                 "@type": "Offer",
@@ -429,6 +432,23 @@ function eventStructuredData(locale, item, path, description) {
       },
     ],
   };
+}
+
+const localDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/Rome",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/**
+ * Gli eventi valgono per l'intera giornata finale in Sardegna. Confrontare le
+ * sole date locali evita che la build Vercel (UTC) li chiuda alcune ore prima.
+ */
+export function isEventCompleted(item, now = new Date()) {
+  const endDate = String(item?.endDate || item?.startDate || "").slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(endDate)) return false;
+  return endDate < localDateFormatter.format(now);
 }
 
 function finalize(path, locale, seo) {
