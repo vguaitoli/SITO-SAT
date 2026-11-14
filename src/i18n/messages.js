@@ -151,6 +151,13 @@ const en = {
   "Privacy": "Privacy",
   "INFORMATIVA": "PRIVACY",
   "Ultimo aggiornamento:": "Last updated:",
+  "Organizzato da": "Organised by",
+  "In collaborazione con Sardegna Trail Avventura": "In partnership with Sardegna Trail Avventura",
+  "Locandina dell'evento": "Event poster",
+  "Info e prenotazioni": "Information and bookings",
+  "Chiedi informazioni o aderisci": "Ask for information or join",
+  "Massimo 10 partecipanti": "Up to 10 participants",
+  "Il gruppo è di massimo 10 partecipanti.": "The group has a maximum of 10 participants.",
 };
 
 const fr = {
@@ -299,6 +306,13 @@ const fr = {
   "Privacy": "Confidentialité",
   "INFORMATIVA": "POLITIQUE DE",
   "Ultimo aggiornamento:": "Dernière mise à jour :",
+  "Organizzato da": "Organisé par",
+  "In collaborazione con Sardegna Trail Avventura": "En collaboration avec Sardegna Trail Avventura",
+  "Locandina dell'evento": "Affiche de l'événement",
+  "Info e prenotazioni": "Informations et réservations",
+  "Chiedi informazioni o aderisci": "Demandez des informations ou inscrivez-vous",
+  "Massimo 10 partecipanti": "10 participants maximum",
+  "Il gruppo è di massimo 10 partecipanti.": "Le groupe compte 10 participants maximum.",
 };
 
 export const MESSAGES = { it: {}, en, fr };

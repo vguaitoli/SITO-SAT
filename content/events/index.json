@@ -514,6 +514,60 @@
       "equipment": [],
       "stages": [],
       "sourceUrl": ""
+    },
+    {
+      "name": "Capodanno in Quad – Nord Sardegna",
+      "slug": "capodanno-in-quad-nord-sardegna-2026",
+      "updatedAt": "2026-11-14T00:00:00.000Z",
+      "type": "Quad",
+      "duration": "5 Giorni",
+      "distance": "Circa 108 km al giorno",
+      "level": "Facile-Medio",
+      "offroad": "85%",
+      "interest": "Gallura e Monte Acuto: Olbia, Tempio Pausania e Padru",
+      "startLocation": "Olbia",
+      "lunchIncluded": true,
+      "accommodation": "Mezza pensione in hotel e agriturismi selezionati (strutture da confermare)",
+      "period": "30 dicembre 2026 – 3 gennaio 2027",
+      "startDate": "2026-12-30T00:00:00.000Z",
+      "endDate": "2027-01-03T00:00:00.000Z",
+      "price": "",
+      "description": "Cinque giorni in quad tra Gallura e Monte Acuto, da Olbia a Tempio Pausania e Padru. Circa 108 km al giorno, per l'85% in fuoristrada, con una guida esperta e un gruppo di massimo 10 partecipanti. Il percorso è di livello facile-medio.",
+      "programNote": "Ritrovo e rientro a Olbia. Quota, orario, punto esatto di ritrovo e strutture sono ancora da confermare: chiedi i dettagli ai recapiti dell'evento.",
+      "included": [
+        "Mezza pensione in hotel e agriturismi selezionati",
+        "Guida esperta",
+        "Assistenza durante il tour",
+        "Cenone di Capodanno",
+        "Pranzo tipico dal pastore"
+      ],
+      "exclusions": [],
+      "equipment": [
+        "Noleggio del quad disponibile per chi ha già esperienza nella guida del mezzo"
+      ],
+      "stages": [
+        {
+          "title": "30 dicembre – Olbia → Tempio Pausania",
+          "description": "Ritrovo a Olbia e prima tappa in quad fino a Tempio Pausania."
+        },
+        {
+          "title": "31 dicembre – Anello da Tempio Pausania",
+          "description": "Giro ad anello con partenza e arrivo a Tempio Pausania. La sera, cenone di Capodanno."
+        },
+        {
+          "title": "1° gennaio – Tempio Pausania → Padru",
+          "description": "Tappa da Tempio Pausania a Padru."
+        },
+        {
+          "title": "2 gennaio – Anello da Padru",
+          "description": "Giro ad anello con partenza e arrivo a Padru."
+        },
+        {
+          "title": "3 gennaio – Padru → Olbia",
+          "description": "Rientro a Olbia, con pranzo tipico dal pastore a chiusura del tour."
+        }
+      ],
+      "sourceUrl": ""
     }
   ]
 }

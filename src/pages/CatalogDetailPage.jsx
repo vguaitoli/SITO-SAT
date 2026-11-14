@@ -12,6 +12,7 @@ import {
   MapPin,
   MessageCircle,
   Percent,
+  Phone,
   Send,
   ShieldCheck,
   TrendingUp,
@@ -26,6 +27,7 @@ import { typeColors } from "@/components/TourDetails";
 import { HERO_IMAGES } from "@/data/hero-images";
 import { groupFor } from "@/data/group-overrides";
 import { EVENT_PARTNERS } from "@/data/event-partners";
+import { EVENT_POSTERS } from "@/data/event-posters";
 import { useSiteContent } from "@/content/TinaContentProvider";
 import { useI18n } from "@/i18n/I18nProvider";
 
@@ -115,6 +117,8 @@ export default function CatalogDetailPage({ kind }) {
 
   const group = isEvent ? groupFor(item.slug, TOUR_GROUP) : TOUR_GROUP;
   const partner = isEvent ? EVENT_PARTNERS[item.slug] : null;
+  const poster = isEvent ? EVENT_POSTERS[item.slug] : null;
+  const contacts = partner?.contacts || [];
 
   const stats = [
     ...(isEvent ? [{ icon: MapPin, label: t("Partenza"), value: item.partenza }] : []),
@@ -189,7 +193,16 @@ export default function CatalogDetailPage({ kind }) {
                   {item.subtitle}
                 </p>
               )}
-              {partner && (
+              {partner?.role === "organizer" && (
+                <p className="mt-7 border-l-2 border-[var(--accent-soft)] py-1 pl-4 font-button text-[11px] uppercase tracking-[0.2em] text-granite-mist/70">
+                  {t("Organizzato da")}{" "}
+                  <strong className="font-heading text-lg normal-case tracking-normal text-[var(--granite-mist)] sm:text-xl">
+                    {partner.name}
+                  </strong>
+                  <span className="mt-1 block">{t("In collaborazione con Sardegna Trail Avventura")}</span>
+                </p>
+              )}
+              {partner && partner.role !== "organizer" && (
                 <a
                   href={partner.href}
                   target="_blank"
@@ -433,6 +446,65 @@ export default function CatalogDetailPage({ kind }) {
             </div>
           </div>
         </section>
+
+        {(poster || contacts.length > 0) && (
+          <section className="bg-[var(--surface-light)] topo-bg py-20 lg:py-28" aria-labelledby="info-prenotazioni">
+            <div className="mx-auto grid max-w-7xl items-start gap-12 px-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-20 lg:px-8">
+              {poster && (
+                <figure className="mx-auto w-full max-w-md lg:mx-0">
+                  <a href={poster.src} target="_blank" rel="noopener noreferrer" className="block border border-obsidian/15 shadow-xl">
+                    <img
+                      src={poster.src}
+                      alt={t(poster.alt)}
+                      width={poster.width}
+                      height={poster.height}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-auto w-full"
+                    />
+                  </a>
+                  <figcaption className="mt-3 font-button text-[10px] uppercase tracking-[0.17em] text-[var(--text-on-light-muted)]">
+                    {t("Locandina dell'evento")}
+                  </figcaption>
+                </figure>
+              )}
+              {contacts.length > 0 && (
+                <div>
+                  <p className="font-button text-xs uppercase tracking-[0.3em] text-[var(--accent)]">
+                    {t("Info e prenotazioni")}
+                  </p>
+                  <h2 id="info-prenotazioni" className="mt-4 font-heading text-4xl leading-none text-[var(--obsidian)] sm:text-5xl">
+                    {t("Chiedi informazioni o aderisci")}
+                  </h2>
+                  {partner?.role === "organizer" && (
+                    <p className="mt-6 font-body leading-relaxed text-[var(--text-on-light-muted)]">
+                      {t("Organizzato da")} {partner.name}. {t("In collaborazione con Sardegna Trail Avventura")}.
+                    </p>
+                  )}
+                  <ul className="mt-8 space-y-4">
+                    {contacts.map((contact) => (
+                      <li key={contact.phone}>
+                        <a
+                          href={`tel:${contact.phone.replace(/\s+/g, "")}`}
+                          className="flex items-center gap-4 border border-obsidian/15 bg-white/40 px-5 py-4 transition-colors hover:border-[var(--accent)]"
+                        >
+                          <Phone size={20} className="flex-none" style={{ color }} aria-hidden="true" />
+                          <span className="min-w-0">
+                            <span className="block font-heading text-xl leading-tight text-[var(--obsidian)]">
+                              {contact.name}
+                              {contact.person && <span className="font-body text-sm text-[var(--text-on-light-muted)]"> · {contact.person}</span>}
+                            </span>
+                            <span className="mt-1 block font-body text-base text-[var(--text-on-light-muted)]">{contact.phone}</span>
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         <section className="border-t border-granite-mist/10 bg-[var(--obsidian)] pb-24 pt-4 lg:pb-32">
           <div className="mx-auto max-w-5xl px-5 text-center lg:px-8">

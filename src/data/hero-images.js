@@ -60,6 +60,10 @@ export const HERO_IMAGES = {
     src: "/media/reali/4x4-grenadier-polvere-1400.webp",
     alt: "INEOS Grenadier azzurro con i fari accesi su uno sterrato polveroso, tra gli alberi controluce al tramonto",
   },
+  "capodanno-in-quad-nord-sardegna-2026": {
+    src: "/media/reali/carousel-quad-2-1200.webp",
+    alt: "Quad su uno sterrato in quota nel nord della Sardegna, con il mare all'orizzonte sotto un cielo azzurro",
+  },
   "capodanno-2026-sardegna": {
     src: "/media/reali/4x4-discesa-sassosa-1400.webp",
     alt: "Fuoristrada 4x4 in discesa su una pista sassosa, con un secondo mezzo alle spalle e la vallata sullo sfondo",

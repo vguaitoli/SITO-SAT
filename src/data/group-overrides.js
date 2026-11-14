@@ -11,6 +11,10 @@
  * finché Tina Cloud non reindicizza il branch.
  */
 export const GROUP_OVERRIDES = {
+  "capodanno-in-quad-nord-sardegna-2026": {
+    label: "Massimo 10 partecipanti",
+    sentence: "Il gruppo è di massimo 10 partecipanti.",
+  },
   "tour-immacolata-ineos-grenadier-2026": {
     label: "Gruppo contenuto di veicoli",
     sentence: "Il tour è pensato per un gruppo contenuto di veicoli.",
