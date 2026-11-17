@@ -21,3 +21,15 @@ export function whatsappLink(message) {
 // come variabile d'ambiente VITE_WEB3FORMS_ACCESS_KEY su Vercel
 // (Project Settings → Environment Variables), poi fai un redeploy.
 export const WEB3FORMS_ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "";
+
+// Indirizzo dell'Area personale (l'app pubblicata come progetto Vercel separato).
+// VITE_PERSONAL_AREA_URL su Vercel lo sostituisce, per esempio con un dominio dedicato.
+const PERSONAL_AREA_DEFAULT_URL = "https://sta-app-preview.vercel.app/";
+export const PERSONAL_AREA_URL = (() => {
+  try {
+    const url = new URL(import.meta.env.VITE_PERSONAL_AREA_URL || PERSONAL_AREA_DEFAULT_URL);
+    return url.protocol === "https:" && !url.username && !url.password ? url.href : "";
+  } catch {
+    return "";
+  }
+})();

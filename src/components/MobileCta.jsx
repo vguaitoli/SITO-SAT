@@ -30,8 +30,9 @@ export default function MobileCta() {
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-0 z-40 flex gap-px border-t border-[var(--border-on-dark)] bg-obsidian/95 backdrop-blur-md transition-transform duration-300 lg:hidden ${
-        visible ? "translate-y-0" : "translate-y-full"
+      // Sollevata dal bordo: su iPhone la barra di Safari galleggia sopra il fondo della pagina.
+      className={`sopra-barra-browser fixed inset-x-3 z-40 flex gap-px overflow-hidden rounded-md border border-[var(--border-on-dark)] bg-obsidian/95 shadow-[0_10px_30px_rgba(0,0,0,0.45)] backdrop-blur-md transition-[transform,opacity] duration-300 lg:hidden ${
+        visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-[180%] opacity-0"
       }`}
       aria-hidden={!visible}
     >

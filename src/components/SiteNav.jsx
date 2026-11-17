@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, MessageCircle, ArrowRight } from "lucide-react";
+import { Menu, X, MessageCircle, ArrowRight, UserRound } from "lucide-react";
+import { PERSONAL_AREA_URL } from "@/config/site";
 import { CATEGORIE } from "@/data/categorie";
 import { useSiteContent } from "@/content/TinaContentProvider";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -60,7 +61,7 @@ export default function SiteNav() {
               "bg-gradient-to-b from-obsidian via-obsidian/75 to-transparent pb-10 pt-5"
         }`}
       >
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 lg:px-8">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 sm:gap-4 sm:px-5 lg:px-8 2xl:max-w-none">
         <Link to={href("/#hero")} className="flex shrink-0 items-center gap-2 sm:gap-3" aria-label={`${SITE.nome} — home`}>
           <img
             src="/media/logo-sardegna-trail-avventura.png"
@@ -69,7 +70,7 @@ export default function SiteNav() {
             height={62}
             className="h-[40px] w-[40px] shrink-0 object-contain sm:h-[53px] sm:w-[53px] lg:h-[62px] lg:w-[62px]"
           />
-          <span className="block border-l border-[var(--accent)] pl-2 font-button text-[10px] uppercase leading-tight tracking-[0.15em] text-[var(--accent-soft)] sm:pl-3 sm:text-xs sm:tracking-[0.2em]">
+          <span className="block border-l border-[var(--accent)] pl-2 font-button max-[379px]:hidden text-[10px] uppercase leading-tight tracking-[0.15em] text-[var(--accent-soft)] sm:pl-3 sm:text-xs sm:tracking-[0.2em]">
             Sardegna
             <br />
             Trail Avventura
@@ -89,7 +90,17 @@ export default function SiteNav() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
+          {/* Sempre visibile, anche su telefono: l'accesso all'app non sta solo nel menu. */}
+          {PERSONAL_AREA_URL && (
+            <a
+              href={PERSONAL_AREA_URL}
+              className="flex h-10 shrink-0 items-center gap-1 border border-[var(--accent)] px-1.5 font-button text-[10px] uppercase leading-[1.1] tracking-wider text-[var(--accent-soft)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--granite-mist)] sm:gap-2 sm:px-3 sm:text-xs xl:gap-1.5 xl:px-2 xl:text-[10px]"
+            >
+              <UserRound size={16} aria-hidden="true" className="shrink-0" />
+              <span className="block max-w-[4.75rem] sm:max-w-none xl:max-w-[4.25rem]">{t("Area personale")}</span>
+            </a>
+          )}
           <label className="relative">
             <span className="sr-only">{t("Cambia lingua")}</span>
             <select
@@ -137,7 +148,8 @@ export default function SiteNav() {
       {/* Menu mobile */}
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/70 xl:hidden" />
-        <Dialog.Content className="fixed inset-x-0 top-0 z-[70] max-h-[100svh] overflow-y-auto border-b border-oxblood/30 bg-[var(--obsidian)] text-[var(--granite-mist)] outline-none xl:hidden">
+        {/* A tutto schermo e con scorrimento proprio: la pagina sotto resta ferma. */}
+        <Dialog.Content className="fixed inset-0 z-[70] h-[100dvh] overflow-y-auto overscroll-contain bg-[var(--obsidian)] text-[var(--granite-mist)] outline-none [-webkit-overflow-scrolling:touch] xl:hidden">
           <Dialog.Title className="sr-only">{t("Navigazione mobile")}</Dialog.Title>
           <Dialog.Description className="sr-only">
             {t("Scegli una sezione del sito")}
@@ -145,14 +157,23 @@ export default function SiteNav() {
           <Dialog.Close asChild>
             <button
               type="button"
-              className="absolute right-5 top-5 z-20 p-2 text-[var(--granite-mist)] transition-colors hover:text-[var(--accent-soft)]"
+              className="fixed right-5 top-5 z-20 bg-[var(--obsidian)]/80 p-2 text-[var(--granite-mist)] transition-colors hover:text-[var(--accent-soft)]"
               aria-label={t("Chiudi menu")}
             >
               <X size={28} aria-hidden="true" />
             </button>
           </Dialog.Close>
-          <div className="mx-auto max-w-7xl px-5 pb-5 pt-20 lg:px-8">
+          <div className="spazio-barra-browser mx-auto max-w-7xl px-5 pt-20 lg:px-8">
             <nav aria-label={t("Navigazione mobile")} className="flex flex-col">
+            {PERSONAL_AREA_URL && (
+              <a
+                href={PERSONAL_AREA_URL}
+                className="mb-2 flex items-center gap-2 border-b border-[var(--border-on-dark)] py-3.5 font-button text-base text-[var(--accent-soft)]"
+              >
+                <UserRound size={18} aria-hidden="true" />
+                {t("Area personale")}
+              </a>
+            )}
             {navLinks.map((l) => (
               <Link
                 key={l.href}

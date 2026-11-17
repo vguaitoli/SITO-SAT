@@ -305,3 +305,25 @@
     opacity: 0;
   }
 }
+
+/*
+ * Elementi in basso su telefono.
+ * Su iPhone con Safari 26 la barra degli indirizzi galleggia sopra la pagina e
+ * copre ciò che è fissato al bordo inferiore. Con viewport-fit=cover Safari
+ * espone il margine sicuro in env(); dove non lo fa, solo su iOS si tiene
+ * comunque un'altezza minima che scavalca la barra.
+ */
+.sopra-barra-browser {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+}
+.spazio-barra-browser {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
+}
+@supports (-webkit-touch-callout: none) {
+  .sopra-barra-browser {
+    bottom: max(calc(env(safe-area-inset-bottom, 0px) + 0.75rem), 4.75rem);
+  }
+  .spazio-barra-browser {
+    padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 1.5rem), 7rem);
+  }
+}
