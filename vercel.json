@@ -37,6 +37,7 @@
       "source": "/fr/voyages-afrique/:slug",
       "destination": "/_seo/fr/voyages-afrique/:slug.html"
     },
+    { "source": "/feedback", "destination": "/index.html" },
     { "source": "/admin", "destination": "/admin/index.html" },
     { "source": "/privacy", "destination": "/_seo/privacy.html" },
     { "source": "/cookie-policy", "destination": "/_seo/cookie-policy.html" },
